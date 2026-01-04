@@ -1,14 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "webapp",
+  "name": "aichef",
   "compatibility_date": "2026-01-04",
   "pages_build_output_dir": "./dist",
   "compatibility_flags": ["nodejs_compat"],
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "webapp-production",
-      "database_id": "local-dev"
+      "database_name": "aichef-production",
+      "database_id": "633e7128-1cf4-4607-8d22-60b0251a00f2"
     }
   ]
 }
