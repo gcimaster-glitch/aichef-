@@ -196,28 +196,52 @@ webapp/
 
 ## デプロイ
 
-### Cloudflare Pages デプロイ（本番）
+### Cloudflare Pages デプロイ（完了済み）
 
-\`\`\`bash
+✅ **プロジェクト名**: aichef
+✅ **本番URL**: https://aichef-595.pages.dev
+✅ **D1データベース**: aichef-production (ID: 633e7128-1cf4-4607-8d22-60b0251a00f2)
+
+```bash
 # ビルド
 npm run build
 
-# 本番D1データベース作成
-wrangler d1 create webapp-production
-
-# database_idをwrangler.jsonc に設定
-
-# マイグレーション適用
-npm run db:migrate:prod
-
 # デプロイ
-npm run deploy:prod
-\`\`\`
+npx wrangler pages deploy dist --project-name aichef --branch main
+```
+
+### D1データベース管理
+
+```bash
+# 本番DBにスキーマ適用
+npx wrangler d1 execute aichef-production --remote --file=migrations/0001_initial_schema.sql
+
+# 本番DBにデータ投入
+npx wrangler d1 execute aichef-production --remote --file=seed.sql
+npx wrangler d1 execute aichef-production --remote --file=migrations/0003_minimal_recipes.sql
+
+# 本番DBクエリ実行
+npx wrangler d1 execute aichef-production --remote --command="SELECT * FROM recipes"
+```
 
 ## 公開URL
 
-- **開発環境**: https://3000-i2ssbzavhkm9slw3om8jl-2b54fc91.sandbox.novita.ai
-- **本番環境**: （未デプロイ）
+- **本番環境（Cloudflare Pages）**: https://aichef-595.pages.dev
+- **プロジェクト名**: aichef
+- **開発環境（Sandbox）**: https://3000-i2ssbzavhkm9slw3om8jl-2b54fc91.sandbox.novita.ai
+
+### ⚠️ 重要：D1バインディング設定
+
+Cloudflare Pagesでデータベースを有効にするには、以下の設定が必要です：
+
+1. [Cloudflare Dashboard](https://dash.cloudflare.com/) にログイン
+2. **Workers & Pages** → **aichef** を選択
+3. **Settings** タブ → **Functions** セクション
+4. **D1 database bindings** → **Add binding**
+5. 以下を入力：
+   - Variable name: `DB`
+   - D1 database: `aichef-production`
+6. **Save** して再デプロイ
 
 ## ライセンス
 
