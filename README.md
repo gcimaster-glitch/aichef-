@@ -227,8 +227,15 @@ npx wrangler d1 execute aichef-production --remote --command="SELECT * FROM reci
 ## 公開URL
 
 - **本番環境（Cloudflare Pages）**: https://aichef-595.pages.dev
+- **最新デプロイ**: https://857b1178.aichef-595.pages.dev
+- **APIヘルスチェック**: https://857b1178.aichef-595.pages.dev/api/health
 - **プロジェクト名**: aichef
 - **開発環境（Sandbox）**: https://3000-i2ssbzavhkm9slw3om8jl-2b54fc91.sandbox.novita.ai
+
+### デプロイ履歴
+
+- **2026-01-04 17:52** - 初回デプロイ成功（D1バインディング設定完了）
+- **2026-01-04 18:00** - 404エラー修正（HTML インライン化）✅
 
 ### ⚠️ 重要：D1バインディング設定
 
