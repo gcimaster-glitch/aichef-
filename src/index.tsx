@@ -2794,19 +2794,25 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     console.log('取得レシピ数 - main:', mainRecipes.length, 'side:', sideRecipes.length, 'soup:', soupRecipes.length);
     
     // レシピが不足している場合は全体から取得
-    if (mainRecipes.length < 30) {
+    // 30日間で7日間隔を守るには、最低でも50個のレシピが必要
+    const MINIMUM_RECIPES = 50;
+    
+    if (mainRecipes.length < MINIMUM_RECIPES) {
+      console.log('主菜レシピが不足。フィルタを解除して全体から取得します。');
       const fallback = await env.DB.prepare(
         `SELECT * FROM recipes WHERE role='main' ORDER BY popularity DESC, RANDOM()`
       ).all();
       mainRecipes = (fallback.results ?? []) as any[];
     }
-    if (sideRecipes.length < 30) {
+    if (sideRecipes.length < MINIMUM_RECIPES) {
+      console.log('副菜レシピが不足。フィルタを解除して全体から取得します。');
       const fallback = await env.DB.prepare(
         `SELECT * FROM recipes WHERE role='side' ORDER BY popularity DESC, RANDOM()`
       ).all();
       sideRecipes = (fallback.results ?? []) as any[];
     }
-    if (soupRecipes.length < 30) {
+    if (soupRecipes.length < MINIMUM_RECIPES) {
+      console.log('汁物レシピが不足。フィルタを解除して全体から取得します。');
       const fallback = await env.DB.prepare(
         `SELECT * FROM recipes WHERE role='soup' ORDER BY popularity DESC, RANDOM()`
       ).all();
@@ -2836,15 +2842,21 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return shuffled;
     };
     
-    // 直近N日間の重複をチェックして選択
+    // 直近N日間の重複をチェックして選択（厳格版）
     const selectRecipeWithoutRecent = (recipes: any[], recentRecipes: any[], minDays: number = 7) => {
       // 直近minDays日間に使われていないレシピを探す
       const recentIds = recentRecipes.slice(-minDays).map(r => r?.recipe_id);
       const available = recipes.filter(r => !recentIds.includes(r.recipe_id));
       
-      // 利用可能なレシピがない場合は全体からランダムに選択
-      const pool = available.length > 0 ? available : recipes;
-      return pool[Math.floor(Math.random() * pool.length)];
+      // 利用可能なレシピがない場合はエラーログを出力
+      if (available.length === 0) {
+        console.error('警告: 利用可能なレシピが不足しています。レシピ総数:', recipes.length, '直近使用数:', recentIds.length);
+        // それでも選択が必要な場合は、最も古いものから選択
+        const oldestRecipe = recipes.find(r => !recentIds.slice(-Math.floor(minDays / 2)).includes(r.recipe_id));
+        return oldestRecipe || recipes[Math.floor(Math.random() * recipes.length)];
+      }
+      
+      return available[Math.floor(Math.random() * available.length)];
     };
     
     // カレー系のレシピ判定（より厳密に）
@@ -2853,21 +2865,27 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return curryKeywords.some(keyword => recipe.title?.includes(keyword));
     };
     
-    // 同じカテゴリの連続を避ける関数
+    // 同じカテゴリの連続を避ける関数（7日間厳守）
     const avoidSameCategory = (recipes: any[], lastRecipe: any, recentRecipes: any[], minDays: number) => {
       const recentIds = recentRecipes.slice(-minDays).map(r => r?.recipe_id);
       
-      // 直前がカレー系の場合、カレー系を除外
+      // 直近7日間に使われていないレシピ
       let available = recipes.filter(r => !recentIds.includes(r.recipe_id));
+      
+      // 直前がカレー系の場合、カレー系を除外
       if (lastRecipe && isCurryOrStew(lastRecipe)) {
         available = available.filter(r => !isCurryOrStew(r));
       }
       
-      // 利用可能なレシピがない場合は全体から選択（ただしカレー系は除外）
+      // 利用可能なレシピがない場合
       if (available.length === 0) {
-        available = recipes.filter(r => !isCurryOrStew(r));
+        console.error('警告: カテゴリフィルタ後のレシピが不足しています');
+        // 7日間ルールを緩和せず、カレー系だけ除外
+        available = recipes.filter(r => !recentIds.includes(r.recipe_id));
         if (available.length === 0) {
-          available = recipes; // 最終手段
+          // 最終手段：最も古いレシピを選択（ただしカレー系は避ける）
+          const nonCurry = recipes.filter(r => !isCurryOrStew(r));
+          available = nonCurry.length > 0 ? nonCurry : recipes;
         }
       }
       
