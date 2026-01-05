@@ -1061,12 +1061,31 @@ const appHtml = `<!DOCTYPE html>
 
             } catch (error) {
                 console.error('献立生成エラー:', error);
-                console.error('エラー詳細:', error.response?.data || error.message);
+                console.error('エラー詳細:', error.response?.data);
+                console.error('エラーステータス:', error.response?.status);
+                console.error('エラーメッセージ:', error.message);
+                console.error('完全なエラーオブジェクト:', JSON.stringify(error, null, 2));
                 
                 let errorMessage = 'もう一度お試しください';
-                if (error.response?.data?.error?.message) {
-                    errorMessage = error.response.data.error.message;
+                let errorDetails = '';
+                
+                if (error.response) {
+                    // サーバーからのレスポンスがある場合
+                    if (error.response.data?.error?.message) {
+                        errorMessage = error.response.data.error.message;
+                        errorDetails = error.response.data.error.details || '';
+                    } else if (error.response.data?.message) {
+                        errorMessage = error.response.data.message;
+                    } else {
+                        errorMessage = \`サーバーエラー (ステータス: \${error.response.status})\`;
+                        errorDetails = JSON.stringify(error.response.data);
+                    }
+                } else if (error.request) {
+                    // リクエストは送られたがレスポンスがない
+                    errorMessage = 'サーバーに接続できませんでした';
+                    errorDetails = 'ネットワーク接続を確認してください';
                 } else if (error.message) {
+                    // リクエスト設定時のエラー
                     errorMessage = error.message;
                 }
                 
@@ -1074,7 +1093,8 @@ const appHtml = `<!DOCTYPE html>
                     <div class="flex flex-col items-center justify-center py-12">
                         <div class="text-6xl mb-4">😢</div>
                         <h3 class="text-2xl font-bold text-red-600 mb-2">エラーが発生しました</h3>
-                        <p class="text-gray-600 mb-4">\${errorMessage}</p>
+                        <p class="text-gray-600 mb-2">\${errorMessage}</p>
+                        \${errorDetails ? \`<p class="text-sm text-gray-500 mb-4">\${errorDetails}</p>\` : ''}
                         <button onclick="location.reload()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                             最初からやり直す
                         </button>
@@ -2587,21 +2607,32 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   // ========================================
   if (pathname === "/api/plans/generate" && req.method === "POST") {
     try {
+      console.log('献立生成API開始');
       const body = await readJson(req);
+      console.log('リクエストボディ:', JSON.stringify(body, null, 2));
+      
       if (!body.household_id) return badRequest("household_id is required");
 
+    console.log('household_id:', body.household_id);
     const household = await env.DB.prepare(
       `SELECT * FROM households WHERE household_id = ?`
     ).bind(body.household_id).first() as any;
-
+    
+    console.log('household取得結果:', household ? 'あり' : 'なし');
     if (!household) return badRequest("household not found");
 
     const plan_id = uuid();
     const menu_variety = body.menu_variety || 'balanced';
     const supervisor_mode = body.supervisor_mode || 'general';
     
+    console.log('plan_id:', plan_id);
+    console.log('menu_variety:', menu_variety);
+    console.log('supervisor_mode:', supervisor_mode);
+    
     // 期間計算
+    console.log('期間計算開始 - start_date:', household.start_date, 'months:', household.months);
     const period = buildPeriod(household.start_date, household.months);
+    console.log('期間計算完了 - 日数:', period.dates.length);
     
     // 監修者モードに応じたレシピフィルタ
     let supervisorFilter = '';
@@ -2702,8 +2733,10 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     
     // 監修者モードとメニューバラエティを組み合わせる
     const combinedFilter = popularityFilter + ' ' + supervisorFilter + ' ' + timeFilter;
+    console.log('combinedFilter:', combinedFilter);
     
     // 全レシピを人気度順に取得
+    console.log('レシピ取得開始');
     const allMainRecipes = await env.DB.prepare(
       `SELECT * FROM recipes WHERE role='main' ${combinedFilter} ORDER BY popularity DESC, RANDOM()`
     ).all();
@@ -2719,6 +2752,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     let mainRecipes = (allMainRecipes.results ?? []) as any[];
     let sideRecipes = (allSideRecipes.results ?? []) as any[];
     let soupRecipes = (allSoupRecipes.results ?? []) as any[];
+    
+    console.log('取得レシピ数 - main:', mainRecipes.length, 'side:', sideRecipes.length, 'soup:', soupRecipes.length);
     
     // レシピが不足している場合は全体から取得
     if (mainRecipes.length < 30) {
@@ -2856,19 +2891,24 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     }
 
     // 献立履歴を保存
+    console.log('献立履歴を保存開始');
     const history_id = uuid();
     await env.DB.prepare(
       `INSERT INTO plan_history (history_id, household_id, plan_id, title, start_date, months, created_at, is_archived)
        VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0)`
     ).bind(history_id, body.household_id, plan_id, household.title, household.start_date, household.months).run();
+    console.log('献立履歴を保存完了');
 
+    console.log('献立生成完了 - days数:', days.length);
     return json({ plan_id, days }, 201);
     } catch (error) {
       console.error('献立生成エラー:', error);
+      console.error('エラースタック:', error instanceof Error ? error.stack : 'スタックなし');
       return new Response(JSON.stringify({ 
         error: { 
           message: 'サーバー内部エラーが発生しました', 
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
         }
       }), {
         status: 500,
