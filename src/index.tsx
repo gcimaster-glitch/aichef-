@@ -3332,6 +3332,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           primary_protein,
           cost_tier,
           steps_json,
+          substitutes_json,
           tags_json,
           child_friendly_score
         FROM recipes
@@ -3365,16 +3366,10 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           END
       `).bind(recipe_id).all();
       
-      // 代替食材を取得
-      const substitutes = await env.DB.prepare(`
-        SELECT * FROM recipe_substitutes
-        WHERE recipe_id = ?
-      `).bind(recipe_id).all();
-      
       return json({
         ...recipe,
         ingredients: ingredients.results || [],
-        substitutes: substitutes.results || [],
+        substitutes: JSON.parse((recipe as any).substitutes_json || '[]'),
         steps: JSON.parse((recipe as any).steps_json || '[]'),
         tags: JSON.parse((recipe as any).tags_json || '[]')
       });
