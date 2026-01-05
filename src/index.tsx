@@ -1421,6 +1421,9 @@ const appHtml = `<!DOCTYPE html>
             modal.classList.remove('flex');
         }
         
+        // グローバルスコープに公開
+        window.closeAIModal = closeAIModal;
+        
         async function replaceRecipe(planDayId, role, newRecipeId, newRecipeTitle) {
             if (!confirm(\`「\${newRecipeTitle}」に差し替えますか？\`)) {
                 return;
@@ -1446,6 +1449,9 @@ const appHtml = `<!DOCTYPE html>
                 alert('エラーが発生しました');
             }
         }
+        
+        // グローバルスコープに公開
+        window.replaceRecipe = replaceRecipe;
         
         // ========================================
         // 表示切り替え機能
@@ -2329,6 +2335,33 @@ const appHtml = `<!DOCTYPE html>
             
             alert('カレンダーファイルをダウンロードしました！\\n\\nGoogleカレンダーを開いて：\\n1. 設定 → カレンダーをインポート\\n2. ダウンロードしたファイルを選択\\n3. インポート完了！');
         }
+        
+        // ========================================
+        // グローバルスコープに公開（onclick から呼び出すため）
+        // ========================================
+        window.showHistory = showHistory;
+        window.showFavorites = showFavorites;
+        window.toggleCalendarView = toggleCalendarView;
+        window.generateShoppingList = generateShoppingList;
+        window.exportToGoogleCalendar = exportToGoogleCalendar;
+        window.subscribeNewsletter = subscribeNewsletter;
+        window.openContactForm = openContactForm;
+        window.closeContactForm = closeContactForm;
+        window.submitContact = submitContact;
+        window.explainMenu = explainMenu;
+        window.suggestChange = suggestChange;
+        window.showRecipeDetail = showRecipeDetail;
+        window.addToFavorites = addToFavorites;
+        window.removeFromFavorites = removeFromFavorites;
+        window.shareRecipe = shareRecipe;
+        window.copyToClipboard = copyToClipboard;
+        window.closeModal = closeModal;
+        window.closeRecipeModal = closeRecipeModal;
+        window.closeShoppingModal = closeShoppingModal;
+        window.printShoppingList = printShoppingList;
+        window.trackAdClick = trackAdClick;
+        window.loadHistory = loadHistory;
+        window.archiveHistory = archiveHistory;
 
         window.addEventListener('DOMContentLoaded', () => {
             const question = questions[0];
