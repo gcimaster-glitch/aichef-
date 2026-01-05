@@ -273,34 +273,12 @@ const appHtml = `<!DOCTYPE html>
                         </p>
                     </div>
                 </div>
-                <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white/20 to-transparent"></div>
-            </div>
-                        <p class="text-sm md:text-base opacity-90 drop-shadow">
-                            毎日の献立があなたの家族に笑顔を届けます
-                        </p>
-                    </div>
-                </div>
                 <!-- アニメーション装飾 -->
                 <div class="absolute top-4 left-4 animate-bounce" style="animation-delay: 0.2s;">
                     <i class="fas fa-utensils text-white text-2xl opacity-30"></i>
                 </div>
                 <div class="absolute bottom-4 right-4 animate-bounce" style="animation-delay: 0.5s;">
                     <i class="fas fa-heart text-white text-2xl opacity-30"></i>
-                </div>
-            </div>
-            
-            <!-- アニメーションバナー -->
-            <div class="no-print mb-6 relative overflow-hidden rounded-2xl" style="height: 180px;">
-                <div class="absolute inset-0 bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 animate-gradient"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="text-center text-white">
-                        <h2 class="text-4xl font-bold mb-2 animate-fade-in" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                            今日の献立、明日の笑顔
-                        </h2>
-                        <p class="text-lg opacity-90" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
-                            30日分の献立があなたの毎日を彩ります
-                        </p>
-                    </div>
                 </div>
                 <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white/20 to-transparent"></div>
             </div>
