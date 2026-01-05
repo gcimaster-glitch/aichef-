@@ -1644,9 +1644,9 @@ const appHtml = `<!DOCTYPE html>
             const modal = document.getElementById('shopping-modal');
             const content = document.getElementById('shopping-modal-content');
             
-            // 期間情報を取得
-            const periodInfo = data.weeks && data.weeks.length > 0 
-                ? \`\${data.weeks[0].startDate} 〜 \${data.weeks[data.weeks.length - 1].endDate}\`
+            // 期間情報
+            const periodInfo = data.startDate && data.endDate
+                ? \`\${data.startDate} 〜 \${data.endDate}\`
                 : '期間不明';
             
             let html = \`
@@ -1657,11 +1657,16 @@ const appHtml = `<!DOCTYPE html>
                             買い物リスト
                         </h4>
                     </div>
-                    <div class="flex items-center gap-4 text-sm">
+                    <div class="flex items-center gap-4 text-sm flex-wrap">
                         <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
                             <i class="fas fa-calendar-alt text-blue-600"></i>
                             <span class="font-semibold text-gray-700">期間:</span>
                             <span class="text-gray-900">\${periodInfo}</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
+                            <i class="fas fa-hourglass-half text-purple-600"></i>
+                            <span class="font-semibold text-gray-700">日数:</span>
+                            <span class="text-gray-900">\${data.totalDays || 0} 日分</span>
                         </div>
                         <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
                             <i class="fas fa-list text-green-600"></i>
@@ -1673,57 +1678,64 @@ const appHtml = `<!DOCTYPE html>
                         <i class="fas fa-info-circle"></i> この期間の全献立に必要な食材をまとめています
                     </p>
                 </div>
+                
+                <!-- タブ切り替え -->
+                <div class="mb-4">
+                    <div class="flex border-b border-gray-300 overflow-x-auto">
+                        <button onclick="switchShoppingTab('all')" 
+                                id="tab-all"
+                                class="shopping-tab px-4 py-2 font-semibold border-b-2 border-blue-500 text-blue-600">
+                            月全体
+                        </button>
+                        \${(data.weeklyLists || []).map((week, index) => \`
+                            <button onclick="switchShoppingTab('week-\${index}')" 
+                                    id="tab-week-\${index}"
+                                    class="shopping-tab px-4 py-2 font-semibold border-b-2 border-transparent text-gray-600 hover:text-gray-800">
+                                第\${week.weekNumber}週 (\${week.totalItems}品)
+                            </button>
+                        \`).join('')}
+                    </div>
+                </div>
+                
+                <!-- 月全体の買い物リスト -->
+                <div id="content-all" class="shopping-content">
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded mb-4">
+                        <p class="text-sm text-gray-700">
+                            <i class="fas fa-lightbulb text-yellow-600"></i>
+                            <strong>月まとめ買い推奨:</strong> 調味料や保存のきく食材は月初めに一括購入がお得です
+                        </p>
+                    </div>
+                    \${renderShoppingList(data.shoppingList)}
+                </div>
+                
+                <!-- 週ごとの買い物リスト -->
+                \${(data.weeklyLists || []).map((week, index) => \`
+                    <div id="content-week-\${index}" class="shopping-content hidden">
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h5 class="font-bold text-lg text-gray-800">
+                                    <i class="fas fa-calendar-week text-blue-600"></i>
+                                    第\${week.weekNumber}週の買い物
+                                </h5>
+                                <span class="text-sm text-gray-600">\${week.totalItems} 品目</span>
+                            </div>
+                            <p class="text-sm text-gray-700">
+                                <i class="fas fa-calendar-alt text-blue-600"></i>
+                                期間: <strong>\${week.startDate} 〜 \${week.endDate}</strong>
+                            </p>
+                        </div>
+                        \${renderShoppingList(week.shoppingList)}
+                    </div>
+                \`).join('')}
             \`;
             
-            // カテゴリ別に表示
-            const categories = Object.keys(data.shoppingList).sort();
-            
-            categories.forEach(category => {
-                const items = data.shoppingList[category];
-                
-                html += \`
-                    <div class="mb-6">
-                        <h5 class="font-bold text-md mb-3 pb-2 border-b border-gray-300 flex items-center gap-2">
-                            <span class="text-xl">\${getCategoryIcon(category)}</span>
-                            <span>\${category}</span>
-                            <span class="text-sm text-gray-500">（\${items.length}品）</span>
-                        </h5>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            \${items.map(item => \`
-                                <div class="flex items-center p-2 bg-gray-50 rounded">
-                                    <input type="checkbox" class="mr-3 w-4 h-4">
-                                    <span class="flex-1">\${item.name}</span>
-                                    <span class="text-sm text-gray-600 ml-2">\${item.quantity}\${item.unit}</span>
-                                </div>
-                            \`).join('')}
-                        </div>
-                    </div>
-                \`;
-            });
-            
-            // 週ごとの情報を表示
-            if (data.weeks && data.weeks.length > 0) {
-                html += \`
-                    <div class="mt-6 p-4 bg-green-50 rounded-lg">
-                        <h5 class="font-bold text-md mb-2">📅 週ごとの買い物スケジュール</h5>
-                        <div class="space-y-2">
-                            \${data.weeks.map(week => \`
-                                <div class="text-sm">
-                                    <strong>第\${week.weekNumber}週</strong>: \${week.startDate} 〜 \${week.endDate}
-                                </div>
-                            \`).join('')}
-                        </div>
-                    </div>
-                \`;
-            }
-            
             html += \`
-                <div class="mt-6 flex gap-2 justify-end">
-                    <button onclick="printShoppingList()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                <div class="mt-6 flex gap-2 justify-end print:hidden">
+                    <button onclick="printShoppingList()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
                         <i class="fas fa-print"></i> 印刷
                     </button>
-                    <button onclick="closeShoppingModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
-                        閉じる
+                    <button onclick="closeShoppingModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                        <i class="fas fa-times"></i> 閉じる
                     </button>
                 </div>
             \`;
@@ -1731,6 +1743,58 @@ const appHtml = `<!DOCTYPE html>
             content.innerHTML = html;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+        }
+        
+        function renderShoppingList(shoppingList) {
+            const categories = Object.keys(shoppingList).sort();
+            
+            return categories.map(category => {
+                const items = shoppingList[category];
+                
+                return \`
+                    <div class="mb-6">
+                        <h5 class="font-bold text-md mb-3 pb-2 border-b-2 border-gray-300 flex items-center gap-2">
+                            <span class="text-2xl">\${getCategoryIcon(category)}</span>
+                            <span>\${category}</span>
+                            <span class="text-sm text-gray-500 font-normal">（\${items.length}品）</span>
+                        </h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            \${items.map(item => \`
+                                <div class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+                                    <input type="checkbox" class="mr-3 w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                                    <span class="flex-1 font-medium text-gray-800">\${item.name}</span>
+                                    <span class="text-sm font-semibold text-blue-600 ml-2 bg-blue-50 px-2 py-1 rounded">
+                                        \${item.quantity}\${item.unit}
+                                    </span>
+                                </div>
+                            \`).join('')}
+                        </div>
+                    </div>
+                \`;
+            }).join('');
+        }
+        
+        function switchShoppingTab(tabId) {
+            // すべてのタブとコンテンツを非表示
+            document.querySelectorAll('.shopping-tab').forEach(tab => {
+                tab.classList.remove('border-blue-500', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-600');
+            });
+            document.querySelectorAll('.shopping-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // 選択されたタブとコンテンツを表示
+            const selectedTab = document.getElementById(\`tab-\${tabId}\`);
+            const selectedContent = document.getElementById(\`content-\${tabId}\`);
+            
+            if (selectedTab) {
+                selectedTab.classList.add('border-blue-500', 'text-blue-600');
+                selectedTab.classList.remove('border-transparent', 'text-gray-600');
+            }
+            if (selectedContent) {
+                selectedContent.classList.remove('hidden');
+            }
         }
         
         function getCategoryIcon(category) {
@@ -1777,6 +1841,11 @@ const appHtml = `<!DOCTYPE html>
             try {
                 const res = await axios.get(\`/api/recipes/\${recipeId}\`);
                 const recipe = res.data;
+                
+                // JSON文字列をパース
+                recipe.steps = recipe.steps_json ? JSON.parse(recipe.steps_json) : [];
+                recipe.tags = recipe.tags_json ? JSON.parse(recipe.tags_json) : [];
+                recipe.substitutes = recipe.substitutes_json ? JSON.parse(recipe.substitutes_json) : [];
                 
                 // 難易度の表示
                 const difficultyMap = {
@@ -1891,6 +1960,47 @@ const appHtml = `<!DOCTYPE html>
                                 </div>
                             </div>
                         \` : ''}
+                        
+                        <!-- 外部レシピリンク -->
+                        <div>
+                            <h4 class="text-lg font-bold mb-3 flex items-center gap-2">
+                                <i class="fas fa-external-link-alt text-indigo-600"></i>
+                                もっと詳しいレシピを探す
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <a href="https://cookpad.com/search/\${encodeURIComponent(recipe.title)}" 
+                                   target="_blank" rel="noopener noreferrer"
+                                   class="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg hover:from-orange-500 hover:to-orange-600 transition shadow-md">
+                                    <i class="fas fa-book text-2xl"></i>
+                                    <div>
+                                        <div class="font-bold">クックパッド</div>
+                                        <div class="text-xs opacity-90">300万品以上のレシピ</div>
+                                    </div>
+                                </a>
+                                <a href="https://www.kurashiru.com/search?query=\${encodeURIComponent(recipe.title)}" 
+                                   target="_blank" rel="noopener noreferrer"
+                                   class="flex items-center gap-3 p-4 bg-gradient-to-r from-red-400 to-red-500 text-white rounded-lg hover:from-red-500 hover:to-red-600 transition shadow-md">
+                                    <i class="fas fa-video text-2xl"></i>
+                                    <div>
+                                        <div class="font-bold">クラシル</div>
+                                        <div class="text-xs opacity-90">動画でわかりやすい</div>
+                                    </div>
+                                </a>
+                                <a href="https://delishkitchen.tv/search?q=\${encodeURIComponent(recipe.title)}" 
+                                   target="_blank" rel="noopener noreferrer"
+                                   class="flex items-center gap-3 p-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-lg hover:from-pink-500 hover:to-pink-600 transition shadow-md">
+                                    <i class="fas fa-heart text-2xl"></i>
+                                    <div>
+                                        <div class="font-bold">デリッシュキッチン</div>
+                                        <div class="text-xs opacity-90">簡単で美味しい</div>
+                                    </div>
+                                </a>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2 text-center">
+                                <i class="fas fa-info-circle"></i> 
+                                各サイトで「\${recipe.title}」の詳しいレシピや作り方動画をご覧いただけます
+                            </p>
+                        </div>
                         
                         <!-- アクションボタン -->
                         <div class="flex gap-2 pt-4 border-t">
@@ -2372,6 +2482,10 @@ const appHtml = `<!DOCTYPE html>
         window.handleDragLeave = handleDragLeave;
         window.handleDrop = handleDrop;
         window.handleDragEnd = handleDragEnd;
+        
+        // 買い物リスト用のグローバル関数
+        window.switchShoppingTab = switchShoppingTab;
+        window.renderShoppingList = renderShoppingList;
 
         window.addEventListener('DOMContentLoaded', () => {
             const question = questions[0];
@@ -3482,8 +3596,98 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         });
       }
       
-      // レシピの食材を集計
-      const ingredientMap: Record<string, {
+      // 週ごとに食材を集計
+      const weeklyShoppingLists = [];
+      const daysArray = planDays.results as any[];
+      
+      for (let weekIndex = 0; weekIndex < daysArray.length; weekIndex += 7) {
+        const weekDays = daysArray.slice(weekIndex, weekIndex + 7);
+        
+        // この週のレシピIDを収集
+        const weekRecipeIds: string[] = [];
+        for (const day of weekDays) {
+          const recipes = await env.DB.prepare(`
+            SELECT recipe_id
+            FROM meal_plan_day_recipes
+            WHERE plan_day_id = ?
+          `).bind(day.plan_day_id).all();
+          
+          (recipes.results || []).forEach((r: any) => {
+            weekRecipeIds.push(r.recipe_id);
+          });
+        }
+        
+        // この週の食材を集計
+        const weekIngredientMap: Record<string, {
+          name: string;
+          category: string;
+          quantity: number;
+          unit: string;
+        }> = {};
+        
+        for (const recipeId of weekRecipeIds) {
+          const ingredients = await env.DB.prepare(`
+            SELECT 
+              i.ingredient_id,
+              i.name,
+              i.category,
+              ri.quantity,
+              ri.unit
+            FROM recipe_ingredients ri
+            JOIN ingredients i ON ri.ingredient_id = i.ingredient_id
+            WHERE ri.recipe_id = ?
+          `).bind(recipeId).all();
+          
+          (ingredients.results || []).forEach((ing: any) => {
+            const key = ing.ingredient_id;
+            if (weekIngredientMap[key]) {
+              weekIngredientMap[key].quantity += ing.quantity;
+            } else {
+              weekIngredientMap[key] = {
+                name: ing.name,
+                category: ing.category,
+                quantity: ing.quantity,
+                unit: ing.unit
+              };
+            }
+          });
+        }
+        
+        // カテゴリ別に整理
+        const categoryNames: Record<string, string> = {
+          'vegetables': '野菜',
+          'meat_fish': '肉・魚',
+          'dairy_eggs': '卵・乳製品',
+          'tofu_beans': '豆腐・豆類',
+          'seasonings': '調味料',
+          'others': 'その他'
+        };
+        
+        const weekShoppingList: Record<string, any[]> = {};
+        
+        Object.values(weekIngredientMap).forEach((ing: any) => {
+          const categoryJa = categoryNames[ing.category] || 'その他';
+          if (!weekShoppingList[categoryJa]) {
+            weekShoppingList[categoryJa] = [];
+          }
+          weekShoppingList[categoryJa].push({
+            name: ing.name,
+            quantity: Math.ceil(ing.quantity),
+            unit: ing.unit
+          });
+        });
+        
+        weeklyShoppingLists.push({
+          weekNumber: Math.floor(weekIndex / 7) + 1,
+          startDate: weekDays[0].date,
+          endDate: weekDays[weekDays.length - 1].date,
+          totalItems: Object.values(weekIngredientMap).length,
+          shoppingList: weekShoppingList
+        });
+      }
+      
+      // 全体の集計（月全体）
+      const allIngredientMap: Record<string, {
         name: string;
         category: string;
         quantity: number;
@@ -3505,11 +3709,10 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         
         (ingredients.results || []).forEach((ing: any) => {
           const key = ing.ingredient_id;
-          if (ingredientMap[key]) {
-            // 同じ食材を合算
-            ingredientMap[key].quantity += ing.quantity;
+          if (allIngredientMap[key]) {
+            allIngredientMap[key].quantity += ing.quantity;
           } else {
-            ingredientMap[key] = {
+            allIngredientMap[key] = {
               name: ing.name,
               category: ing.category,
               quantity: ing.quantity,
@@ -3519,7 +3722,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         });
       }
       
-      // カテゴリ別に整理
+      // カテゴリ別に整理（全体）
       const categoryNames: Record<string, string> = {
         'vegetables': '野菜',
         'meat_fish': '肉・魚',
@@ -3529,37 +3732,28 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         'others': 'その他'
       };
       
-      const shoppingList: Record<string, any[]> = {};
+      const allShoppingList: Record<string, any[]> = {};
       
-      Object.values(ingredientMap).forEach((ing: any) => {
+      Object.values(allIngredientMap).forEach((ing: any) => {
         const categoryJa = categoryNames[ing.category] || 'その他';
-        if (!shoppingList[categoryJa]) {
-          shoppingList[categoryJa] = [];
+        if (!allShoppingList[categoryJa]) {
+          allShoppingList[categoryJa] = [];
         }
-        shoppingList[categoryJa].push({
+        allShoppingList[categoryJa].push({
           name: ing.name,
-          quantity: Math.ceil(ing.quantity), // 切り上げ
+          quantity: Math.ceil(ing.quantity),
           unit: ing.unit
         });
       });
       
-      // 週ごとに分割（7日間ずつ）
-      const weeks = [];
-      const daysArray = planDays.results as any[];
-      for (let i = 0; i < daysArray.length; i += 7) {
-        const weekDays = daysArray.slice(i, i + 7);
-        weeks.push({
-          weekNumber: Math.floor(i / 7) + 1,
-          startDate: weekDays[0].date,
-          endDate: weekDays[weekDays.length - 1].date
-        });
-      }
-      
       return json({
         plan_id,
-        weeks,
-        totalItems: Object.values(ingredientMap).length,
-        shoppingList
+        startDate: daysArray[0].date,
+        endDate: daysArray[daysArray.length - 1].date,
+        totalDays: daysArray.length,
+        totalItems: Object.values(allIngredientMap).length,
+        shoppingList: allShoppingList,
+        weeklyLists: weeklyShoppingLists
       });
     } catch (error: any) {
       console.error('Shopping list generation error:', error);
