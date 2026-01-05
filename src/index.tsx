@@ -109,6 +109,83 @@ const appHtml = `<!DOCTYPE html>
         .badge-main { background-color: #ef4444; }
         .badge-side { background-color: #10b981; }
         .badge-soup { background-color: #3b82f6; }
+        
+        /* 月表示カレンダー用スタイル */
+        .calendar-grid-month {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background-color: #e5e7eb;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .calendar-header {
+            background-color: #f3f4f6;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .calendar-day-cell {
+            background-color: white;
+            padding: 8px;
+            min-height: 120px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .calendar-day-cell:hover {
+            background-color: #f9fafb;
+        }
+        
+        .calendar-day-empty {
+            background-color: #f9fafb;
+            padding: 8px;
+            min-height: 120px;
+        }
+        
+        .calendar-day-number {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #374151;
+        }
+        
+        .calendar-day-content {
+            font-size: 11px;
+            color: #6b7280;
+        }
+        
+        .calendar-day-actions {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .calendar-day-cell:hover .calendar-day-actions {
+            opacity: 1;
+        }
+        
+        .calendar-btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+        
+        .calendar-btn:hover {
+            background-color: #2563eb;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -141,10 +218,24 @@ const appHtml = `<!DOCTYPE html>
                     <i class="fas fa-calendar-alt mr-2"></i>
                     1ヶ月分の献立
                 </h2>
-                <button onclick="window.print()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center gap-2">
-                    <i class="fas fa-print"></i>
-                    印刷する
-                </button>
+                <div class="flex gap-2 flex-wrap">
+                    <button onclick="toggleCalendarView()" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-2 text-sm">
+                        <i class="fas fa-calendar"></i>
+                        <span id="view-toggle-text">月表示</span>
+                    </button>
+                    <button onclick="generateShoppingList()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-2 text-sm">
+                        <i class="fas fa-shopping-cart"></i>
+                        買い物リスト
+                    </button>
+                    <button onclick="exportToGoogleCalendar()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2 text-sm">
+                        <i class="fab fa-google"></i>
+                        カレンダー連携
+                    </button>
+                    <button onclick="window.print()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center gap-2">
+                        <i class="fas fa-print"></i>
+                        印刷する
+                    </button>
+                </div>
             </div>
             
             <div id="print-title" class="hidden print:block text-center mb-4">
@@ -793,7 +884,11 @@ const appHtml = `<!DOCTYPE html>
             }
         }
 
+        let currentViewMode = 'grid'; // 'grid' or 'calendar'
+        let calendarData = [];
+        
         function showCalendar(days) {
+            calendarData = days; // データを保存
             calendarContainerEl.classList.remove('hidden');
             
             // 印刷用のタイトル設定
@@ -1128,6 +1223,229 @@ const appHtml = `<!DOCTYPE html>
                 console.error(error);
                 alert('エラーが発生しました');
             }
+        }
+        
+        // ========================================
+        // 表示切り替え機能
+        // ========================================
+        function toggleCalendarView() {
+            currentViewMode = currentViewMode === 'grid' ? 'calendar' : 'grid';
+            const toggleText = document.getElementById('view-toggle-text');
+            
+            if (currentViewMode === 'calendar') {
+                toggleText.textContent = 'リスト表示';
+                renderCalendarView(calendarData);
+            } else {
+                toggleText.textContent = '月表示';
+                renderGridView(calendarData);
+            }
+        }
+        
+        function renderCalendarView(days) {
+            if (days.length === 0) return;
+            
+            const startDate = new Date(days[0].date);
+            const endDate = new Date(days[days.length - 1].date);
+            
+            let html = '<div class="calendar-month-view">';
+            
+            // 月ごとに分割
+            let currentMonth = startDate.getMonth();
+            let currentYear = startDate.getFullYear();
+            let monthDays = [];
+            
+            for (const day of days) {
+                const dayDate = new Date(day.date);
+                if (dayDate.getMonth() !== currentMonth || dayDate.getFullYear() !== currentYear) {
+                    html += renderMonth(currentYear, currentMonth, monthDays);
+                    monthDays = [];
+                    currentMonth = dayDate.getMonth();
+                    currentYear = dayDate.getFullYear();
+                }
+                monthDays.push(day);
+            }
+            
+            // 最後の月
+            if (monthDays.length > 0) {
+                html += renderMonth(currentYear, currentMonth, monthDays);
+            }
+            
+            html += '</div>';
+            calendarContentEl.innerHTML = html;
+        }
+        
+        function renderMonth(year, month, days) {
+            const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay();
+            
+            let html = \`
+                <div class="calendar-month mb-8">
+                    <h3 class="text-2xl font-bold mb-4">\${year}年 \${monthNames[month]}</h3>
+                    <div class="calendar-grid-month">
+                        <div class="calendar-header">日</div>
+                        <div class="calendar-header">月</div>
+                        <div class="calendar-header">火</div>
+                        <div class="calendar-header">水</div>
+                        <div class="calendar-header">木</div>
+                        <div class="calendar-header">金</div>
+                        <div class="calendar-header">土</div>
+            \`;
+            
+            // 空白セル（月の最初の日より前）
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div class="calendar-day-empty"></div>';
+            }
+            
+            // 日付セル
+            const dayMap = {};
+            days.forEach(day => {
+                const date = new Date(day.date);
+                dayMap[date.getDate()] = day;
+            });
+            
+            for (let date = 1; date <= daysInMonth; date++) {
+                const day = dayMap[date];
+                
+                if (day) {
+                    const recipes = day.recipes || [];
+                    const main = recipes.find(r => r.role === 'main');
+                    const side = recipes.find(r => r.role === 'side');
+                    const soup = recipes.find(r => r.role === 'soup');
+                    
+                    html += \`
+                        <div class="calendar-day-cell" data-plan-day-id="\${day.plan_day_id}" data-date="\${day.date}">
+                            <div class="calendar-day-number">\${date}</div>
+                            <div class="calendar-day-content">
+                                \${main ? \`<div class="text-xs truncate">🍖 \${main.title}</div>\` : ''}
+                                \${side ? \`<div class="text-xs truncate">🥗 \${side.title}</div>\` : ''}
+                                \${soup ? \`<div class="text-xs truncate">🍲 \${soup.title}</div>\` : ''}
+                            </div>
+                            <div class="calendar-day-actions no-print">
+                                <button onclick="explainMenu('\${day.plan_day_id}', '\${day.date}')" class="calendar-btn">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button onclick="suggestChange('\${day.plan_day_id}', '\${day.date}')" class="calendar-btn">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    \`;
+                } else {
+                    html += \`<div class="calendar-day-empty">\${date}</div>\`;
+                }
+            }
+            
+            html += '</div></div>';
+            return html;
+        }
+        
+        function renderGridView(days) {
+            // 元のグリッド表示に戻す
+            let html = '';
+            
+            for (let i = 0; i < days.length; i += 10) {
+                const chunk = days.slice(i, i + 10);
+                const pageBreakClass = (i + 10 < days.length) ? 'page-break-after-10' : '';
+                
+                html += \`<div class="calendar-page \${pageBreakClass}">\`;
+                html += '<div class="calendar-grid">';
+                
+                chunk.forEach(day => {
+                    const recipes = day.recipes || [];
+                    const main = recipes.find(r => r.role === 'main');
+                    const side = recipes.find(r => r.role === 'side');
+                    const soup = recipes.find(r => r.role === 'soup');
+                    
+                    const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(day.date).getDay()];
+
+                    html += \`
+                        <div class="day-card" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
+                            <div class="day-date text-lg font-bold text-gray-800 mb-3 border-b pb-2">
+                                \${day.date} (\${dayOfWeek})
+                            </div>
+                            <div class="space-y-2 text-sm">
+                                \${main ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> \${main.title}</span></div>\` : ''}
+                                \${side ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-side mt-1"></span><span class="flex-1"><span class="font-semibold text-green-600">副菜:</span> \${side.title}</span></div>\` : ''}
+                                \${soup ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-soup mt-1"></span><span class="flex-1"><span class="font-semibold text-blue-600">汁物:</span> \${soup.title}</span></div>\` : ''}
+                            </div>
+                            <div class="mt-3 text-xs text-gray-500 border-t pt-2">
+                                <i class="far fa-clock"></i> 約\${day.estimated_time_min}分
+                            </div>
+                            <div class="mt-3 flex gap-2 no-print">
+                                <button onclick="explainMenu('\${day.plan_day_id || ''}', '\${day.date}')" class="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-xs font-medium transition-colors">
+                                    <i class="fas fa-comment-dots"></i> なぜこの献立？
+                                </button>
+                                <button onclick="suggestChange('\${day.plan_day_id || ''}', '\${day.date}')" class="flex-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-xs font-medium transition-colors">
+                                    <i class="fas fa-sync-alt"></i> 変更する
+                                </button>
+                            </div>
+                        </div>
+                    \`;
+                });
+                
+                html += '</div></div>';
+            }
+            
+            calendarContentEl.innerHTML = html;
+        }
+        
+        // ========================================
+        // 買い物リスト生成
+        // ========================================
+        function generateShoppingList() {
+            alert('買い物リスト機能は開発中です！\\n\\n近日公開予定：\\n・週ごとの食材リスト\\n・カテゴリ別表示\\n・PDF出力');
+        }
+        
+        // ========================================
+        // Googleカレンダー連携
+        // ========================================
+        function exportToGoogleCalendar() {
+            if (calendarData.length === 0) {
+                alert('献立データがありません');
+                return;
+            }
+            
+            // .icsファイルを生成
+            let icsContent = 'BEGIN:VCALENDAR\\nVERSION:2.0\\nPRODID:-//Aメニュー//献立カレンダー//JP\\n';
+            
+            calendarData.forEach(day => {
+                const recipes = day.recipes || [];
+                const main = recipes.find(r => r.role === 'main');
+                const side = recipes.find(r => r.role === 'side');
+                const soup = recipes.find(r => r.role === 'soup');
+                
+                const title = \`🍽️ 今日の献立\`;
+                const description = [
+                    main ? \`主菜: \${main.title}\` : '',
+                    side ? \`副菜: \${side.title}\` : '',
+                    soup ? \`汁物: \${soup.title}\` : ''
+                ].filter(Boolean).join('\\\\n');
+                
+                const dateStr = day.date.replace(/-/g, '');
+                
+                icsContent += \`BEGIN:VEVENT\\n\`;
+                icsContent += \`UID:\${day.plan_day_id || Date.now()}@aichef.com\\n\`;
+                icsContent += \`DTSTAMP:\${dateStr}T180000Z\\n\`;
+                icsContent += \`DTSTART:\${dateStr}T180000Z\\n\`;
+                icsContent += \`DTEND:\${dateStr}T190000Z\\n\`;
+                icsContent += \`SUMMARY:\${title}\\n\`;
+                icsContent += \`DESCRIPTION:\${description}\\n\`;
+                icsContent += \`END:VEVENT\\n\`;
+            });
+            
+            icsContent += 'END:VCALENDAR';
+            
+            // ダウンロード
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'aichef-kondate.ics';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert('カレンダーファイルをダウンロードしました！\\n\\nGoogleカレンダーを開いて：\\n1. 設定 → カレンダーをインポート\\n2. ダウンロードしたファイルを選択\\n3. インポート完了！');
         }
 
         window.addEventListener('DOMContentLoaded', () => {
