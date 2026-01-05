@@ -3523,6 +3523,156 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   }
 
   // ========================================
+  // /admin：管理画面を返す
+  // ========================================
+  if (pathname === "/admin" || pathname === "/admin/") {
+    // admin.htmlの内容を読み込んで返す
+    // 本番環境では静的ファイルとして配信
+    return new Response("", {
+      status: 302,
+      headers: {
+        'Location': '/admin.html'
+      }
+    });
+  }
+  
+  // ========================================
+  // 管理画面API
+  // ========================================
+  
+  // GET /api/admin/stats - ダッシュボード統計
+  if (pathname === "/api/admin/stats" && req.method === "GET") {
+    try {
+      // 総ユーザー数
+      const totalUsersRes = await env.DB.prepare(
+        `SELECT COUNT(*) as count FROM households`
+      ).first();
+      const totalUsers = totalUsersRes?.count || 0;
+      
+      // 総献立数
+      const totalPlansRes = await env.DB.prepare(
+        `SELECT COUNT(*) as count FROM meal_plans`
+      ).first();
+      const totalPlans = totalPlansRes?.count || 0;
+      
+      // 今日のアクセス数
+      const todayAccess = 0; // TODO: アクセスログから集計
+      
+      // アクティブユーザー数（過去7日間に献立を作成したユーザー）
+      const activeUsersRes = await env.DB.prepare(`
+        SELECT COUNT(DISTINCT household_id) as count 
+        FROM meal_plans 
+        WHERE created_at >= date('now', '-7 days')
+      `).first();
+      const activeUsers = activeUsersRes?.count || 0;
+      
+      // メルマガ登録数
+      const newsletterRes = await env.DB.prepare(
+        `SELECT COUNT(*) as count FROM newsletter_subscribers WHERE status = 'active'`
+      ).first();
+      const newsletter = newsletterRes?.count || 0;
+      
+      // ユーザー成長率（今月vs先月）
+      const usersGrowth = 12; // TODO: 実際の計算
+      const plansGrowth = 8; // TODO: 実際の計算
+      const openRate = 45; // TODO: メール開封率の計算
+      
+      return json({
+        totalUsers,
+        totalPlans,
+        todayAccess,
+        activeUsers,
+        newsletter,
+        usersGrowth,
+        plansGrowth,
+        openRate,
+        recentActivities: []
+      });
+    } catch (error: any) {
+      console.error('Admin stats error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // GET /api/admin/users - ユーザー一覧
+  if (pathname === "/api/admin/users" && req.method === "GET") {
+    try {
+      const users = await env.DB.prepare(`
+        SELECT 
+          h.household_id,
+          h.title,
+          h.members_count,
+          h.created_at,
+          COUNT(DISTINCT mp.plan_id) as plan_count
+        FROM households h
+        LEFT JOIN meal_plans mp ON h.household_id = mp.household_id
+        GROUP BY h.household_id
+        ORDER BY h.created_at DESC
+        LIMIT 100
+      `).all();
+      
+      return json({ users: users.results || [] });
+    } catch (error: any) {
+      console.error('Admin users error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // GET /api/admin/campaigns - メールキャンペーン一覧
+  if (pathname === "/api/admin/campaigns" && req.method === "GET") {
+    try {
+      const campaigns = await env.DB.prepare(`
+        SELECT * FROM email_campaigns 
+        ORDER BY created_at DESC 
+        LIMIT 50
+      `).all();
+      
+      return json({ campaigns: campaigns.results || [] });
+    } catch (error: any) {
+      console.error('Admin campaigns error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // GET /api/admin/analytics - アクセス解析
+  if (pathname === "/api/admin/analytics" && req.method === "GET") {
+    try {
+      const url = new URL(req.url);
+      const period = parseInt(url.searchParams.get('period') || '30');
+      
+      const logs = await env.DB.prepare(`
+        SELECT * FROM access_logs 
+        WHERE created_at >= date('now', '-${period} days')
+        ORDER BY created_at DESC 
+        LIMIT 1000
+      `).all();
+      
+      return json({ logs: logs.results || [] });
+    } catch (error: any) {
+      console.error('Admin analytics error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // GET /api/admin/ads - 広告一覧
+  if (pathname === "/api/admin/ads" && req.method === "GET") {
+    try {
+      const ads = await env.DB.prepare(`
+        SELECT ac.*, COUNT(DISTINCT ai.impression_id) as impressions
+        FROM ad_contents ac
+        LEFT JOIN ad_impressions ai ON ac.ad_id = ai.ad_id
+        GROUP BY ac.ad_id
+        ORDER BY ac.created_at DESC
+      `).all();
+      
+      return json({ ads: ads.results || [] });
+    } catch (error: any) {
+      console.error('Admin ads error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // ========================================
   // ルートパス：ランディングページを返す
   // ========================================
   if (pathname === "/" || pathname === "/index.html") {

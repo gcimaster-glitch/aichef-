@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aメニュー管理画面</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .sidebar-link {
+            @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-colors;
+        }
+        .sidebar-link:hover {
+            @apply bg-blue-50 text-blue-600;
+        }
+        .sidebar-link.active {
+            @apply bg-blue-500 text-white;
+        }
+        .stat-card {
+            @apply bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow;
+        }
+        .table-container {
+            @apply bg-white rounded-lg shadow-md overflow-hidden;
+        }
+        .btn-primary {
+            @apply px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition;
+        }
+        .btn-secondary {
+            @apply px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition;
+        }
+        .btn-danger {
+            @apply px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition;
+        }
+        .btn-success {
+            @apply px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- ログイン画面 -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-8">
+                <i class="fas fa-shield-alt text-6xl text-blue-500 mb-4"></i>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">管理画面</h1>
+                <p class="text-gray-600">Aメニュー Admin</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
+                    <input type="email" id="admin-email" 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="admin@aichef.com">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">パスワード</label>
+                    <input type="password" id="admin-password" 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="••••••••">
+                </div>
+                
+                <button onclick="login()" class="w-full btn-primary py-3 text-lg">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    ログイン
+                </button>
+                
+                <p id="login-error" class="text-red-500 text-sm text-center hidden"></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 管理画面メイン -->
+    <div id="admin-main" class="hidden min-h-screen flex">
+        <!-- サイドバー -->
+        <aside class="w-64 bg-white shadow-lg">
+            <div class="p-6 border-b">
+                <h1 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-utensils text-blue-500 mr-2"></i>
+                    Aメニュー
+                </h1>
+                <p class="text-sm text-gray-500">管理画面</p>
+            </div>
+            
+            <nav class="p-4 space-y-2">
+                <a href="#dashboard" onclick="showPage('dashboard')" class="sidebar-link active" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt text-xl"></i>
+                    <span>ダッシュボード</span>
+                </a>
+                <a href="#users" onclick="showPage('users')" class="sidebar-link" data-page="users">
+                    <i class="fas fa-users text-xl"></i>
+                    <span>ユーザー管理</span>
+                </a>
+                <a href="#campaigns" onclick="showPage('campaigns')" class="sidebar-link" data-page="campaigns">
+                    <i class="fas fa-envelope text-xl"></i>
+                    <span>メール配信</span>
+                </a>
+                <a href="#analytics" onclick="showPage('analytics')" class="sidebar-link" data-page="analytics">
+                    <i class="fas fa-chart-line text-xl"></i>
+                    <span>アクセス解析</span>
+                </a>
+                <a href="#ads" onclick="showPage('ads')" class="sidebar-link" data-page="ads">
+                    <i class="fas fa-ad text-xl"></i>
+                    <span>広告管理</span>
+                </a>
+            </nav>
+            
+            <div class="absolute bottom-0 w-64 p-4 border-t">
+                <button onclick="logout()" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    ログアウト
+                </button>
+            </div>
+        </aside>
+        
+        <!-- メインコンテンツ -->
+        <main class="flex-1 overflow-y-auto">
+            <div class="p-8">
+                <!-- ヘッダー -->
+                <div class="mb-8 flex justify-between items-center">
+                    <div>
+                        <h2 id="page-title" class="text-3xl font-bold text-gray-800">ダッシュボード</h2>
+                        <p id="page-subtitle" class="text-gray-600">システム全体の統計情報</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm text-gray-600">
+                            <i class="fas fa-user-shield mr-1"></i>
+                            <span id="admin-name">管理者</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- ページコンテンツ -->
+                <div id="page-content">
+                    <!-- ダッシュボード -->
+                    <div id="content-dashboard">
+                        <!-- 統計カード -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div class="stat-card">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <p class="text-sm text-gray-600">総ユーザー数</p>
+                                        <p class="text-3xl font-bold text-gray-800" id="stat-total-users">0</p>
+                                    </div>
+                                    <i class="fas fa-users text-4xl text-blue-500"></i>
+                                </div>
+                                <p class="text-sm text-green-600">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span id="stat-users-growth">+0%</span> 今月
+                                </p>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <p class="text-sm text-gray-600">作成された献立</p>
+                                        <p class="text-3xl font-bold text-gray-800" id="stat-total-plans">0</p>
+                                    </div>
+                                    <i class="fas fa-calendar-alt text-4xl text-green-500"></i>
+                                </div>
+                                <p class="text-sm text-green-600">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span id="stat-plans-growth">+0%</span> 今月
+                                </p>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <p class="text-sm text-gray-600">今日のアクセス</p>
+                                        <p class="text-3xl font-bold text-gray-800" id="stat-today-access">0</p>
+                                    </div>
+                                    <i class="fas fa-chart-line text-4xl text-purple-500"></i>
+                                </div>
+                                <p class="text-sm text-gray-600">
+                                    アクティブユーザー: <span id="stat-active-users">0</span>
+                                </p>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <p class="text-sm text-gray-600">メルマガ登録</p>
+                                        <p class="text-3xl font-bold text-gray-800" id="stat-newsletter">0</p>
+                                    </div>
+                                    <i class="fas fa-envelope text-4xl text-orange-500"></i>
+                                </div>
+                                <p class="text-sm text-green-600">
+                                    開封率: <span id="stat-open-rate">0%</span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- グラフ -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                            <div class="bg-white rounded-lg shadow-md p-6">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">ユーザー登録推移</h3>
+                                <canvas id="chart-users"></canvas>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow-md p-6">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">家族構成分析</h3>
+                                <canvas id="chart-family"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- 最近のアクティビティ -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">最近のアクティビティ</h3>
+                            <div id="recent-activities" class="space-y-3">
+                                <!-- アクティビティがここに表示されます -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ユーザー管理 -->
+                    <div id="content-users" class="hidden">
+                        <div class="mb-6 flex justify-between items-center">
+                            <div class="flex gap-4">
+                                <input type="text" id="user-search" placeholder="ユーザー検索..." 
+                                       class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <select id="user-filter" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="all">全ユーザー</option>
+                                    <option value="active">アクティブ</option>
+                                    <option value="inactive">非アクティブ</option>
+                                </select>
+                            </div>
+                            <button onclick="exportUsers()" class="btn-secondary">
+                                <i class="fas fa-download mr-2"></i>
+                                エクスポート
+                            </button>
+                        </div>
+                        
+                        <div class="table-container">
+                            <table class="w-full">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">家族名</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">人数</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">作成日</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">献立数</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body" class="divide-y divide-gray-200">
+                                    <!-- ユーザーデータがここに表示されます -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-4 flex justify-between items-center">
+                            <p class="text-sm text-gray-600">
+                                <span id="users-showing">1-10</span> / <span id="users-total">0</span> 件
+                            </p>
+                            <div class="flex gap-2">
+                                <button onclick="prevPage('users')" class="px-3 py-1 border rounded hover:bg-gray-50">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button onclick="nextPage('users')" class="px-3 py-1 border rounded hover:bg-gray-50">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- メール配信 -->
+                    <div id="content-campaigns" class="hidden">
+                        <div class="mb-6 flex justify-end">
+                            <button onclick="createCampaign()" class="btn-primary">
+                                <i class="fas fa-plus mr-2"></i>
+                                新規キャンペーン作成
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div class="stat-card">
+                                <p class="text-sm text-gray-600 mb-2">配信済み</p>
+                                <p class="text-3xl font-bold text-green-600" id="campaigns-sent">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <p class="text-sm text-gray-600 mb-2">配信予定</p>
+                                <p class="text-3xl font-bold text-blue-600" id="campaigns-scheduled">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <p class="text-sm text-gray-600 mb-2">下書き</p>
+                                <p class="text-3xl font-bold text-gray-600" id="campaigns-draft">0</p>
+                            </div>
+                        </div>
+                        
+                        <div id="campaigns-list" class="space-y-4">
+                            <!-- キャンペーンリストがここに表示されます -->
+                        </div>
+                    </div>
+                    
+                    <!-- アクセス解析 -->
+                    <div id="content-analytics" class="hidden">
+                        <div class="mb-6 flex gap-4">
+                            <select id="analytics-period" onchange="loadAnalytics()" 
+                                    class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="7">過去7日間</option>
+                                <option value="30" selected>過去30日間</option>
+                                <option value="90">過去90日間</option>
+                            </select>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                            <div class="bg-white rounded-lg shadow-md p-6">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">ページビュー推移</h3>
+                                <canvas id="chart-pageviews"></canvas>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg shadow-md p-6">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">人気ページ</h3>
+                                <div id="popular-pages" class="space-y-3">
+                                    <!-- 人気ページがここに表示されます -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">アクセスログ</h3>
+                            <div id="access-logs" class="space-y-2 max-h-96 overflow-y-auto">
+                                <!-- アクセスログがここに表示されます -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 広告管理 -->
+                    <div id="content-ads" class="hidden">
+                        <div class="mb-6 flex justify-end">
+                            <button onclick="createAd()" class="btn-primary">
+                                <i class="fas fa-plus mr-2"></i>
+                                新規広告作成
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-6">
+                            <div id="ads-list" class="space-y-4">
+                                <!-- 広告リストがここに表示されます -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // ========================================
+        // グローバル変数
+        // ========================================
+        let adminToken = null;
+        let adminInfo = null;
+        let currentPage = 'dashboard';
+        let usersData = [];
+        let currentUserPage = 1;
+        const usersPerPage = 10;
+        
+        // ========================================
+        // ログイン機能
+        // ========================================
+        async function login() {
+            const email = document.getElementById('admin-email').value;
+            const password = document.getElementById('admin-password').value;
+            const errorEl = document.getElementById('login-error');
+            
+            if (!email || !password) {
+                errorEl.textContent = 'メールアドレスとパスワードを入力してください';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                // TODO: 実際のログインAPI実装
+                // 仮のログイン処理（開発用）
+                if (email === 'admin@aichef.com' && password === 'admin123') {
+                    adminToken = 'demo-token-' + Date.now();
+                    adminInfo = { name: 'システム管理者', email: email };
+                    
+                    // ローカルストレージに保存
+                    localStorage.setItem('adminToken', adminToken);
+                    localStorage.setItem('adminInfo', JSON.stringify(adminInfo));
+                    
+                    // 管理画面を表示
+                    showAdminMain();
+                } else {
+                    errorEl.textContent = 'メールアドレスまたはパスワードが正しくありません';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorEl.textContent = 'ログインに失敗しました';
+                errorEl.classList.remove('hidden');
+            }
+        }
+        
+        function logout() {
+            if (confirm('ログアウトしますか？')) {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminInfo');
+                adminToken = null;
+                adminInfo = null;
+                
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('admin-main').classList.add('hidden');
+            }
+        }
+        
+        function showAdminMain() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('admin-main').classList.remove('hidden');
+            
+            if (adminInfo) {
+                document.getElementById('admin-name').textContent = adminInfo.name;
+            }
+            
+            // ダッシュボードを読み込み
+            loadDashboard();
+        }
+        
+        // ========================================
+        // ページ切り替え
+        // ========================================
+        function showPage(pageName) {
+            // サイドバーのアクティブ状態を更新
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`[data-page="${pageName}"]`).classList.add('active');
+            
+            // コンテンツを切り替え
+            document.querySelectorAll('[id^="content-"]').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`content-${pageName}`).classList.remove('hidden');
+            
+            // ページタイトルを更新
+            const titles = {
+                dashboard: { title: 'ダッシュボード', subtitle: 'システム全体の統計情報' },
+                users: { title: 'ユーザー管理', subtitle: '登録ユーザーの一覧と管理' },
+                campaigns: { title: 'メール配信', subtitle: 'メールキャンペーンの管理' },
+                analytics: { title: 'アクセス解析', subtitle: 'サイトアクセスの分析' },
+                ads: { title: '広告管理', subtitle: '広告枠の管理と設定' }
+            };
+            
+            document.getElementById('page-title').textContent = titles[pageName].title;
+            document.getElementById('page-subtitle').textContent = titles[pageName].subtitle;
+            
+            currentPage = pageName;
+            
+            // ページごとのデータ読み込み
+            switch (pageName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'campaigns':
+                    loadCampaigns();
+                    break;
+                case 'analytics':
+                    loadAnalytics();
+                    break;
+                case 'ads':
+                    loadAds();
+                    break;
+            }
+        }
+        
+        // ========================================
+        // ダッシュボード
+        // ========================================
+        async function loadDashboard() {
+            try {
+                // 統計データを取得
+                const statsRes = await axios.get('/api/admin/stats');
+                const stats = statsRes.data;
+                
+                // 統計カードを更新
+                document.getElementById('stat-total-users').textContent = stats.totalUsers || 0;
+                document.getElementById('stat-total-plans').textContent = stats.totalPlans || 0;
+                document.getElementById('stat-today-access').textContent = stats.todayAccess || 0;
+                document.getElementById('stat-active-users').textContent = stats.activeUsers || 0;
+                document.getElementById('stat-newsletter').textContent = stats.newsletter || 0;
+                document.getElementById('stat-open-rate').textContent = (stats.openRate || 0) + '%';
+                document.getElementById('stat-users-growth').textContent = '+' + (stats.usersGrowth || 0) + '%';
+                document.getElementById('stat-plans-growth').textContent = '+' + (stats.plansGrowth || 0) + '%';
+                
+                // グラフを描画
+                drawUserChart(stats.userTrend || []);
+                drawFamilyChart(stats.familyComposition || {});
+                
+                // 最近のアクティビティを表示
+                displayRecentActivities(stats.recentActivities || []);
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                // デモデータを表示
+                document.getElementById('stat-total-users').textContent = '1,234';
+                document.getElementById('stat-total-plans').textContent = '3,567';
+                document.getElementById('stat-today-access').textContent = '89';
+                document.getElementById('stat-active-users').textContent = '23';
+                document.getElementById('stat-newsletter').textContent = '456';
+                document.getElementById('stat-open-rate').textContent = '45%';
+                document.getElementById('stat-users-growth').textContent = '+12%';
+                document.getElementById('stat-plans-growth').textContent = '+8%';
+            }
+        }
+        
+        function drawUserChart(data) {
+            const ctx = document.getElementById('chart-users');
+            if (!ctx) return;
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['1週前', '6日前', '5日前', '4日前', '3日前', '2日前', '昨日'],
+                    datasets: [{
+                        label: 'ユーザー登録数',
+                        data: [12, 19, 15, 25, 22, 30, 28],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        function drawFamilyChart(data) {
+            const ctx = document.getElementById('chart-family');
+            if (!ctx) return;
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['2人家族', '3人家族', '4人家族', '5人以上'],
+                    datasets: [{
+                        data: [30, 40, 20, 10],
+                        backgroundColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(34, 197, 94)',
+                            'rgb(168, 85, 247)',
+                            'rgb(251, 146, 60)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        }
+        
+        function displayRecentActivities(activities) {
+            const container = document.getElementById('recent-activities');
+            if (!container) return;
+            
+            // デモデータ
+            const demoActivities = [
+                { icon: 'fa-user-plus', text: '新規ユーザー登録: 田中家', time: '5分前', color: 'text-blue-500' },
+                { icon: 'fa-calendar-plus', text: '献立作成: 佐藤家（30日分）', time: '12分前', color: 'text-green-500' },
+                { icon: 'fa-envelope', text: 'メルマガ配信完了: 週末レシピ特集', time: '1時間前', color: 'text-purple-500' },
+                { icon: 'fa-user-plus', text: '新規ユーザー登録: 鈴木家', time: '2時間前', color: 'text-blue-500' },
+                { icon: 'fa-calendar-plus', text: '献立作成: 山田家（30日分）', time: '3時間前', color: 'text-green-500' }
+            ];
+            
+            container.innerHTML = demoActivities.map(act => `
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas ${act.icon} ${act.color} text-xl"></i>
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-800">${act.text}</p>
+                        <p class="text-xs text-gray-500">${act.time}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // ========================================
+        // ユーザー管理
+        // ========================================
+        async function loadUsers() {
+            try {
+                const res = await axios.get('/api/admin/users');
+                usersData = res.data.users || [];
+                displayUsers();
+            } catch (error) {
+                console.error('Users load error:', error);
+                // デモデータを表示
+                usersData = Array.from({ length: 25 }, (_, i) => ({
+                    household_id: `user-${i + 1}`,
+                    title: `${['田中', '佐藤', '鈴木', '高橋', '渡辺'][i % 5]}家`,
+                    members_count: Math.floor(Math.random() * 4) + 2,
+                    created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    plan_count: Math.floor(Math.random() * 5)
+                }));
+                displayUsers();
+            }
+        }
+        
+        function displayUsers() {
+            const tbody = document.getElementById('users-table-body');
+            if (!tbody) return;
+            
+            const start = (currentUserPage - 1) * usersPerPage;
+            const end = start + usersPerPage;
+            const pageUsers = usersData.slice(start, end);
+            
+            tbody.innerHTML = pageUsers.map(user => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 text-sm text-gray-900">${user.household_id.substring(0, 8)}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${user.title}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${user.members_count}人</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${new Date(user.created_at).toLocaleDateString('ja-JP')}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${user.plan_count || 0}件</td>
+                    <td class="px-6 py-4 text-sm">
+                        <button onclick="viewUser('${user.household_id}')" class="text-blue-600 hover:text-blue-800 mr-3">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="deleteUser('${user.household_id}')" class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('users-showing').textContent = `${start + 1}-${Math.min(end, usersData.length)}`;
+            document.getElementById('users-total').textContent = usersData.length;
+        }
+        
+        function exportUsers() {
+            alert('ユーザーデータをCSVでエクスポートします');
+        }
+        
+        function viewUser(userId) {
+            alert(`ユーザー詳細: ${userId}`);
+        }
+        
+        function deleteUser(userId) {
+            if (confirm('このユーザーを削除しますか？')) {
+                alert(`ユーザー削除: ${userId}`);
+            }
+        }
+        
+        function prevPage(section) {
+            if (currentUserPage > 1) {
+                currentUserPage--;
+                displayUsers();
+            }
+        }
+        
+        function nextPage(section) {
+            if (currentUserPage * usersPerPage < usersData.length) {
+                currentUserPage++;
+                displayUsers();
+            }
+        }
+        
+        // ========================================
+        // メール配信
+        // ========================================
+        async function loadCampaigns() {
+            try {
+                const res = await axios.get('/api/admin/campaigns');
+                displayCampaigns(res.data.campaigns || []);
+            } catch (error) {
+                console.error('Campaigns load error:', error);
+                // デモデータを表示
+                document.getElementById('campaigns-sent').textContent = '12';
+                document.getElementById('campaigns-scheduled').textContent = '3';
+                document.getElementById('campaigns-draft').textContent = '5';
+            }
+        }
+        
+        function displayCampaigns(campaigns) {
+            // TODO: キャンペーンリスト表示
+        }
+        
+        function createCampaign() {
+            alert('新規キャンペーン作成機能（開発中）');
+        }
+        
+        // ========================================
+        // アクセス解析
+        // ========================================
+        async function loadAnalytics() {
+            try {
+                const period = document.getElementById('analytics-period').value;
+                const res = await axios.get(`/api/admin/analytics?period=${period}`);
+                displayAnalytics(res.data);
+            } catch (error) {
+                console.error('Analytics load error:', error);
+            }
+        }
+        
+        function displayAnalytics(data) {
+            // TODO: アクセス解析表示
+        }
+        
+        // ========================================
+        // 広告管理
+        // ========================================
+        async function loadAds() {
+            try {
+                const res = await axios.get('/api/admin/ads');
+                displayAdsList(res.data.ads || []);
+            } catch (error) {
+                console.error('Ads load error:', error);
+            }
+        }
+        
+        function displayAdsList(ads) {
+            // TODO: 広告リスト表示
+        }
+        
+        function createAd() {
+            alert('新規広告作成機能（開発中）');
+        }
+        
+        // ========================================
+        // 初期化
+        // ========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            // 既存のログイン情報をチェック
+            const savedToken = localStorage.getItem('adminToken');
+            const savedInfo = localStorage.getItem('adminInfo');
+            
+            if (savedToken && savedInfo) {
+                adminToken = savedToken;
+                adminInfo = JSON.parse(savedInfo);
+                showAdminMain();
+            }
+        });
+    </script>
+</body>
+</html>
