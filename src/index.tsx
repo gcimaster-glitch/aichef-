@@ -264,13 +264,6 @@ const appHtml = `<!DOCTYPE html>
                 options: [{ label: 'はじめる', value: 'start' }]
             },
             {
-                id: 'title',
-                type: 'text',
-                text: 'この献立のタイトルを教えてください（例：「岩間家」「我が家の献立」）',
-                field: 'title',
-                placeholder: '献立のタイトル'
-            },
-            {
                 id: 'start_date',
                 type: 'date',
                 text: 'いつから始めますか？',
@@ -406,6 +399,21 @@ const appHtml = `<!DOCTYPE html>
                 ]
             },
             {
+                id: 'title',
+                type: 'text',
+                text: 'この献立にタイトルをつけてください<br>（例：「岩間家の1月」「我が家の献立」）',
+                field: 'title',
+                placeholder: '献立のタイトル'
+            },
+            {
+                id: 'email',
+                type: 'text',
+                text: '献立をメールで受け取りますか？<br>メールアドレスを入力してください（任意）',
+                field: 'email',
+                placeholder: 'example@gmail.com',
+                optional: true
+            },
+            {
                 id: 'confirm',
                 type: 'confirm',
                 text: '設定完了です！<br>これで1ヶ月分の献立を作成します。よろしいですか？',
@@ -456,7 +464,7 @@ const appHtml = `<!DOCTYPE html>
             }
             else if (question.type === 'text') {
                 const input = document.createElement('input');
-                input.type = 'text';
+                input.type = question.field === 'email' ? 'email' : 'text';
                 input.className = 'w-full px-4 py-2 border rounded';
                 input.placeholder = question.placeholder || '';
                 
@@ -464,15 +472,40 @@ const appHtml = `<!DOCTYPE html>
                 btn.className = 'mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
                 btn.textContent = '次へ';
                 btn.onclick = () => {
-                    if (input.value.trim()) {
-                        appState.data[question.field] = input.value.trim();
-                        addMessage(input.value, false);
+                    const value = input.value.trim();
+                    // optionalフィールドは空でもOK
+                    if (value || question.optional) {
+                        if (value) {
+                            appState.data[question.field] = value;
+                            addMessage(value, false);
+                        } else {
+                            addMessage('（スキップ）', false);
+                        }
                         nextStep();
+                    } else {
+                        alert('入力してください');
                     }
                 };
                 
-                inputAreaEl.appendChild(input);
-                inputAreaEl.appendChild(btn);
+                // optionalフィールドにはスキップボタンを追加
+                if (question.optional) {
+                    const skipBtn = document.createElement('button');
+                    skipBtn.className = 'mt-2 ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
+                    skipBtn.textContent = 'スキップ';
+                    skipBtn.onclick = () => {
+                        addMessage('（スキップ）', false);
+                        nextStep();
+                    };
+                    inputAreaEl.appendChild(input);
+                    const btnGroup = document.createElement('div');
+                    btnGroup.className = 'flex gap-2 mt-2';
+                    btnGroup.appendChild(btn);
+                    btnGroup.appendChild(skipBtn);
+                    inputAreaEl.appendChild(btnGroup);
+                } else {
+                    inputAreaEl.appendChild(input);
+                    inputAreaEl.appendChild(btn);
+                }
             }
             else if (question.type === 'date') {
                 const input = document.createElement('input');
