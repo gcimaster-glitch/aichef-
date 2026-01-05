@@ -77,7 +77,9 @@
 ## 🌐 公開URL
 
 - **本番環境**: https://aichefs.net
-- **最新デプロイ**: https://3f62ee75.aichef-595.pages.dev
+- **最新デプロイ**: https://86c4d30e.aichef-595.pages.dev
+- **ユーザーログイン**: https://86c4d30e.aichef-595.pages.dev/login
+- **管理者ログイン**: https://86c4d30e.aichef-595.pages.dev/admin/login
 - **GitHub**: https://github.com/[username]/webapp
 
 ---
