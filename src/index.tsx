@@ -1148,38 +1148,38 @@ const appHtml = `<!DOCTYPE html>
                             </p>
                         </div>
                     </div>
-                    
-                    <\/script>
-                        // アニメーションシーケンス
-                        setTimeout(() => {
-                            document.getElementById('step-1').classList.add('scale-105');
-                            document.getElementById('progress-bar').style.width = '33%';
-                            document.getElementById('progress-text').textContent = 'レシピ検索中... 33%';
-                        }, 500);
-                        
-                        setTimeout(() => {
-                            document.getElementById('step-1').classList.remove('scale-105');
-                            document.getElementById('step-1').querySelector('.loading-spinner').innerHTML = '<i class="fas fa-check text-2xl text-green-500"></i>';
-                            
-                            document.getElementById('step-2').classList.remove('opacity-50');
-                            document.getElementById('step-2').classList.add('scale-105', 'bg-gradient-to-r', 'from-purple-50', 'to-purple-100', 'border-purple-200');
-                            document.getElementById('step-2').querySelector('.loading-spinner').classList.remove('hidden');
-                            document.getElementById('progress-bar').style.width = '66%';
-                            document.getElementById('progress-text').textContent = '栄養バランス調整中... 66%';
-                        }, 2000);
-                        
-                        setTimeout(() => {
-                            document.getElementById('step-2').classList.remove('scale-105');
-                            document.getElementById('step-2').querySelector('.loading-spinner').innerHTML = '<i class="fas fa-check text-2xl text-green-500"></i>';
-                            
-                            document.getElementById('step-3').classList.remove('opacity-50');
-                            document.getElementById('step-3').classList.add('scale-105', 'bg-gradient-to-r', 'from-pink-50', 'to-pink-100', 'border-pink-200');
-                            document.getElementById('step-3').querySelector('.loading-spinner').classList.remove('hidden');
-                            document.getElementById('progress-bar').style.width = '100%';
-                            document.getElementById('progress-text').textContent = '献立カレンダー作成中... 100%';
-                        }, 4000);
-                    <\/script>
                 \`;
+                messagesEl.innerHTML = loadingHtml;
+                
+                // アニメーションシーケンス（HTMLの外で実行）
+                setTimeout(() => {
+                    document.getElementById('step-1').classList.add('scale-105');
+                    document.getElementById('progress-bar').style.width = '33%';
+                    document.getElementById('progress-text').textContent = 'レシピ検索中... 33%';
+                }, 500);
+                
+                setTimeout(() => {
+                    document.getElementById('step-1').classList.remove('scale-105');
+                    document.getElementById('step-1').querySelector('.loading-spinner').innerHTML = '<i class="fas fa-check text-2xl text-green-500"></i>';
+                    
+                    document.getElementById('step-2').classList.remove('opacity-50');
+                    document.getElementById('step-2').classList.add('scale-105', 'bg-gradient-to-r', 'from-purple-50', 'to-purple-100', 'border-purple-200');
+                    document.getElementById('step-2').querySelector('.loading-spinner').classList.remove('hidden');
+                    document.getElementById('progress-bar').style.width = '66%';
+                    document.getElementById('progress-text').textContent = '栄養バランス調整中... 66%';
+                }, 2000);
+                
+                setTimeout(() => {
+                    document.getElementById('step-2').classList.remove('scale-105');
+                    document.getElementById('step-2').querySelector('.loading-spinner').innerHTML = '<i class="fas fa-check text-2xl text-green-500"></i>';
+                    
+                    document.getElementById('step-3').classList.remove('opacity-50');
+                    document.getElementById('step-3').classList.add('scale-105', 'bg-gradient-to-r', 'from-pink-50', 'to-pink-100', 'border-pink-200');
+                    document.getElementById('step-3').querySelector('.loading-spinner').classList.remove('hidden');
+                    document.getElementById('progress-bar').style.width = '100%';
+                    document.getElementById('progress-text').textContent = '献立カレンダー作成中... 100%';
+                }, 4000);
+                
                 messagesEl.innerHTML = loadingHtml;
                 
                 // 家族構成を計算
