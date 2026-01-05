@@ -1060,12 +1060,21 @@ const appHtml = `<!DOCTYPE html>
                 }, 2000);
 
             } catch (error) {
-                console.error(error);
+                console.error('献立生成エラー:', error);
+                console.error('エラー詳細:', error.response?.data || error.message);
+                
+                let errorMessage = 'もう一度お試しください';
+                if (error.response?.data?.error?.message) {
+                    errorMessage = error.response.data.error.message;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
                 messagesEl.innerHTML = \`
                     <div class="flex flex-col items-center justify-center py-12">
                         <div class="text-6xl mb-4">😢</div>
                         <h3 class="text-2xl font-bold text-red-600 mb-2">エラーが発生しました</h3>
-                        <p class="text-gray-600 mb-4">もう一度お試しください</p>
+                        <p class="text-gray-600 mb-4">\${errorMessage}</p>
                         <button onclick="location.reload()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                             最初からやり直す
                         </button>
@@ -2577,8 +2586,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   // 献立生成（簡易版：サンプルレシピから3品セット）
   // ========================================
   if (pathname === "/api/plans/generate" && req.method === "POST") {
-    const body = await readJson(req);
-    if (!body.household_id) return badRequest("household_id is required");
+    try {
+      const body = await readJson(req);
+      if (!body.household_id) return badRequest("household_id is required");
 
     const household = await env.DB.prepare(
       `SELECT * FROM households WHERE household_id = ?`
@@ -2853,6 +2863,18 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     ).bind(history_id, body.household_id, plan_id, household.title, household.start_date, household.months).run();
 
     return json({ plan_id, days }, 201);
+    } catch (error) {
+      console.error('献立生成エラー:', error);
+      return new Response(JSON.stringify({ 
+        error: { 
+          message: 'サーバー内部エラーが発生しました', 
+          details: error instanceof Error ? error.message : String(error)
+        }
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
   }
 
   // ========================================
