@@ -1644,10 +1644,34 @@ const appHtml = `<!DOCTYPE html>
             const modal = document.getElementById('shopping-modal');
             const content = document.getElementById('shopping-modal-content');
             
+            // 期間情報を取得
+            const periodInfo = data.weeks && data.weeks.length > 0 
+                ? \`\${data.weeks[0].startDate} 〜 \${data.weeks[data.weeks.length - 1].endDate}\`
+                : '期間不明';
+            
             let html = \`
-                <div class="mb-4 p-4 bg-blue-50 rounded-lg">
-                    <h4 class="font-bold text-lg mb-2">📋 買い物リスト</h4>
-                    <p class="text-sm text-gray-600">合計 \${data.totalItems} 品目</p>
+                <div class="mb-6 p-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-bold text-2xl text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-shopping-cart text-blue-600"></i>
+                            買い物リスト
+                        </h4>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm">
+                        <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
+                            <i class="fas fa-calendar-alt text-blue-600"></i>
+                            <span class="font-semibold text-gray-700">期間:</span>
+                            <span class="text-gray-900">\${periodInfo}</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
+                            <i class="fas fa-list text-green-600"></i>
+                            <span class="font-semibold text-gray-700">合計:</span>
+                            <span class="text-gray-900">\${data.totalItems} 品目</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2">
+                        <i class="fas fa-info-circle"></i> この期間の全献立に必要な食材をまとめています
+                    </p>
                 </div>
             \`;
             
@@ -2336,6 +2360,13 @@ const appHtml = `<!DOCTYPE html>
         window.trackAdClick = trackAdClick;
         window.loadHistory = loadHistory;
         window.archiveHistory = archiveHistory;
+        
+        // ドラッグ&ドロップ用のグローバル変数
+        window.handleDragStart = handleDragStart;
+        window.handleDragOver = handleDragOver;
+        window.handleDragLeave = handleDragLeave;
+        window.handleDrop = handleDrop;
+        window.handleDragEnd = handleDragEnd;
 
         window.addEventListener('DOMContentLoaded', () => {
             const question = questions[0];
@@ -2816,10 +2847,31 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return pool[Math.floor(Math.random() * pool.length)];
     };
     
-    // カレー系のレシピ判定
+    // カレー系のレシピ判定（より厳密に）
     const isCurryOrStew = (recipe: any) => {
-      const curryKeywords = ['カレー', 'シチュー', 'ハヤシライス', 'ドリア'];
+      const curryKeywords = ['カレー', 'シチュー', 'ハヤシライス', 'ドリア', 'グラタン'];
       return curryKeywords.some(keyword => recipe.title?.includes(keyword));
+    };
+    
+    // 同じカテゴリの連続を避ける関数
+    const avoidSameCategory = (recipes: any[], lastRecipe: any, recentRecipes: any[], minDays: number) => {
+      const recentIds = recentRecipes.slice(-minDays).map(r => r?.recipe_id);
+      
+      // 直前がカレー系の場合、カレー系を除外
+      let available = recipes.filter(r => !recentIds.includes(r.recipe_id));
+      if (lastRecipe && isCurryOrStew(lastRecipe)) {
+        available = available.filter(r => !isCurryOrStew(r));
+      }
+      
+      // 利用可能なレシピがない場合は全体から選択（ただしカレー系は除外）
+      if (available.length === 0) {
+        available = recipes.filter(r => !isCurryOrStew(r));
+        if (available.length === 0) {
+          available = recipes; // 最終手段
+        }
+      }
+      
+      return available[Math.floor(Math.random() * available.length)];
     };
     
     // レシピをシャッフル
@@ -2835,8 +2887,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     for (let i = 0; i < period.dates.length; i++) {
       const date = period.dates[i];
       
-      // 重複を避けてレシピを選択
-      const main = selectRecipeWithoutRecent(shuffledMainRecipes, usedMainRecipes, 7);
+      // 重複を避けてレシピを選択（カレー系の連続も避ける）
+      const lastMain = usedMainRecipes.length > 0 ? usedMainRecipes[usedMainRecipes.length - 1] : null;
+      const main = avoidSameCategory(shuffledMainRecipes, lastMain, usedMainRecipes, 7);
       const side = selectRecipeWithoutRecent(shuffledSideRecipes, usedSideRecipes, 7);
       
       // カレー系の場合は汁物をサラダ系に変更
