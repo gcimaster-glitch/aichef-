@@ -290,6 +290,10 @@ const appHtml = `<!DOCTYPE html>
                     1ヶ月分の献立
                 </h2>
                 <div class="flex gap-2 flex-wrap">
+                    <button onclick="showHistory()" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition flex items-center gap-2 text-sm">
+                        <i class="fas fa-history"></i>
+                        履歴
+                    </button>
                     <button onclick="showFavorites()" class="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition flex items-center gap-2 text-sm">
                         <i class="fas fa-heart"></i>
                         お気に入り
@@ -1891,6 +1895,125 @@ const appHtml = `<!DOCTYPE html>
         }
         
         // ========================================
+        // 献立履歴機能
+        // ========================================
+        async function showHistory() {
+            if (!appState.householdId) {
+                alert('履歴を表示するにはログインが必要です');
+                return;
+            }
+            
+            try {
+                const res = await axios.get(\`/api/history/\${appState.householdId}\`);
+                const history = res.data.history || [];
+                
+                if (history.length === 0) {
+                    alert('まだ履歴がありません');
+                    return;
+                }
+                
+                // 履歴モーダルを表示
+                let html = '<div class="space-y-4">';
+                history.forEach(item => {
+                    html += \`
+                        <div class="border rounded-lg p-4 hover:bg-gray-50 transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-bold text-lg">\${item.title}</h4>
+                                    <p class="text-sm text-gray-500">
+                                        \${item.start_date} 〜 (\${item.months}ヶ月)
+                                    </p>
+                                    <p class="text-xs text-gray-400">
+                                        作成日: \${new Date(item.created_at).toLocaleDateString('ja-JP')}
+                                    </p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="loadHistory('\${item.plan_id}')" 
+                                            class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                                        <i class="fas fa-eye"></i> 表示
+                                    </button>
+                                    <button onclick="archiveHistory('\${item.history_id}')" 
+                                            class="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm">
+                                        <i class="fas fa-archive"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    \`;
+                });
+                html += '</div>';
+                
+                // モーダルに表示
+                showModal('献立履歴', html);
+            } catch (error) {
+                console.error('履歴取得エラー:', error);
+                alert('履歴の取得に失敗しました');
+            }
+        }
+        
+        async function loadHistory(planId) {
+            try {
+                const res = await axios.get(\`/api/plans/\${planId}\`);
+                appState.planId = planId;
+                calendarData = res.data.days;
+                
+                // モーダルを閉じて献立を表示
+                closeModal();
+                showCalendar(res.data.days);
+                
+                // 成功メッセージ
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                toast.textContent = '✓ 履歴から献立を読み込みました';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+            } catch (error) {
+                console.error('献立読み込みエラー:', error);
+                alert('献立の読み込みに失敗しました');
+            }
+        }
+        
+        async function archiveHistory(historyId) {
+            if (!confirm('この履歴をアーカイブしますか？')) return;
+            
+            try {
+                await axios.post('/api/history/archive', { history_id: historyId });
+                showHistory(); // 再読み込み
+            } catch (error) {
+                console.error('アーカイブエラー:', error);
+                alert('アーカイブに失敗しました');
+            }
+        }
+        
+        function showModal(title, content) {
+            const modal = document.createElement('div');
+            modal.id = 'history-modal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = \`
+                <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4 flex justify-between items-center">
+                        <h3 class="text-xl font-bold text-white">
+                            <i class="fas fa-history mr-2"></i>
+                            \${title}
+                        </h3>
+                        <button onclick="closeModal()" class="text-white hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                    </div>
+                    <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
+                        \${content}
+                    </div>
+                </div>
+            \`;
+            document.body.appendChild(modal);
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('history-modal');
+            if (modal) modal.remove();
+        }
+        
+        // ========================================
         // ドラッグ&ドロップ機能
         // ========================================
         let draggedElement = null;
@@ -2701,6 +2824,13 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       });
     }
 
+    // 献立履歴を保存
+    const history_id = uuid();
+    await env.DB.prepare(
+      `INSERT INTO plan_history (history_id, household_id, plan_id, title, start_date, months, created_at, is_archived)
+       VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0)`
+    ).bind(history_id, body.household_id, plan_id, household.title, household.start_date, household.months).run();
+
     return json({ plan_id, days }, 201);
   }
 
@@ -3265,6 +3395,47 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   // ========================================
   // メルマガAPI（簡易版）
   // ========================================
+  
+  // GET /api/history/:household_id - 献立履歴を取得
+  if (pathname.match(/^\/api\/history\/[^/]+$/) && req.method === "GET") {
+    const household_id = pathname.split("/").pop();
+    
+    try {
+      const history = await env.DB.prepare(`
+        SELECT history_id, household_id, plan_id, title, start_date, months, created_at, is_archived
+        FROM plan_history
+        WHERE household_id = ? AND is_archived = 0
+        ORDER BY created_at DESC
+        LIMIT 50
+      `).bind(household_id).all();
+      
+      return json({ history: history.results || [] });
+    } catch (error: any) {
+      console.error('History fetch error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // POST /api/history/archive - 献立履歴をアーカイブ
+  if (pathname === "/api/history/archive" && req.method === "POST") {
+    const body = await readJson(req);
+    const { history_id } = body;
+    
+    if (!history_id) {
+      return badRequest("history_id is required");
+    }
+    
+    try {
+      await env.DB.prepare(
+        `UPDATE plan_history SET is_archived = 1 WHERE history_id = ?`
+      ).bind(history_id).run();
+      
+      return json({ success: true });
+    } catch (error: any) {
+      console.error('Archive error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
   
   // POST /api/newsletter/subscribe - メルマガ登録
   if (pathname === "/api/newsletter/subscribe" && req.method === "POST") {
