@@ -1489,13 +1489,43 @@ const appHtml = `<!DOCTYPE html>
                 return;
             }
             
+            // ボタンを無効化
+            const button = event?.target?.closest('button');
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 考え中...';
+            }
+            
             // モーダルを表示
             const modal = document.getElementById('ai-modal');
             const title = document.getElementById('ai-modal-title');
             const content = document.getElementById('ai-modal-content');
             
             title.textContent = \`\${date}の献立について\`;
-            content.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i><p class="mt-4 text-gray-600">AIが説明を生成中...</p></div>';
+            content.innerHTML = \`
+                <div class="flex flex-col items-center justify-center py-12">
+                    <!-- AIアニメーション -->
+                    <div class="relative w-24 h-24 mb-6">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-brain text-5xl text-blue-500 animate-pulse"></i>
+                        </div>
+                        <div class="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin" style="animation-duration: 2s;"></div>
+                        <div class="absolute inset-2 border-4 border-transparent border-b-purple-500 rounded-full animate-spin" style="animation-duration: 1.5s; animation-direction: reverse;"></div>
+                    </div>
+                    
+                    <h3 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                        AIが分析中
+                    </h3>
+                    <p class="text-gray-600 mb-4">献立の理由を考えています...</p>
+                    
+                    <!-- ドットアニメーション -->
+                    <div class="flex gap-2">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0s;"></div>
+                        <div class="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                        <div class="w-3 h-3 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                    </div>
+                </div>
+            \`;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
@@ -1507,7 +1537,11 @@ const appHtml = `<!DOCTYPE html>
                 
                 content.innerHTML = \`
                     <div class="prose max-w-none">
-                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+                        <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-500 p-6 rounded-lg shadow-sm">
+                            <div class="flex items-start gap-3 mb-3">
+                                <i class="fas fa-lightbulb text-2xl text-yellow-500"></i>
+                                <h4 class="text-lg font-bold text-gray-800">AIからの説明</h4>
+                            </div>
                             <p class="text-gray-800 leading-relaxed">\${res.data.explanation}</p>
                         </div>
                     </div>
@@ -1515,9 +1549,19 @@ const appHtml = `<!DOCTYPE html>
             } catch (error) {
                 content.innerHTML = \`
                     <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                        <p class="text-red-700">エラーが発生しました。もう一度お試しください。</p>
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fas fa-exclamation-triangle text-red-500"></i>
+                            <h4 class="font-bold text-red-800">エラーが発生しました</h4>
+                        </div>
+                        <p class="text-red-700">もう一度お試しください。</p>
                     </div>
                 \`;
+            } finally {
+                // ボタンを元に戻す
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-lightbulb"></i> なぜこの献立？';
+                }
             }
         }
         
@@ -1531,13 +1575,49 @@ const appHtml = `<!DOCTYPE html>
             
             if (!userRequest) return;
             
+            // ボタンを無効化
+            const button = event?.target?.closest('button');
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提案中...';
+            }
+            
             // モーダルを表示
             const modal = document.getElementById('ai-modal');
             const title = document.getElementById('ai-modal-title');
             const content = document.getElementById('ai-modal-content');
             
             title.textContent = '献立変更の提案';
-            content.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-orange-500"></i><p class="mt-4 text-gray-600">AIが提案を作成中...</p></div>';
+            content.innerHTML = \`
+                <div class="flex flex-col items-center justify-center py-12">
+                    <!-- 変更アニメーション -->
+                    <div class="relative w-24 h-24 mb-6">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-exchange-alt text-5xl text-orange-500 animate-pulse"></i>
+                        </div>
+                        <div class="absolute inset-0 border-4 border-transparent border-t-orange-500 rounded-full animate-spin" style="animation-duration: 2s;"></div>
+                        <div class="absolute inset-2 border-4 border-transparent border-b-yellow-500 rounded-full animate-spin" style="animation-duration: 1.5s; animation-direction: reverse;"></div>
+                    </div>
+                    
+                    <h3 class="text-xl font-bold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent mb-2">
+                        代替案を考え中
+                    </h3>
+                    <p class="text-gray-600 mb-2">あなたの要望に合うレシピを探しています...</p>
+                    <p class="text-sm text-gray-500">「\${userRequest}」</p>
+                    
+                    <!-- プログレス -->
+                    <div class="w-full max-w-md mt-6 space-y-2">
+                        <div class="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
+                            <i class="fas fa-spinner fa-spin text-orange-500"></i>
+                            <span class="text-sm text-gray-700">要望を分析中...</span>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg opacity-50">
+                            <i class="fas fa-search text-yellow-500"></i>
+                            <span class="text-sm text-gray-700">最適なレシピを検索中...</span>
+                        </div>
+                    </div>
+                </div>
+            \`;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
@@ -1588,9 +1668,19 @@ const appHtml = `<!DOCTYPE html>
             } catch (error) {
                 content.innerHTML = \`
                     <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                        <p class="text-red-700">エラーが発生しました。もう一度お試しください。</p>
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fas fa-exclamation-triangle text-red-500"></i>
+                            <h4 class="font-bold text-red-800">エラーが発生しました</h4>
+                        </div>
+                        <p class="text-red-700">もう一度お試しください。</p>
                     </div>
                 \`;
+            } finally {
+                // ボタンを元に戻す
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-exchange-alt"></i> 変更する';
+                }
             }
         }
         
@@ -1829,6 +1919,63 @@ const appHtml = `<!DOCTYPE html>
                 return;
             }
             
+            // ボタンを無効化してローディング表示
+            const button = event?.target;
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>生成中...';
+            }
+            
+            // モーダルを先に開いてローディング表示
+            const modal = document.getElementById('shopping-modal');
+            const content = document.getElementById('shopping-modal-content');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            content.innerHTML = \`
+                <div class="flex flex-col items-center justify-center py-16">
+                    <!-- メインアニメーション -->
+                    <div class="relative w-32 h-32 mb-6">
+                        <!-- 回転するカート -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-shopping-cart text-6xl text-blue-500 animate-bounce"></i>
+                        </div>
+                        <!-- 回転リング -->
+                        <div class="absolute inset-0 border-8 border-transparent border-t-blue-500 rounded-full animate-spin" style="animation-duration: 1s;"></div>
+                        <div class="absolute inset-2 border-8 border-transparent border-b-green-500 rounded-full animate-spin" style="animation-duration: 1.5s; animation-direction: reverse;"></div>
+                    </div>
+                    
+                    <h3 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-3">
+                        買い物リストを作成中
+                    </h3>
+                    <p class="text-gray-600 mb-4 text-center">
+                        献立から食材を集計しています
+                    </p>
+                    
+                    <!-- プログレス表示 -->
+                    <div class="w-full max-w-md space-y-3">
+                        <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <i class="fas fa-spinner fa-spin text-blue-500"></i>
+                            <span class="text-sm text-gray-700">レシピから食材を抽出中...</span>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 opacity-50">
+                            <i class="fas fa-calculator text-green-500"></i>
+                            <span class="text-sm text-gray-700">数量を集計中...</span>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 opacity-50">
+                            <i class="fas fa-layer-group text-purple-500"></i>
+                            <span class="text-sm text-gray-700">カテゴリ別に整理中...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 text-xs text-gray-500">
+                        <i class="fas fa-clock mr-1"></i>
+                        通常 2〜3秒で完了します
+                    </div>
+                </div>
+            \`;
+            
             try {
                 const res = await axios.get(\`/api/shopping-list/\${appState.planId}\`);
                 const data = res.data;
@@ -1837,7 +1984,25 @@ const appHtml = `<!DOCTYPE html>
                 showShoppingListModal(data);
             } catch (error) {
                 console.error('買い物リスト生成エラー:', error);
-                alert('買い物リストの生成に失敗しました');
+                content.innerHTML = \`
+                    <div class="flex flex-col items-center justify-center py-16">
+                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-exclamation-triangle text-4xl text-red-500"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">エラーが発生しました</h3>
+                        <p class="text-gray-600 mb-4">買い物リストの生成に失敗しました</p>
+                        <button onclick="closeShoppingModal()" 
+                                class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                            閉じる
+                        </button>
+                    </div>
+                \`;
+            } finally {
+                // ボタンを元に戻す
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-shopping-cart"></i> 買い物リスト';
+                }
             }
         }
         
