@@ -219,6 +219,10 @@ const appHtml = `<!DOCTYPE html>
                     1ヶ月分の献立
                 </h2>
                 <div class="flex gap-2 flex-wrap">
+                    <button onclick="showFavorites()" class="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition flex items-center gap-2 text-sm">
+                        <i class="fas fa-heart"></i>
+                        お気に入り
+                    </button>
                     <button onclick="toggleCalendarView()" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-2 text-sm">
                         <i class="fas fa-calendar"></i>
                         <span id="view-toggle-text">月表示</span>
@@ -922,9 +926,9 @@ const appHtml = `<!DOCTYPE html>
                                 \${day.date} (\${dayOfWeek})
                             </div>
                             <div class="space-y-2 text-sm">
-                                \${main ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> \${main.title}</span></div>\` : ''}
-                                \${side ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-side mt-1"></span><span class="flex-1"><span class="font-semibold text-green-600">副菜:</span> \${side.title}</span></div>\` : ''}
-                                \${soup ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-soup mt-1"></span><span class="flex-1"><span class="font-semibold text-blue-600">汁物:</span> \${soup.title}</span></div>\` : ''}
+                                \${main ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> <a href="javascript:void(0)" onclick="showRecipeDetail('\${main.recipe_id}', '\${main.title}')" class="text-blue-600 hover:underline cursor-pointer">\${main.title}</a></span></div>\` : ''}
+                                \${side ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-side mt-1"></span><span class="flex-1"><span class="font-semibold text-green-600">副菜:</span> <a href="javascript:void(0)" onclick="showRecipeDetail('\${side.recipe_id}', '\${side.title}')" class="text-blue-600 hover:underline cursor-pointer">\${side.title}</a></span></div>\` : ''}
+                                \${soup ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-soup mt-1"></span><span class="flex-1"><span class="font-semibold text-blue-600">汁物:</span> <a href="javascript:void(0)" onclick="showRecipeDetail('\${soup.recipe_id}', '\${soup.title}')" class="text-blue-600 hover:underline cursor-pointer">\${soup.title}</a></span></div>\` : ''}
                             </div>
                             <div class="mt-3 text-xs text-gray-500 border-t pt-2">
                                 <i class="far fa-clock"></i> 約\${day.estimated_time_min}分
@@ -1365,9 +1369,9 @@ const appHtml = `<!DOCTYPE html>
                                 \${day.date} (\${dayOfWeek})
                             </div>
                             <div class="space-y-2 text-sm">
-                                \${main ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> \${main.title}</span></div>\` : ''}
-                                \${side ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-side mt-1"></span><span class="flex-1"><span class="font-semibold text-green-600">副菜:</span> \${side.title}</span></div>\` : ''}
-                                \${soup ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-soup mt-1"></span><span class="flex-1"><span class="font-semibold text-blue-600">汁物:</span> \${soup.title}</span></div>\` : ''}
+                                \${main ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> <a href="javascript:void(0)" onclick="showRecipeDetail('\${main.recipe_id}', '\${main.title}')" class="text-blue-600 hover:underline cursor-pointer">\${main.title}</a></span></div>\` : ''}
+                                \${side ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-side mt-1"></span><span class="flex-1"><span class="font-semibold text-green-600">副菜:</span> <a href="javascript:void(0)" onclick="showRecipeDetail('\${side.recipe_id}', '\${side.title}')" class="text-blue-600 hover:underline cursor-pointer">\${side.title}</a></span></div>\` : ''}
+                                \${soup ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-soup mt-1"></span><span class="flex-1"><span class="font-semibold text-blue-600">汁物:</span> <a href="javascript:void(0)" onclick="showRecipeDetail('\${soup.recipe_id}', '\${soup.title}')" class="text-blue-600 hover:underline cursor-pointer">\${soup.title}</a></span></div>\` : ''}
                             </div>
                             <div class="mt-3 text-xs text-gray-500 border-t pt-2">
                                 <i class="far fa-clock"></i> 約\${day.estimated_time_min}分
@@ -1503,6 +1507,323 @@ const appHtml = `<!DOCTYPE html>
         }
         
         // ========================================
+        // レシピ詳細表示
+        // ========================================
+        async function showRecipeDetail(recipeId, recipeTitle) {
+            if (!recipeId) {
+                alert('レシピ情報がありません');
+                return;
+            }
+            
+            const modal = document.getElementById('recipe-modal');
+            const title = document.getElementById('recipe-modal-title');
+            const content = document.getElementById('recipe-modal-content');
+            
+            title.textContent = recipeTitle || 'レシピ詳細';
+            content.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i><p class="mt-4 text-gray-600">レシピ情報を読み込み中...</p></div>';
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            try {
+                const res = await axios.get(\`/api/recipes/\${recipeId}\`);
+                const recipe = res.data;
+                
+                // 難易度の表示
+                const difficultyMap = {
+                    'easy': '簡単',
+                    'normal': '普通',
+                    'hard': '難しい'
+                };
+                
+                // 料理ジャンルの表示
+                const cuisineMap = {
+                    'japanese': '和食',
+                    'western': '洋食',
+                    'chinese': '中華',
+                    'other': 'その他'
+                };
+                
+                // カテゴリ名の日本語化
+                const categoryMap = {
+                    'vegetables': '野菜',
+                    'meat_fish': '肉・魚',
+                    'dairy_eggs': '卵・乳製品',
+                    'tofu_beans': '豆腐・豆類',
+                    'seasonings': '調味料',
+                    'others': 'その他'
+                };
+                
+                let html = \`
+                    <div class="space-y-6">
+                        <!-- 基本情報 -->
+                        <div class="flex gap-4 flex-wrap text-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-clock text-blue-500"></i>
+                                <span><strong>調理時間:</strong> 約\${recipe.time_min}分</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-signal text-green-500"></i>
+                                <span><strong>難易度:</strong> \${difficultyMap[recipe.difficulty] || '普通'}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-utensils text-purple-500"></i>
+                                <span><strong>ジャンル:</strong> \${cuisineMap[recipe.cuisine] || 'その他'}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-yen-sign text-orange-500"></i>
+                                <span><strong>予算:</strong> 約\${recipe.cost_tier}円/人</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 説明 -->
+                        \${recipe.description ? \`
+                            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                                <p class="text-gray-700">\${recipe.description}</p>
+                            </div>
+                        \` : ''}
+                        
+                        <!-- 材料 -->
+                        <div>
+                            <h4 class="text-lg font-bold mb-3 flex items-center gap-2">
+                                <i class="fas fa-list text-green-600"></i>
+                                材料
+                            </h4>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    \${(recipe.ingredients || []).map(ing => \`
+                                        <div class="flex justify-between items-center border-b border-gray-200 pb-2">
+                                            <span class="text-gray-800">
+                                                \${ing.name}
+                                                \${ing.is_optional ? '<span class="text-xs text-gray-500">(お好みで)</span>' : ''}
+                                            </span>
+                                            <span class="text-gray-600 font-medium">\${ing.quantity}\${ing.unit}</span>
+                                        </div>
+                                    \`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 調理手順 -->
+                        <div>
+                            <h4 class="text-lg font-bold mb-3 flex items-center gap-2">
+                                <i class="fas fa-tasks text-orange-600"></i>
+                                作り方
+                            </h4>
+                            <div class="space-y-3">
+                                \${(recipe.steps || []).map((step, index) => \`
+                                    <div class="flex gap-3">
+                                        <div class="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold">
+                                            \${index + 1}
+                                        </div>
+                                        <div class="flex-1 bg-gray-50 rounded-lg p-3">
+                                            <p class="text-gray-800">\${step}</p>
+                                        </div>
+                                    </div>
+                                \`).join('')}
+                                
+                                \${recipe.steps.length === 0 ? '<p class="text-gray-500 text-center py-4">手順情報はまだ登録されていません</p>' : ''}
+                            </div>
+                        </div>
+                        
+                        <!-- 調理のコツ -->
+                        \${recipe.tags && recipe.tags.length > 0 ? \`
+                            <div>
+                                <h4 class="text-lg font-bold mb-3 flex items-center gap-2">
+                                    <i class="fas fa-lightbulb text-yellow-600"></i>
+                                    ポイント・コツ
+                                </h4>
+                                <div class="flex flex-wrap gap-2">
+                                    \${recipe.tags.map(tag => \`
+                                        <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                                            \${tag}
+                                        </span>
+                                    \`).join('')}
+                                </div>
+                            </div>
+                        \` : ''}
+                        
+                        <!-- アクションボタン -->
+                        <div class="flex gap-2 pt-4 border-t">
+                            <button onclick="addToFavorites('\${recipe.recipe_id}', '\${recipe.title}')" 
+                                    class="flex-1 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition">
+                                <i class="fas fa-heart"></i> お気に入りに追加
+                            </button>
+                            <button onclick="shareRecipe('\${recipe.recipe_id}', '\${recipe.title}')" 
+                                    class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                                <i class="fas fa-share-alt"></i> 共有
+                            </button>
+                        </div>
+                    </div>
+                \`;
+                
+                content.innerHTML = html;
+            } catch (error) {
+                console.error('レシピ詳細取得エラー:', error);
+                content.innerHTML = \`
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                        <p class="text-red-700">レシピ情報の取得に失敗しました</p>
+                    </div>
+                \`;
+            }
+        }
+        
+        function closeRecipeModal() {
+            const modal = document.getElementById('recipe-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        
+        // ========================================
+        // お気に入り機能
+        // ========================================
+        function addToFavorites(recipeId, recipeTitle) {
+            // ローカルストレージに保存
+            const favorites = JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
+            
+            // 重複チェック
+            if (favorites.some(f => f.recipe_id === recipeId)) {
+                alert('このレシピは既にお気に入りに追加されています');
+                return;
+            }
+            
+            favorites.push({
+                recipe_id: recipeId,
+                title: recipeTitle,
+                added_at: new Date().toISOString()
+            });
+            
+            localStorage.setItem('favoriteRecipes', JSON.stringify(favorites));
+            alert(\`「\${recipeTitle}」をお気に入りに追加しました！\`);
+        }
+        
+        function showFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
+            
+            if (favorites.length === 0) {
+                alert('お気に入りレシピはまだありません');
+                return;
+            }
+            
+            const modal = document.getElementById('recipe-modal');
+            const title = document.getElementById('recipe-modal-title');
+            const content = document.getElementById('recipe-modal-content');
+            
+            title.textContent = 'お気に入りレシピ';
+            
+            let html = \`
+                <div class="space-y-3">
+                    \${favorites.map((fav, index) => \`
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <div class="flex-1">
+                                <a href="javascript:void(0)" onclick="showRecipeDetail('\${fav.recipe_id}', '\${fav.title}')" 
+                                   class="text-blue-600 hover:underline font-medium">
+                                    \${fav.title}
+                                </a>
+                                <p class="text-xs text-gray-500 mt-1">追加日: \${new Date(fav.added_at).toLocaleDateString('ja-JP')}</p>
+                            </div>
+                            <button onclick="removeFromFavorites(\${index})" class="ml-3 px-3 py-1 text-red-600 hover:bg-red-50 rounded">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    \`).join('')}
+                </div>
+            \`;
+            
+            content.innerHTML = html;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        
+        function removeFromFavorites(index) {
+            const favorites = JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
+            favorites.splice(index, 1);
+            localStorage.setItem('favoriteRecipes', JSON.stringify(favorites));
+            showFavorites(); // 再表示
+        }
+        
+        // ========================================
+        // SNS共有機能
+        // ========================================
+        function shareRecipe(recipeId, recipeTitle) {
+            const url = \`\${window.location.origin}/recipe/\${recipeId}\`;
+            const text = \`【Aメニュー】\${recipeTitle}のレシピを見つけました！\`;
+            
+            // Web Share API対応ブラウザの場合
+            if (navigator.share) {
+                navigator.share({
+                    title: recipeTitle,
+                    text: text,
+                    url: url
+                }).then(() => {
+                    console.log('共有成功');
+                }).catch(err => {
+                    console.error('共有エラー:', err);
+                    showShareModal(recipeId, recipeTitle);
+                });
+            } else {
+                showShareModal(recipeId, recipeTitle);
+            }
+        }
+        
+        function showShareModal(recipeId, recipeTitle) {
+            const url = encodeURIComponent(\`\${window.location.origin}/recipe/\${recipeId}\`);
+            const text = encodeURIComponent(\`【Aメニュー】\${recipeTitle}のレシピ\`);
+            
+            const modal = document.getElementById('recipe-modal');
+            const title = document.getElementById('recipe-modal-title');
+            const content = document.getElementById('recipe-modal-content');
+            
+            title.textContent = 'レシピを共有';
+            
+            const html = \`
+                <div class="space-y-3">
+                    <p class="text-gray-600 mb-4">SNSで共有する：</p>
+                    
+                    <a href="https://twitter.com/intent/tweet?text=\${text}&url=\${url}" 
+                       target="_blank" 
+                       class="flex items-center gap-3 p-4 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition">
+                        <i class="fab fa-twitter text-2xl"></i>
+                        <span class="font-medium">Xで共有</span>
+                    </a>
+                    
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=\${url}" 
+                       target="_blank" 
+                       class="flex items-center gap-3 p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fab fa-facebook text-2xl"></i>
+                        <span class="font-medium">Facebookで共有</span>
+                    </a>
+                    
+                    <a href="https://line.me/R/msg/text/?\${text}%20\${url}" 
+                       target="_blank" 
+                       class="flex items-center gap-3 p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+                        <i class="fab fa-line text-2xl"></i>
+                        <span class="font-medium">LINEで共有</span>
+                    </a>
+                    
+                    <button onclick="copyToClipboard('\${decodeURIComponent(url)}')" 
+                            class="w-full flex items-center gap-3 p-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                        <i class="fas fa-copy text-2xl"></i>
+                        <span class="font-medium">URLをコピー</span>
+                    </button>
+                </div>
+            \`;
+            
+            content.innerHTML = html;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('URLをコピーしました！');
+            }).catch(err => {
+                console.error('コピー失敗:', err);
+                alert('コピーに失敗しました');
+            });
+        }
+        
+        // ========================================
         // Googleカレンダー連携
         // ========================================
         function exportToGoogleCalendar() {
@@ -1591,6 +1912,21 @@ const appHtml = `<!DOCTYPE html>
                 </button>
             </div>
             <div id="shopping-modal-content" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
+                <!-- コンテンツはJavaScriptで動的に挿入 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- レシピ詳細モーダル -->
+    <div id="recipe-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4" style="backdrop-filter: blur(4px);">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div class="bg-gradient-to-r from-orange-500 to-red-600 px-6 py-4 flex justify-between items-center">
+                <h3 id="recipe-modal-title" class="text-xl font-bold text-white">レシピ詳細</h3>
+                <button onclick="closeRecipeModal()" class="text-white hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="recipe-modal-content" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
                 <!-- コンテンツはJavaScriptで動的に挿入 -->
             </div>
         </div>
@@ -2399,6 +2735,76 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       });
     } catch (error: any) {
       console.error('Recipe replacement error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // GET /api/recipes/:recipe_id - レシピ詳細を取得
+  if (pathname.match(/^\/api\/recipes\/[^/]+$/) && req.method === "GET") {
+    const recipe_id = pathname.split("/").pop();
+    
+    try {
+      // レシピ基本情報を取得
+      const recipe = await env.DB.prepare(`
+        SELECT 
+          recipe_id,
+          title,
+          description,
+          role,
+          cuisine,
+          difficulty,
+          time_min,
+          primary_protein,
+          cost_tier,
+          steps_json,
+          tags_json,
+          child_friendly_score
+        FROM recipes
+        WHERE recipe_id = ?
+      `).bind(recipe_id).first();
+      
+      if (!recipe) {
+        return badRequest("Recipe not found");
+      }
+      
+      // 食材情報を取得
+      const ingredients = await env.DB.prepare(`
+        SELECT 
+          i.ingredient_id,
+          i.name,
+          i.category,
+          ri.quantity,
+          ri.unit,
+          ri.is_optional
+        FROM recipe_ingredients ri
+        JOIN ingredients i ON ri.ingredient_id = i.ingredient_id
+        WHERE ri.recipe_id = ?
+        ORDER BY 
+          CASE i.category
+            WHEN 'meat_fish' THEN 1
+            WHEN 'vegetables' THEN 2
+            WHEN 'tofu_beans' THEN 3
+            WHEN 'dairy_eggs' THEN 4
+            WHEN 'seasonings' THEN 5
+            ELSE 6
+          END
+      `).bind(recipe_id).all();
+      
+      // 代替食材を取得
+      const substitutes = await env.DB.prepare(`
+        SELECT * FROM recipe_substitutes
+        WHERE recipe_id = ?
+      `).bind(recipe_id).all();
+      
+      return json({
+        ...recipe,
+        ingredients: ingredients.results || [],
+        substitutes: substitutes.results || [],
+        steps: JSON.parse((recipe as any).steps_json || '[]'),
+        tags: JSON.parse((recipe as any).tags_json || '[]')
+      });
+    } catch (error: any) {
+      console.error('Recipe detail error:', error);
       return json({ error: { message: error.message } }, 500);
     }
   }
