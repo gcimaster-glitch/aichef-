@@ -536,6 +536,215 @@ const USER_DASHBOARD_HTML = `
 </html>
 `;
 
+const ADMIN_DASHBOARD_HTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ダッシュボード - AICHEFS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- ヘッダー -->
+    <header class="bg-gray-900 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <i class="fas fa-shield-alt text-2xl"></i>
+                <h1 class="text-2xl font-bold">AICHEFS 管理者</h1>
+            </div>
+            <button onclick="logout()" class="text-sm text-red-400 hover:text-red-300">
+                <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
+            </button>
+        </div>
+    </header>
+    
+    <!-- メインコンテンツ -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">管理者ダッシュボード</h2>
+        
+        <!-- 統計カード -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">総ユーザー数</p>
+                        <p id="total-users" class="text-3xl font-bold text-gray-800">-</p>
+                    </div>
+                    <i class="fas fa-users text-4xl text-blue-500"></i>
+                </div>
+                <p class="text-sm text-green-600 mt-2">
+                    <i class="fas fa-arrow-up mr-1"></i>
+                    <span id="users-growth">-</span>% 今月
+                </p>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">総献立数</p>
+                        <p id="total-plans" class="text-3xl font-bold text-gray-800">-</p>
+                    </div>
+                    <i class="fas fa-calendar-alt text-4xl text-green-500"></i>
+                </div>
+                <p class="text-sm text-green-600 mt-2">
+                    <i class="fas fa-arrow-up mr-1"></i>
+                    <span id="plans-growth">-</span>% 今月
+                </p>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">アクティブユーザー</p>
+                        <p id="active-users" class="text-3xl font-bold text-gray-800">-</p>
+                    </div>
+                    <i class="fas fa-user-check text-4xl text-purple-500"></i>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">過去7日間</p>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">メルマガ登録</p>
+                        <p id="newsletter-count" class="text-3xl font-bold text-gray-800">-</p>
+                    </div>
+                    <i class="fas fa-envelope text-4xl text-pink-500"></i>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">
+                    開封率 <span id="open-rate">-</span>%
+                </p>
+            </div>
+        </div>
+        
+        <!-- ユーザー一覧 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">最近のユーザー</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">ユーザー名</th>
+                            <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">家族人数</th>
+                            <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">献立数</th>
+                            <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">登録日</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table">
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-gray-500">読み込み中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- クイックアクション -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white">
+                <i class="fas fa-utensils text-3xl mb-3"></i>
+                <h3 class="text-xl font-bold mb-2">レシピ管理</h3>
+                <p class="text-sm mb-4 opacity-90">レシピの追加・編集・削除</p>
+                <button class="bg-white text-blue-600 px-4 py-2 rounded font-semibold hover:bg-gray-100 transition" disabled>
+                    近日公開
+                </button>
+            </div>
+            
+            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white">
+                <i class="fas fa-users-cog text-3xl mb-3"></i>
+                <h3 class="text-xl font-bold mb-2">ユーザー管理</h3>
+                <p class="text-sm mb-4 opacity-90">ユーザーの詳細管理</p>
+                <button class="bg-white text-green-600 px-4 py-2 rounded font-semibold hover:bg-gray-100 transition" disabled>
+                    近日公開
+                </button>
+            </div>
+            
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md p-6 text-white">
+                <i class="fas fa-chart-line text-3xl mb-3"></i>
+                <h3 class="text-xl font-bold mb-2">詳細統計</h3>
+                <p class="text-sm mb-4 opacity-90">アクセス解析・レポート</p>
+                <button class="bg-white text-purple-600 px-4 py-2 rounded font-semibold hover:bg-gray-100 transition" disabled>
+                    近日公開
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // 初期化
+        async function init() {
+            // セッション確認
+            const session_id = localStorage.getItem('admin_session_id');
+            const admin = localStorage.getItem('admin');
+            
+            if (!session_id || !admin) {
+                window.location.href = '/admin/login';
+                return;
+            }
+            
+            // データ読み込み
+            await loadStats();
+            await loadUsers();
+        }
+        
+        // 統計データ読み込み
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/admin/stats');
+                const data = await response.json();
+                
+                document.getElementById('total-users').textContent = data.totalUsers || 0;
+                document.getElementById('total-plans').textContent = data.totalPlans || 0;
+                document.getElementById('active-users').textContent = data.activeUsers || 0;
+                document.getElementById('newsletter-count').textContent = data.newsletter || 0;
+                document.getElementById('users-growth').textContent = data.usersGrowth || 0;
+                document.getElementById('plans-growth').textContent = data.plansGrowth || 0;
+                document.getElementById('open-rate').textContent = data.openRate || 0;
+            } catch (error) {
+                console.error('Stats load error:', error);
+            }
+        }
+        
+        // ユーザー一覧読み込み
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/admin/users');
+                const data = await response.json();
+                
+                const tableEl = document.getElementById('users-table');
+                if (data.users && data.users.length > 0) {
+                    tableEl.innerHTML = data.users.slice(0, 10).map(u => \`
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="py-3 px-4">\${u.title}</td>
+                            <td class="py-3 px-4">\${u.members_count}人</td>
+                            <td class="py-3 px-4">\${u.plan_count || 0}件</td>
+                            <td class="py-3 px-4">\${new Date(u.created_at).toLocaleDateString('ja-JP')}</td>
+                        </tr>
+                    \`).join('');
+                } else {
+                    tableEl.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">ユーザーがいません</td></tr>';
+                }
+            } catch (error) {
+                console.error('Users load error:', error);
+            }
+        }
+        
+        // ログアウト
+        function logout() {
+            localStorage.removeItem('admin_session_id');
+            localStorage.removeItem('admin');
+            window.location.href = '/';
+        }
+        
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>
+`;
+
 // ========================================
 // Landing Page (TOPページ) - 静的ファイルとして配信
 // ========================================
@@ -5690,12 +5899,10 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   // /admin：管理画面を返す
   // ========================================
   if (pathname === "/admin" || pathname === "/admin/") {
-    // admin.htmlの内容を読み込んで返す
-    // 本番環境では静的ファイルとして配信
-    return new Response("", {
-      status: 302,
-      headers: {
-        'Location': '/admin.html'
+    return new Response(ADMIN_DASHBOARD_HTML, {
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store'
       }
     });
   }
