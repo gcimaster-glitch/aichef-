@@ -224,16 +224,27 @@ const appHtml = `<!DOCTYPE html>
 <body class="bg-gray-50">
     <div id="app" class="container mx-auto px-4 py-8 max-w-6xl">
         <!-- ヘッダー -->
-        <header class="text-center mb-8 no-print">
-            <h1 class="text-4xl font-bold text-gray-800 mb-2">
-                <i class="fas fa-utensils mr-2"></i>
-                Aメニュー
-            </h1>
-            <p class="text-gray-600">
-                考えなくていい、悩まなくていい。<br>
-                今日から1ヶ月分の晩ごはんが決まります。
-            </p>
-        </header>
+        <!-- アプリヘッダー - 横長バナー -->
+        <div class="no-print mb-8 relative overflow-hidden rounded-2xl" style="height: 200px;">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-gradient"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <div class="text-center text-white px-4">
+                    <div class="flex items-center justify-center gap-3 mb-2">
+                        <i class="fas fa-utensils text-5xl"></i>
+                        <h1 class="text-5xl md:text-6xl font-bold" style="text-shadow: 3px 3px 6px rgba(0,0,0,0.3);">
+                            AICHEFS
+                        </h1>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold mb-3" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                        AIシェフ
+                    </h2>
+                    <p class="text-lg md:text-xl opacity-95" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                        考えなくていい、悩まなくていい。今日から1ヶ月分の晩ごはんが決まります。
+                    </p>
+                </div>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/20 to-transparent"></div>
+        </div>
 
         <!-- TOPページヘッダー広告 -->
         <div id="ad-top-header" class="ad-container no-print mb-6" style="display:flex;justify-content:center;"></div>
@@ -247,13 +258,23 @@ const appHtml = `<!DOCTYPE html>
         <!-- 献立カレンダー（生成後に表示） -->
         <div id="calendar-container" class="hidden bg-white rounded-lg shadow-lg p-6">
             <!-- 献立ページ上部アニメーションバナー -->
-            <div class="no-print mb-6 rounded-xl overflow-hidden relative" style="height: 120px;">
-                <div class="absolute inset-0 bg-gradient-to-r from-orange-400 via-red-400 to-pink-400 animate-gradient"></div>
+            <div class="no-print mb-6 relative overflow-hidden rounded-2xl" style="height: 160px;">
+                <div class="absolute inset-0 bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 animate-gradient"></div>
                 <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="text-center text-white">
-                        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">
-                            🍳 今日の献立、明日の笑顔 🥗
-                        </h1>
+                    <div class="text-center text-white px-4">
+                        <div class="flex items-center justify-center gap-3 mb-2">
+                            <i class="fas fa-calendar-alt text-4xl"></i>
+                            <h2 class="text-4xl md:text-5xl font-bold" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                                今日の献立、明日の笑顔
+                            </h2>
+                        </div>
+                        <p class="text-lg md:text-xl opacity-90" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                            30日分の献立があなたの毎日を彩ります
+                        </p>
+                    </div>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white/20 to-transparent"></div>
+            </div>
                         <p class="text-sm md:text-base opacity-90 drop-shadow">
                             毎日の献立があなたの家族に笑顔を届けます
                         </p>

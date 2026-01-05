@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aメニュー - 毎日の献立を考える負担から解放</title>
+    <title>AICHEFS AIシェフ - 毎日の献立を考える負担から解放</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -241,8 +241,10 @@
     <!-- ナビゲーション -->
     <nav class="nav">
         <div class="nav-content">
-            <a href="/" class="nav-logo">
-                <i class="fas fa-utensils"></i> Aメニュー
+            <a href="/" class="nav-logo" style="display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-utensils"></i>
+                <span style="font-weight: 700; font-size: 1.2rem;">AICHEFS</span>
+                <span style="font-weight: 400; font-size: 0.9rem; opacity: 0.8;">AIシェフ</span>
             </a>
             <a href="/app" class="nav-button">今すぐ始める</a>
         </div>
@@ -251,7 +253,14 @@
     <!-- ヒーローセクション -->
     <section class="hero-section">
         <div class="hero-content">
-            <h1 class="hero-title">考えなくていい。<br>悩まなくていい。</h1>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+                <i class="fas fa-utensils" style="font-size: 4rem; color: #fff;"></i>
+                <div>
+                    <h1 style="font-size: 4rem; font-weight: 900; color: #fff; line-height: 1; margin: 0;">AICHEFS</h1>
+                    <p style="font-size: 1.5rem; font-weight: 600; color: #fff; margin: 0.5rem 0 0 0;">AIシェフ</p>
+                </div>
+            </div>
+            <h2 class="hero-title" style="margin-top: 0;">考えなくていい。悩まなくていい。</h2>
             <p class="hero-subtitle">
                 今日から1ヶ月分の晩ごはんが決まります。<br>
                 AIが作る、あなただけの献立。
@@ -300,7 +309,7 @@
 
     <!-- ソリューションセクション -->
     <section id="solution">
-        <h2 class="section-title">Aメニューが<br>すべて解決します</h2>
+        <h2 class="section-title">AICHEFS AIシェフが<br>すべて解決します</h2>
         
         <!-- 豊富なメニュー画像 -->
         <div style="max-width:900px;margin:3rem auto;border-radius:20px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.1);">
@@ -451,7 +460,7 @@
             </div>
             
             <div style="text-align:center;margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.1);">
-                <p style="opacity:0.6;">&copy; 2026 Aメニュー. All rights reserved.</p>
+                <p style="opacity:0.6;">&copy; 2026 AICHEFS AIシェフ. All rights reserved.</p>
             </div>
         </div>
     </footer>
