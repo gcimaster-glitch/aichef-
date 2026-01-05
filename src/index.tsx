@@ -327,37 +327,132 @@ const appHtml = `<!DOCTYPE html>
             <div id="ad-calendar-bottom" class="ad-container no-print mt-8" style="display:flex;justify-content:center;"></div>
         </div>
         
-        <!-- フッターセクション（メルマガ・お問い合わせ） -->
-        <footer class="no-print mt-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4 max-w-4xl mx-auto">
-                <!-- メルマガ登録（コンパクト） -->
-                <div class="flex items-center gap-2 flex-1 w-full md:w-auto">
-                    <i class="fas fa-envelope text-gray-400"></i>
-                    <input type="email" id="newsletter-email" placeholder="メールアドレス" 
-                           class="flex-1 px-3 py-1.5 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
-                    <button onclick="subscribeNewsletter()" 
-                            class="px-4 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition whitespace-nowrap">
-                        登録
-                    </button>
+        <!-- フッターセクション（デザイン改善版） -->
+        <footer class="no-print mt-12 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white rounded-2xl overflow-hidden shadow-2xl">
+            <!-- 波のアニメーション背景 -->
+            <div class="relative overflow-hidden">
+                <div class="absolute inset-0 opacity-20">
+                    <svg class="absolute bottom-0 w-full h-32" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                        <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" 
+                              fill="currentColor" class="text-purple-700 opacity-50 animate-wave"></path>
+                    </svg>
                 </div>
                 
-                <!-- お問い合わせ（コンパクト） -->
-                <button onclick="openContactForm()" 
-                        class="px-4 py-1.5 text-sm text-gray-600 hover:text-blue-500 transition whitespace-nowrap">
-                    <i class="fas fa-comment-dots mr-1"></i>
-                    お問い合わせ
-                </button>
+                <div class="relative z-10 p-8 md:p-12">
+                    <!-- メインコンテンツエリア -->
+                    <div class="max-w-6xl mx-auto">
+                        <!-- トップセクション -->
+                        <div class="grid md:grid-cols-3 gap-8 mb-8">
+                            <!-- ブランド情報 -->
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                                        <i class="fas fa-utensils text-2xl text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold">Aメニュー</h3>
+                                        <p class="text-sm text-purple-200">今日の献立、明日の笑顔</p>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-purple-200 leading-relaxed">
+                                    AIが考える、あなたの家族にぴったりの献立。毎日の食事が楽しくなります。
+                                </p>
+                                <div class="flex gap-3">
+                                    <a href="#" class="w-10 h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110">
+                                        <i class="fab fa-twitter"></i>
+                                    </a>
+                                    <a href="#" class="w-10 h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110">
+                                        <i class="fab fa-facebook"></i>
+                                    </a>
+                                    <a href="#" class="w-10 h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110">
+                                        <i class="fab fa-instagram"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- クイックリンク -->
+                            <div>
+                                <h4 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                    <i class="fas fa-link text-yellow-400"></i>
+                                    クイックリンク
+                                </h4>
+                                <ul class="space-y-2 text-sm">
+                                    <li><a href="/app" class="text-purple-200 hover:text-white transition flex items-center gap-2 group">
+                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition"></i>
+                                        献立作成
+                                    </a></li>
+                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group">
+                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition"></i>
+                                        使い方ガイド
+                                    </a></li>
+                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group">
+                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition"></i>
+                                        よくある質問
+                                    </a></li>
+                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group">
+                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition"></i>
+                                        プライバシーポリシー
+                                    </a></li>
+                                </ul>
+                            </div>
+                            
+                            <!-- メルマガ登録 -->
+                            <div>
+                                <h4 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                    <i class="fas fa-envelope text-pink-400"></i>
+                                    メルマガ登録
+                                </h4>
+                                <p class="text-sm text-purple-200 mb-3">
+                                    お得な情報や新機能をお届けします
+                                </p>
+                                <div class="flex gap-2">
+                                    <input type="email" id="newsletter-email" placeholder="メールアドレス" 
+                                           class="flex-1 px-4 py-2 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:bg-opacity-30 transition">
+                                    <button onclick="subscribeNewsletter()" 
+                                            class="px-6 py-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-lg hover:from-pink-600 hover:to-orange-600 transition transform hover:scale-105 shadow-lg font-semibold whitespace-nowrap">
+                                        登録
+                                    </button>
+                                </div>
+                                <p id="newsletter-message" class="text-xs mt-2"></p>
+                            </div>
+                        </div>
+                        
+                        <!-- お問い合わせボタン -->
+                        <div class="text-center py-6 border-t border-white border-opacity-20">
+                            <button onclick="openContactForm()" 
+                                    class="inline-flex items-center gap-2 px-8 py-3 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-full transition transform hover:scale-105 backdrop-blur-sm border border-white border-opacity-30">
+                                <i class="fas fa-comment-dots text-pink-400"></i>
+                                <span class="font-semibold">お問い合わせ</span>
+                            </button>
+                        </div>
+                        
+                        <!-- コピーライト -->
+                        <div class="text-center py-4 border-t border-white border-opacity-20">
+                            <p class="text-sm text-purple-200">
+                                &copy; 2026 <span class="font-bold text-white">Aメニュー</span>. All rights reserved.
+                            </p>
+                            <p class="text-xs text-purple-300 mt-1">
+                                Made with <i class="fas fa-heart text-pink-400 animate-pulse"></i> in Japan
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <p id="newsletter-message" class="text-xs text-center mt-2"></p>
-            
-            <!-- サイドバー広告枠 -->
-            <div id="ad-sidebar" class="ad-container mt-4" style="display:flex;justify-content:center;"></div>
-            
-            <div class="text-center text-gray-400 text-xs mt-4">
-                <p>&copy; 2026 Aメニュー. All rights reserved.</p>
-            </div>
+            <!-- サイドバー広告枠（改善版） -->
+            <div id="ad-sidebar" class="ad-container p-4 bg-black bg-opacity-20" style="display:flex;justify-content:center;"></div>
         </footer>
+        
+        <style>
+            @keyframes wave {
+                0% { transform: translateX(0) translateY(0); }
+                50% { transform: translateX(-25%) translateY(-10px); }
+                100% { transform: translateX(-50%) translateY(0); }
+            }
+            .animate-wave {
+                animation: wave 10s linear infinite;
+            }
+        </style>
         
         <!-- お問い合わせモーダル -->
         <div id="contact-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
@@ -965,18 +1060,124 @@ const appHtml = `<!DOCTYPE html>
                 inputAreaEl.innerHTML = '';
                 
                 const loadingHtml = \`
-                    <div class="flex flex-col items-center justify-center py-12">
-                        <div class="relative w-24 h-24 mb-6">
-                            <!-- 回転するアニメーション -->
-                            <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
-                            <div class="absolute inset-0 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                    <div class="flex flex-col items-center justify-center py-16 px-6">
+                        <!-- メインアニメーション -->
+                        <div class="relative w-48 h-48 mb-8">
+                            <!-- 外側の回転リング -->
+                            <div class="absolute inset-0 border-8 border-transparent border-t-blue-500 border-r-purple-500 rounded-full animate-spin" style="animation-duration: 3s;"></div>
+                            <div class="absolute inset-2 border-8 border-transparent border-b-pink-500 border-l-orange-500 rounded-full animate-spin" style="animation-duration: 2s; animation-direction: reverse;"></div>
+                            <div class="absolute inset-4 border-8 border-transparent border-t-green-500 border-r-yellow-500 rounded-full animate-spin" style="animation-duration: 4s;"></div>
+                            
+                            <!-- 中央のアイコン -->
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-6xl animate-bounce">
+                                    <i class="fas fa-utensils text-blue-500"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- パルスエフェクト -->
+                            <div class="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-ping" style="animation-duration: 2s;"></div>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">献立を作成中...</h3>
-                        <p class="text-gray-600 mb-4">AIがあなたの家族に最適な献立を考えています</p>
-                        <div class="text-sm text-gray-500">
-                            <p class="animate-pulse">✨ 703品のレシピから最適な組み合わせを選択中</p>
+                        
+                        <!-- テキストセクション -->
+                        <h3 class="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+                            献立を作成中...
+                        </h3>
+                        <p class="text-lg text-gray-600 mb-6 text-center max-w-md">
+                            AIがあなたの家族に最適な献立を考えています
+                        </p>
+                        
+                        <!-- プログレスステップ -->
+                        <div class="w-full max-w-2xl space-y-4">
+                            <div id="step-1" class="loading-step flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 transform transition-all duration-500">
+                                <div class="flex-shrink-0 w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                                    <i class="fas fa-search text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-gray-800">レシピ検索中</h4>
+                                    <p class="text-sm text-gray-600">703品のレシピから最適な組み合わせを探しています</p>
+                                </div>
+                                <div class="loading-spinner">
+                                    <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                                </div>
+                            </div>
+                            
+                            <div id="step-2" class="loading-step flex items-center gap-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-200 opacity-50 transform transition-all duration-500">
+                                <div class="flex-shrink-0 w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                                    <i class="fas fa-balance-scale text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-gray-800">栄養バランス調整中</h4>
+                                    <p class="text-sm text-gray-600">主菜・副菜・汁物のバランスを最適化しています</p>
+                                </div>
+                                <div class="loading-spinner hidden">
+                                    <i class="fas fa-spinner fa-spin text-2xl text-purple-500"></i>
+                                </div>
+                            </div>
+                            
+                            <div id="step-3" class="loading-step flex items-center gap-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-200 opacity-50 transform transition-all duration-500">
+                                <div class="flex-shrink-0 w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                                    <i class="fas fa-calendar-check text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-gray-800">献立カレンダー作成中</h4>
+                                    <p class="text-sm text-gray-600">31日分の献立を組み立てています</p>
+                                </div>
+                                <div class="loading-spinner hidden">
+                                    <i class="fas fa-spinner fa-spin text-2xl text-pink-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- プログレスバー -->
+                        <div class="w-full max-w-2xl mt-8">
+                            <div class="h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+                                <div id="progress-bar" class="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                            </div>
+                            <p class="text-center text-sm text-gray-500 mt-2">
+                                <span id="progress-text">準備中...</span>
+                            </p>
+                        </div>
+                        
+                        <!-- 豆知識 -->
+                        <div class="mt-8 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg max-w-2xl">
+                            <p class="text-sm text-gray-700 flex items-start gap-2">
+                                <i class="fas fa-lightbulb text-yellow-500 mt-0.5"></i>
+                                <span><strong>豆知識:</strong> カレーやシチューなどの煮込み料理は、汁物をサラダに自動変更して栄養バランスを最適化しています！</span>
+                            </p>
                         </div>
                     </div>
+                    
+                    <script>
+                        // アニメーションシーケンス
+                        setTimeout(() => {
+                            document.getElementById('step-1').classList.add('scale-105');
+                            document.getElementById('progress-bar').style.width = '33%';
+                            document.getElementById('progress-text').textContent = 'レシピ検索中... 33%';
+                        }, 500);
+                        
+                        setTimeout(() => {
+                            document.getElementById('step-1').classList.remove('scale-105');
+                            document.getElementById('step-1').querySelector('.loading-spinner').innerHTML = '<i class="fas fa-check text-2xl text-green-500"></i>';
+                            
+                            document.getElementById('step-2').classList.remove('opacity-50');
+                            document.getElementById('step-2').classList.add('scale-105', 'bg-gradient-to-r', 'from-purple-50', 'to-purple-100', 'border-purple-200');
+                            document.getElementById('step-2').querySelector('.loading-spinner').classList.remove('hidden');
+                            document.getElementById('progress-bar').style.width = '66%';
+                            document.getElementById('progress-text').textContent = '栄養バランス調整中... 66%';
+                        }, 2000);
+                        
+                        setTimeout(() => {
+                            document.getElementById('step-2').classList.remove('scale-105');
+                            document.getElementById('step-2').querySelector('.loading-spinner').innerHTML = '<i class="fas fa-check text-2xl text-green-500"></i>';
+                            
+                            document.getElementById('step-3').classList.remove('opacity-50');
+                            document.getElementById('step-3').classList.add('scale-105', 'bg-gradient-to-r', 'from-pink-50', 'to-pink-100', 'border-pink-200');
+                            document.getElementById('step-3').querySelector('.loading-spinner').classList.remove('hidden');
+                            document.getElementById('progress-bar').style.width = '100%';
+                            document.getElementById('progress-text').textContent = '献立カレンダー作成中... 100%';
+                        }, 4000);
+                    </script>
                 \`;
                 messagesEl.innerHTML = loadingHtml;
                 
