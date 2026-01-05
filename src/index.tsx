@@ -200,9 +200,24 @@ const appHtml = `<!DOCTYPE html>
             }
         }
         
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         .animate-gradient {
             background-size: 200% 200%;
             animation: gradient 4s ease infinite;
+        }
+        
+        .animate-fade-in {
+            animation: fade-in 1s ease-out;
         }
     </style>
 </head>
@@ -251,6 +266,22 @@ const appHtml = `<!DOCTYPE html>
                 <div class="absolute bottom-4 right-4 animate-bounce" style="animation-delay: 0.5s;">
                     <i class="fas fa-heart text-white text-2xl opacity-30"></i>
                 </div>
+            </div>
+            
+            <!-- アニメーションバナー -->
+            <div class="no-print mb-6 relative overflow-hidden rounded-2xl" style="height: 180px;">
+                <div class="absolute inset-0 bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 animate-gradient"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center text-white">
+                        <h2 class="text-4xl font-bold mb-2 animate-fade-in" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                            今日の献立、明日の笑顔
+                        </h2>
+                        <p class="text-lg opacity-90" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                            30日分の献立があなたの毎日を彩ります
+                        </p>
+                    </div>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white/20 to-transparent"></div>
             </div>
             
             <div class="flex justify-between items-center mb-6 no-print">
@@ -1051,9 +1082,12 @@ const appHtml = `<!DOCTYPE html>
                     const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(day.date).getDay()];
 
                     html += \`
-                        <div class="day-card" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
-                            <div class="day-date text-lg font-bold text-gray-800 mb-3 border-b pb-2">
-                                \${day.date} (\${dayOfWeek})
+                        <div class="day-card" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}" 
+                             draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" 
+                             ondrop="handleDrop(event)" ondragend="handleDragEnd(event)" style="cursor: move;">
+                            <div class="day-date text-lg font-bold text-gray-800 mb-3 border-b pb-2 flex justify-between items-center">
+                                <span>\${day.date} (\${dayOfWeek})</span>
+                                <i class="fas fa-grip-vertical text-gray-400 text-sm"></i>
                             </div>
                             <div class="space-y-2 text-sm">
                                 \${main ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> <a href="javascript:void(0)" onclick="showRecipeDetail('\${main.recipe_id}', '\${main.title}')" class="text-blue-600 hover:underline cursor-pointer">\${main.title}</a></span></div>\` : ''}
@@ -1472,8 +1506,10 @@ const appHtml = `<!DOCTYPE html>
                     const soup = recipes.find(r => r.role === 'soup');
                     
                     html += \`
-                        <div class="calendar-day-cell" data-plan-day-id="\${day.plan_day_id}" data-date="\${day.date}">
-                            <div class="calendar-day-number">\${date}</div>
+                        <div class="calendar-day-cell" data-plan-day-id="\${day.plan_day_id}" data-date="\${day.date}"
+                             draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" 
+                             ondrop="handleDrop(event)" ondragend="handleDragEnd(event)" style="cursor: move;">
+                            <div class="calendar-day-number">\${date} <i class="fas fa-grip-vertical text-gray-300 text-xs ml-1"></i></div>
                             <div class="calendar-day-content">
                                 \${main ? \`<div class="text-xs truncate">🍖 \${main.title}</div>\` : ''}
                                 \${side ? \`<div class="text-xs truncate">🥗 \${side.title}</div>\` : ''}
@@ -1518,9 +1554,12 @@ const appHtml = `<!DOCTYPE html>
                     const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(day.date).getDay()];
 
                     html += \`
-                        <div class="day-card" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
-                            <div class="day-date text-lg font-bold text-gray-800 mb-3 border-b pb-2">
-                                \${day.date} (\${dayOfWeek})
+                        <div class="day-card" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}" 
+                             draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" 
+                             ondrop="handleDrop(event)" ondragend="handleDragEnd(event)" style="cursor: move;">
+                            <div class="day-date text-lg font-bold text-gray-800 mb-3 border-b pb-2 flex justify-between items-center">
+                                <span>\${day.date} (\${dayOfWeek})</span>
+                                <i class="fas fa-grip-vertical text-gray-400 text-sm"></i>
                             </div>
                             <div class="space-y-2 text-sm">
                                 \${main ? \`<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> <a href="javascript:void(0)" onclick="showRecipeDetail('\${main.recipe_id}', '\${main.title}')" class="text-blue-600 hover:underline cursor-pointer">\${main.title}</a></span></div>\` : ''}
@@ -1849,6 +1888,96 @@ const appHtml = `<!DOCTYPE html>
             
             localStorage.setItem('favoriteRecipes', JSON.stringify(favorites));
             alert(\`「\${recipeTitle}」をお気に入りに追加しました！\`);
+        }
+        
+        // ========================================
+        // ドラッグ&ドロップ機能
+        // ========================================
+        let draggedElement = null;
+        let draggedData = null;
+        
+        function handleDragStart(event) {
+            draggedElement = event.currentTarget;
+            draggedData = {
+                planDayId: draggedElement.dataset.planDayId,
+                date: draggedElement.dataset.date
+            };
+            event.dataTransfer.effectAllowed = 'move';
+            draggedElement.style.opacity = '0.4';
+        }
+        
+        function handleDragOver(event) {
+            if (event.preventDefault) {
+                event.preventDefault();
+            }
+            event.dataTransfer.dropEffect = 'move';
+            
+            const dropTarget = event.currentTarget;
+            if (dropTarget !== draggedElement) {
+                dropTarget.style.borderColor = '#3b82f6';
+                dropTarget.style.borderWidth = '2px';
+                dropTarget.style.borderStyle = 'dashed';
+            }
+            return false;
+        }
+        
+        async function handleDrop(event) {
+            if (event.stopPropagation) {
+                event.stopPropagation();
+            }
+            
+            const dropTarget = event.currentTarget;
+            dropTarget.style.border = '';
+            
+            if (draggedElement !== dropTarget) {
+                const targetData = {
+                    planDayId: dropTarget.dataset.planDayId,
+                    date: dropTarget.dataset.date
+                };
+                
+                // サーバーに献立の入れ替えをリクエスト
+                try {
+                    const res = await axios.post('/api/plans/swap-days', {
+                        plan_id: appState.planId,
+                        day1_id: draggedData.planDayId,
+                        day2_id: targetData.planDayId
+                    });
+                    
+                    if (res.data.success) {
+                        // 献立データを再取得して更新
+                        const planRes = await axios.get(\`/api/plans/\${appState.planId}\`);
+                        calendarData = planRes.data.days;
+                        
+                        // 現在のビューモードで再描画
+                        if (currentViewMode === 'calendar') {
+                            renderCalendarView(calendarData);
+                        } else {
+                            renderGridView(calendarData);
+                        }
+                        
+                        // 成功メッセージ
+                        const toast = document.createElement('div');
+                        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                        toast.textContent = '✓ 献立を入れ替えました';
+                        document.body.appendChild(toast);
+                        setTimeout(() => toast.remove(), 2000);
+                    }
+                } catch (error) {
+                    console.error('献立の入れ替えエラー:', error);
+                    alert('献立の入れ替えに失敗しました');
+                }
+            }
+            
+            return false;
+        }
+        
+        function handleDragEnd(event) {
+            event.currentTarget.style.opacity = '1';
+            
+            // すべてのボーダーをリセット
+            document.querySelectorAll('.day-card').forEach(card => {
+                card.style.border = '';
+            });
         }
         
         function showFavorites() {
@@ -2850,6 +2979,56 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       });
     } catch (error: any) {
       console.error('OpenAI API error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // POST /api/plans/swap-days - 献立の日付を入れ替え
+  if (pathname === "/api/plans/swap-days" && req.method === "POST") {
+    const body = await readJson(req);
+    const { plan_id, day1_id, day2_id } = body;
+    
+    if (!plan_id || !day1_id || !day2_id) {
+      return badRequest("Missing required fields: plan_id, day1_id, day2_id");
+    }
+    
+    try {
+      // 2つの献立日のレシピを取得
+      const day1Recipes = await env.DB.prepare(`
+        SELECT plan_day_id, role, recipe_id 
+        FROM meal_plan_day_recipes 
+        WHERE plan_day_id = ?
+      `).bind(day1_id).all();
+      
+      const day2Recipes = await env.DB.prepare(`
+        SELECT plan_day_id, role, recipe_id 
+        FROM meal_plan_day_recipes 
+        WHERE plan_day_id = ?
+      `).bind(day2_id).all();
+      
+      // 両方のレシピを削除
+      await env.DB.prepare(
+        `DELETE FROM meal_plan_day_recipes WHERE plan_day_id IN (?, ?)`
+      ).bind(day1_id, day2_id).run();
+      
+      // レシピを入れ替えて挿入
+      for (const recipe of day1Recipes.results) {
+        await env.DB.prepare(
+          `INSERT INTO meal_plan_day_recipes (plan_day_id, role, recipe_id) 
+           VALUES (?, ?, ?)`
+        ).bind(day2_id, recipe.role, recipe.recipe_id).run();
+      }
+      
+      for (const recipe of day2Recipes.results) {
+        await env.DB.prepare(
+          `INSERT INTO meal_plan_day_recipes (plan_day_id, role, recipe_id) 
+           VALUES (?, ?, ?)`
+        ).bind(day1_id, recipe.role, recipe.recipe_id).run();
+      }
+      
+      return json({ success: true });
+    } catch (error: any) {
+      console.error('Day swap error:', error);
       return json({ error: { message: error.message } }, 500);
     }
   }
