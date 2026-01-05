@@ -3363,75 +3363,84 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     console.log('嫌いな食材:', dislikes);
     console.log('アレルギー:', allergiesStandard);
     
-    // タイトルから検出するキーワードマッピング（暫定版）
-    const dislikeKeywords: { [key: string]: string[] } = {
-      'fish': ['魚', 'サバ', 'さば', '鮭', 'マグロ', 'タラ', 'アジ', 'サンマ', 'イワシ', 'ブリ'],
-      'shrimp': ['エビ', 'えび', '海老'],
-      'crab': ['カニ', 'かに', '蟹'],
-      'octopus': ['タコ', 'たこ'],
-      'squid': ['イカ', 'いか'],
-      'shellfish': ['貝', 'アサリ', 'シジミ', 'ハマグリ', 'ホタテ', '牡蠣', 'カキ'],
-      'offal': ['レバー', 'ハツ', 'ホルモン', 'もつ', 'モツ', '内臓'],
-      'tomato': ['トマト'],
-      'eggplant': ['なす', 'ナス', '茄子'],
-      'green_pepper': ['ピーマン'],
-      'celery': ['セロリ'],
-      'cilantro': ['パクチー', 'コリアンダー'],
-      'mushroom': ['きのこ', 'キノコ', 'しいたけ', 'しめじ', 'えのき', 'まいたけ'],
-      'garlic': ['にんにく', 'ニンニク'],
-      'onion': ['玉ねぎ', 'タマネギ'],
-      'spicy': ['辛', '唐辛子']
+    // 除外する食材IDのマッピング（食材名 → ingredient_id）
+    const dislikeMapping: { [key: string]: string[] } = {
+      'fish': ['fish_salmon', 'fish_mackerel', 'fish_tuna', 'fish_sardine', 'fish_cod', 'fish_yellowtail', 'fish_sea_bream', 'fish_horse_mackerel', 'fish_saury'],
+      'shrimp': ['seafood_shrimp', 'shrimp'],
+      'crab': ['seafood_crab', 'crab'],
+      'octopus': ['seafood_octopus', 'octopus'],
+      'squid': ['seafood_squid', 'squid'],
+      'shellfish': ['seafood_clam', 'seafood_scallop', 'seafood_oyster', 'seafood_mussel', 'clam', 'scallop', 'oyster'],
+      'offal': ['meat_liver', 'meat_heart', 'meat_intestine', 'meat_stomach', 'offal', 'liver', 'heart'],
+      'tomato': ['veg_tomato', 'tomato'],
+      'eggplant': ['veg_eggplant', 'eggplant', 'nasu'],
+      'green_pepper': ['veg_green_pepper', 'bell_pepper', 'piman'],
+      'celery': ['veg_celery', 'celery'],
+      'cilantro': ['herb_cilantro', 'cilantro', 'coriander'],
+      'mushroom': ['mushroom_shiitake', 'mushroom_enoki', 'mushroom_shimeji', 'mushroom', 'kinoko'],
+      'garlic': ['seasoning_garlic', 'garlic', 'ninniku'],
+      'onion': ['veg_onion', 'onion', 'tamanegi'],
+      'spicy': ['chili', 'pepper_red', 'spice_chili']
     };
     
-    const allergyKeywords: { [key: string]: string[] } = {
-      'egg': ['卵', 'たまご', 'タマゴ', 'オムレツ', 'オムライス', '親子丼'],
-      'milk': ['牛乳', 'ミルク', 'チーズ', 'バター', 'クリーム', 'シチュー', 'グラタン'],
-      'wheat': ['小麦', 'パン', 'うどん', 'ラーメン', 'パスタ'],
-      'shrimp': ['エビ', 'えび', '海老'],
-      'crab': ['カニ', 'かに', '蟹'],
-      'buckwheat': ['そば', 'ソバ', '蕎麦'],
-      'peanut': ['ピーナッツ', '落花生']
+    const allergyMapping: { [key: string]: string[] } = {
+      'egg': ['egg', 'dairy_egg'],
+      'milk': ['milk', 'dairy_milk', 'cheese', 'butter', 'cream'],
+      'wheat': ['flour', 'wheat', 'bread', 'noodles'],
+      'shrimp': ['seafood_shrimp', 'shrimp'],
+      'crab': ['seafood_crab', 'crab'],
+      'buckwheat': ['soba', 'buckwheat'],
+      'peanut': ['peanut', 'nuts_peanut']
     };
     
-    // 除外するキーワードのセットを作成
-    const excludedKeywords = new Set<string>();
+    // 除外する食材IDのセットを作成
+    const excludedIngredientIds = new Set<string>();
     
-    // 嫌いな食材のキーワードを追加
+    // 嫌いな食材を追加
     dislikes.forEach((dislike: string) => {
-      if (dislike !== 'none' && dislikeKeywords[dislike]) {
-        dislikeKeywords[dislike].forEach(keyword => excludedKeywords.add(keyword));
+      if (dislike !== 'none' && dislikeMapping[dislike]) {
+        dislikeMapping[dislike].forEach(id => excludedIngredientIds.add(id));
       }
     });
     
-    // アレルギー食材のキーワードを追加
+    // アレルギー食材を追加
     allergiesStandard.forEach((allergy: string) => {
-      if (allergy !== 'none' && allergyKeywords[allergy]) {
-        allergyKeywords[allergy].forEach(keyword => excludedKeywords.add(keyword));
+      if (allergy !== 'none' && allergyMapping[allergy]) {
+        allergyMapping[allergy].forEach(id => excludedIngredientIds.add(id));
       }
     });
     
-    console.log('除外するキーワード数:', excludedKeywords.size);
-    console.log('除外するキーワード:', Array.from(excludedKeywords));
+    console.log('除外する食材ID数:', excludedIngredientIds.size);
+    console.log('除外する食材ID:', Array.from(excludedIngredientIds));
     
-    // タイトルベースでレシピをフィルタリング（暫定版）
-    const filterRecipesByTitle = (recipes: any[]) => {
-      if (excludedKeywords.size === 0) {
-        console.log('除外キーワードなし。フィルタリングスキップ');
+    // レシピをフィルタリング（除外食材を含むレシピを除外）
+    const filterRecipesByIngredients = async (recipes: any[]) => {
+      if (excludedIngredientIds.size === 0) {
+        console.log('除外食材なし。フィルタリングスキップ');
         return recipes;
       }
       
       const filteredRecipes = [];
       
       for (const recipe of recipes) {
-        // タイトルに除外キーワードが含まれているかチェック
-        const hasExcludedKeyword = Array.from(excludedKeywords).some(keyword => 
-          recipe.title.includes(keyword)
+        // このレシピの材料を取得
+        const ingredients = await env.DB.prepare(
+          `SELECT ingredient_id FROM recipe_ingredients WHERE recipe_id = ?`
+        ).bind(recipe.recipe_id).all();
+        
+        const recipeIngredientIds = (ingredients.results || []).map((ing: any) => ing.ingredient_id);
+        
+        // 除外食材が含まれているかチェック
+        const hasExcludedIngredient = recipeIngredientIds.some(id => 
+          excludedIngredientIds.has(id) || 
+          // 部分一致もチェック（例: 'fish_salmon' に 'fish' が含まれる）
+          Array.from(excludedIngredientIds).some(excludedId => id.includes(excludedId))
         );
         
-        if (!hasExcludedKeyword) {
+        if (!hasExcludedIngredient) {
           filteredRecipes.push(recipe);
         } else {
-          console.log(`除外: ${recipe.title} (除外キーワード: ${Array.from(excludedKeywords).filter(k => recipe.title.includes(k)).join(', ')})`);
+          console.log(`除外: ${recipe.title} (除外食材を含む)`);
         }
       }
       
@@ -3441,11 +3450,11 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     
     // 全てのレシピをフィルタリング
     console.log('主菜フィルタリング開始...');
-    mainRecipes = filterRecipesByTitle(mainRecipes);
+    mainRecipes = await filterRecipesByIngredients(mainRecipes);
     console.log('副菜フィルタリング開始...');
-    sideRecipes = filterRecipesByTitle(sideRecipes);
+    sideRecipes = await filterRecipesByIngredients(sideRecipes);
     console.log('汁物フィルタリング開始...');
-    soupRecipes = filterRecipesByTitle(soupRecipes);
+    soupRecipes = await filterRecipesByIngredients(soupRecipes);
     
     console.log('=== フィルタリング完了 ===');
     console.log('フィルタリング後のレシピ数 - main:', mainRecipes.length, 'side:', sideRecipes.length, 'soup:', soupRecipes.length);
