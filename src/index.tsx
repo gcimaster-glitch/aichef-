@@ -74,7 +74,7 @@ const LOGIN_HTML = `
                 if (data.success) {
                     localStorage.setItem('session_id', data.session_id);
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    window.location.href = '/app';
+                    window.location.href = '/dashboard';
                 } else {
                     errorDiv.textContent = data.error || 'ログインに失敗しました';
                     errorDiv.classList.remove('hidden');
@@ -273,6 +273,264 @@ const REGISTER_HTML = `
                 errorDiv.classList.remove('hidden');
             }
         });
+    </script>
+</body>
+</html>
+`;
+
+const USER_DASHBOARD_HTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マイページ - AICHEFS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <i class="fas fa-utensils text-2xl text-purple-600"></i>
+                <h1 class="text-2xl font-bold text-gray-800">AICHEFS</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="user-name" class="text-gray-700"></span>
+                <button onclick="logout()" class="text-sm text-red-600 hover:underline">
+                    <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- メインコンテンツ -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- ダッシュボードカード -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- 献立作成 -->
+            <div class="bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl p-6 text-white shadow-xl">
+                <i class="fas fa-calendar-plus text-4xl mb-4"></i>
+                <h2 class="text-2xl font-bold mb-2">献立作成</h2>
+                <p class="mb-4 opacity-90">新しい献立を作成します</p>
+                <a href="/app" class="inline-block bg-white text-purple-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
+                    作成する
+                </a>
+            </div>
+            
+            <!-- 履歴 -->
+            <div class="bg-gradient-to-br from-green-500 to-teal-500 rounded-2xl p-6 text-white shadow-xl">
+                <i class="fas fa-history text-4xl mb-4"></i>
+                <h2 class="text-2xl font-bold mb-2">献立履歴</h2>
+                <p class="mb-4 opacity-90"><span id="history-count">0</span>件の履歴</p>
+                <button onclick="showHistoryTab()" class="bg-white text-green-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
+                    閲覧する
+                </button>
+            </div>
+            
+            <!-- お気に入り -->
+            <div class="bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl p-6 text-white shadow-xl">
+                <i class="fas fa-heart text-4xl mb-4"></i>
+                <h2 class="text-2xl font-bold mb-2">お気に入り</h2>
+                <p class="mb-4 opacity-90"><span id="favorites-count">0</span>件のレシピ</p>
+                <button onclick="showFavoritesTab()" class="bg-white text-pink-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
+                    閲覧する
+                </button>
+            </div>
+        </div>
+        
+        <!-- タブナビゲーション -->
+        <div class="bg-white rounded-lg shadow-sm mb-6">
+            <div class="border-b border-gray-200 flex">
+                <button onclick="switchTab('history')" id="tab-history" class="px-6 py-3 font-semibold border-b-2 border-purple-600 text-purple-600">
+                    <i class="fas fa-history mr-2"></i>履歴
+                </button>
+                <button onclick="switchTab('favorites')" id="tab-favorites" class="px-6 py-3 font-semibold text-gray-600 hover:text-purple-600">
+                    <i class="fas fa-heart mr-2"></i>お気に入り
+                </button>
+                <button onclick="switchTab('profile')" id="tab-profile" class="px-6 py-3 font-semibold text-gray-600 hover:text-purple-600">
+                    <i class="fas fa-user mr-2"></i>プロフィール
+                </button>
+            </div>
+        </div>
+        
+        <!-- タブコンテンツ -->
+        <div id="content-history" class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">献立履歴</h2>
+            <div id="history-list" class="space-y-4">
+                <p class="text-gray-500">履歴を読み込み中...</p>
+            </div>
+        </div>
+        
+        <div id="content-favorites" class="hidden bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">お気に入りレシピ</h2>
+            <div id="favorites-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <p class="text-gray-500">お気に入りを読み込み中...</p>
+            </div>
+        </div>
+        
+        <div id="content-profile" class="hidden bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">プロフィール</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">お名前</label>
+                    <input type="text" id="profile-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg" disabled>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
+                    <input type="email" id="profile-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg" disabled>
+                </div>
+                <p class="text-sm text-gray-500">※ プロフィール編集機能は近日公開予定です</p>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        let userData = null;
+        let household_id = null;
+        
+        // 初期化
+        async function init() {
+            // セッション確認
+            const session_id = localStorage.getItem('session_id');
+            const user = localStorage.getItem('user');
+            
+            if (!session_id || !user) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            userData = JSON.parse(user);
+            household_id = userData.household_id;
+            document.getElementById('user-name').textContent = userData.name;
+            document.getElementById('profile-name').value = userData.name;
+            document.getElementById('profile-email').value = userData.email;
+            
+            // データ読み込み
+            await loadHistory();
+            await loadFavorites();
+        }
+        
+        // 履歴読み込み
+        async function loadHistory() {
+            try {
+                const response = await fetch(\`/api/history/list/\${household_id}\`);
+                const data = await response.json();
+                
+                document.getElementById('history-count').textContent = data.count || 0;
+                
+                const listEl = document.getElementById('history-list');
+                if (data.histories && data.histories.length > 0) {
+                    listEl.innerHTML = data.histories.map(h => \`
+                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-bold text-lg text-gray-800">\${h.title}</h3>
+                                    <p class="text-sm text-gray-600 mt-1">
+                                        <i class="far fa-calendar mr-1"></i>\${h.start_date} ~ \${h.end_date}
+                                    </p>
+                                    <p class="text-sm text-gray-600">
+                                        <i class="fas fa-users mr-1"></i>\${h.members_count}人分 | \${h.total_days}日間
+                                    </p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="viewHistory('\${h.history_id}')" class="text-blue-600 hover:text-blue-800">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="deleteHistory('\${h.history_id}')" class="text-red-600 hover:text-red-800">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    \`).join('');
+                } else {
+                    listEl.innerHTML = '<p class="text-gray-500">まだ履歴がありません</p>';
+                }
+            } catch (error) {
+                console.error('History load error:', error);
+            }
+        }
+        
+        // お気に入り読み込み
+        async function loadFavorites() {
+            try {
+                const response = await fetch(\`/api/favorites/list/\${household_id}\`);
+                const data = await response.json();
+                
+                document.getElementById('favorites-count').textContent = data.count || 0;
+                
+                const listEl = document.getElementById('favorites-list');
+                if (data.favorites && data.favorites.length > 0) {
+                    listEl.innerHTML = data.favorites.map(f => \`
+                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                            <h3 class="font-bold text-gray-800 mb-2">\${f.title}</h3>
+                            <p class="text-sm text-gray-600 mb-2">\${f.description || ''}</p>
+                            <div class="flex justify-between items-center text-sm text-gray-500">
+                                <span><i class="fas fa-globe mr-1"></i>\${f.cuisine}</span>
+                                <span><i class="far fa-clock mr-1"></i>\${f.time_min}分</span>
+                            </div>
+                        </div>
+                    \`).join('');
+                } else {
+                    listEl.innerHTML = '<p class="text-gray-500 col-span-full">まだお気に入りがありません</p>';
+                }
+            } catch (error) {
+                console.error('Favorites load error:', error);
+            }
+        }
+        
+        // タブ切り替え
+        function switchTab(tab) {
+            ['history', 'favorites', 'profile'].forEach(t => {
+                document.getElementById(\`content-\${t}\`).classList.add('hidden');
+                document.getElementById(\`tab-\${t}\`).classList.remove('border-b-2', 'border-purple-600', 'text-purple-600');
+                document.getElementById(\`tab-\${t}\`).classList.add('text-gray-600');
+            });
+            
+            document.getElementById(\`content-\${tab}\`).classList.remove('hidden');
+            document.getElementById(\`tab-\${tab}\`).classList.add('border-b-2', 'border-purple-600', 'text-purple-600');
+            document.getElementById(\`tab-\${tab}\`).classList.remove('text-gray-600');
+        }
+        
+        function showHistoryTab() { switchTab('history'); }
+        function showFavoritesTab() { switchTab('favorites'); }
+        
+        // 履歴詳細表示
+        async function viewHistory(history_id) {
+            alert('履歴詳細表示機能は近日実装予定です');
+        }
+        
+        // 履歴削除
+        async function deleteHistory(history_id) {
+            if (!confirm('この履歴を削除してもよろしいですか？')) return;
+            
+            try {
+                const response = await fetch(\`/api/history/delete/\${history_id}\`, { method: 'DELETE' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('履歴を削除しました');
+                    await loadHistory();
+                } else {
+                    alert('削除に失敗しました');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('エラーが発生しました');
+            }
+        }
+        
+        // ログアウト
+        function logout() {
+            localStorage.removeItem('session_id');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+        
+        // 初期化実行
+        init();
     </script>
 </body>
 </html>
@@ -4988,7 +5246,132 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     }
   }
   
-  // POST /api/history/archive - 献立履歴をアーカイブ
+  // ========================================
+  // 履歴管理API
+  // ========================================
+  
+  // POST /api/history/save - 献立を履歴として保存
+  if (pathname === "/api/history/save" && req.method === "POST") {
+    const body = await readJson(req);
+    const { household_id, plan_id, title, start_date, end_date, members_count, plan_data } = body;
+    
+    if (!household_id || !plan_id || !title || !start_date || !end_date || !members_count || !plan_data) {
+      return badRequest("Missing required fields");
+    }
+    
+    try {
+      const history_id = uuid();
+      const total_days = plan_data.days ? plan_data.days.length : 0;
+      
+      await env.DB.prepare(`
+        INSERT INTO meal_plan_history (
+          history_id, household_id, plan_id, title, 
+          start_date, end_date, members_count, total_days,
+          plan_data_json, archived_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `).bind(
+        history_id, household_id, plan_id, title,
+        start_date, end_date, members_count, total_days,
+        JSON.stringify(plan_data)
+      ).run();
+      
+      return json({ success: true, history_id, message: "献立を履歴に保存しました" });
+    } catch (error: any) {
+      console.error('History save error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // GET /api/history/list/:household_id - 献立履歴一覧取得
+  if (pathname.startsWith("/api/history/list/") && req.method === "GET") {
+    const household_id = pathname.split("/").pop();
+    
+    if (!household_id) {
+      return badRequest("household_id is required");
+    }
+    
+    try {
+      const histories = await env.DB.prepare(`
+        SELECT 
+          history_id, plan_id, title, 
+          start_date, end_date, members_count, total_days,
+          archived_at
+        FROM meal_plan_history 
+        WHERE household_id = ?
+        ORDER BY archived_at DESC
+        LIMIT 50
+      `).bind(household_id).all();
+      
+      return json({ 
+        success: true, 
+        histories: histories.results || [],
+        count: histories.results?.length || 0
+      });
+    } catch (error: any) {
+      console.error('History list error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // GET /api/history/detail/:history_id - 献立履歴詳細取得
+  if (pathname.startsWith("/api/history/detail/") && req.method === "GET") {
+    const history_id = pathname.split("/").pop();
+    
+    if (!history_id) {
+      return badRequest("history_id is required");
+    }
+    
+    try {
+      const history = await env.DB.prepare(`
+        SELECT 
+          history_id, household_id, plan_id, title, 
+          start_date, end_date, members_count, total_days,
+          plan_data_json, archived_at
+        FROM meal_plan_history 
+        WHERE history_id = ?
+      `).bind(history_id).first();
+      
+      if (!history) {
+        return json({ error: "History not found" }, 404);
+      }
+      
+      // JSONをパース
+      const plan_data = JSON.parse(history.plan_data_json as string);
+      
+      return json({ 
+        success: true, 
+        history: {
+          ...history,
+          plan_data
+        }
+      });
+    } catch (error: any) {
+      console.error('History detail error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // DELETE /api/history/delete/:history_id - 献立履歴削除
+  if (pathname.startsWith("/api/history/delete/") && req.method === "DELETE") {
+    const history_id = pathname.split("/").pop();
+    
+    if (!history_id) {
+      return badRequest("history_id is required");
+    }
+    
+    try {
+      await env.DB.prepare(`
+        DELETE FROM meal_plan_history WHERE history_id = ?
+      `).bind(history_id).run();
+      
+      return json({ success: true, message: "履歴を削除しました" });
+    } catch (error: any) {
+      console.error('History delete error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // POST /api/history/archive - 献立履歴をアーカイブ（互換性のため残す）
   if (pathname === "/api/history/archive" && req.method === "POST") {
     const body = await readJson(req);
     const { history_id } = body;
@@ -4998,13 +5381,91 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     }
     
     try {
+      // 新しいテーブル構造では削除を実行
       await env.DB.prepare(
-        `UPDATE plan_history SET is_archived = 1 WHERE history_id = ?`
+        `DELETE FROM meal_plan_history WHERE history_id = ?`
       ).bind(history_id).run();
       
       return json({ success: true });
     } catch (error: any) {
       console.error('Archive error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // ========================================
+  // お気に入りレシピAPI
+  // ========================================
+  
+  // POST /api/favorites/add - お気に入り追加
+  if (pathname === "/api/favorites/add" && req.method === "POST") {
+    const body = await readJson(req);
+    const { household_id, recipe_id, notes } = body;
+    
+    if (!household_id || !recipe_id) {
+      return badRequest("household_id and recipe_id are required");
+    }
+    
+    try {
+      await env.DB.prepare(`
+        INSERT OR REPLACE INTO favorite_recipes (household_id, recipe_id, notes, added_at)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      `).bind(household_id, recipe_id, notes || null).run();
+      
+      return json({ success: true, message: "お気に入りに追加しました" });
+    } catch (error: any) {
+      console.error('Add favorite error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // DELETE /api/favorites/remove - お気に入り削除
+  if (pathname === "/api/favorites/remove" && req.method === "DELETE") {
+    const body = await readJson(req);
+    const { household_id, recipe_id } = body;
+    
+    if (!household_id || !recipe_id) {
+      return badRequest("household_id and recipe_id are required");
+    }
+    
+    try {
+      await env.DB.prepare(`
+        DELETE FROM favorite_recipes WHERE household_id = ? AND recipe_id = ?
+      `).bind(household_id, recipe_id).run();
+      
+      return json({ success: true, message: "お気に入りから削除しました" });
+    } catch (error: any) {
+      console.error('Remove favorite error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // GET /api/favorites/list/:household_id - お気に入り一覧取得
+  if (pathname.startsWith("/api/favorites/list/") && req.method === "GET") {
+    const household_id = pathname.split("/").pop();
+    
+    if (!household_id) {
+      return badRequest("household_id is required");
+    }
+    
+    try {
+      const favorites = await env.DB.prepare(`
+        SELECT 
+          f.recipe_id, f.notes, f.added_at,
+          r.title, r.description, r.cuisine, r.difficulty, r.time_min
+        FROM favorite_recipes f
+        JOIN recipes r ON f.recipe_id = r.recipe_id
+        WHERE f.household_id = ?
+        ORDER BY f.added_at DESC
+      `).bind(household_id).all();
+      
+      return json({ 
+        success: true, 
+        favorites: favorites.results || [],
+        count: favorites.results?.length || 0
+      });
+    } catch (error: any) {
+      console.error('Favorites list error:', error);
       return json({ error: { message: error.message } }, 500);
     }
   }
@@ -5428,6 +5889,18 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   // ========================================
   if (pathname === "/register") {
     return new Response(REGISTER_HTML, {
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store'
+      }
+    });
+  }
+
+  // ========================================
+  // /dashboard：ユーザーダッシュボード
+  // ========================================
+  if (pathname === "/dashboard") {
+    return new Response(USER_DASHBOARD_HTML, {
       headers: { 
         'content-type': 'text/html; charset=utf-8',
         'cache-control': 'no-store'
