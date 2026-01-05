@@ -368,6 +368,34 @@ const appHtml = `<!DOCTYPE html>
                 ]
             },
             {
+                id: 'supervisor_mode',
+                type: 'choice',
+                text: 'どんな献立スタイルがお好みですか？<br>（監修者を選んでください）',
+                field: 'supervisor_mode',
+                options: [
+                    { label: '一般（バランス重視）', value: 'general' },
+                    { label: '栄養士監修（栄養バランス最優先）', value: 'nutritionist' },
+                    { label: 'イケイケママ監修（おしゃれ＆映える料理）', value: 'trendy_mom' },
+                    { label: '家族ダイエット（低カロリー重視）', value: 'diet' },
+                    { label: '高カロリー好きパパ監修（ボリューム満点）', value: 'high_calorie_dad' },
+                    { label: '時短ママ監修（15分で完成）', value: 'quick_mom' },
+                    { label: '節約主婦監修（コスパ最優先）', value: 'budget_conscious' },
+                    { label: 'グルメパパ監修（本格派レストラン風）', value: 'gourmet_dad' },
+                    { label: '和食中心（伝統的な日本料理）', value: 'japanese_traditional' },
+                    { label: '洋食中心（パスタ・グラタン多め）', value: 'western' },
+                    { label: '中華好き（中華料理多め）', value: 'chinese' },
+                    { label: 'エスニック好き（アジア料理）', value: 'ethnic' },
+                    { label: '子供大好きメニュー（子供ウケ重視）', value: 'kids_favorite' },
+                    { label: 'アスリート家族（高タンパク質）', value: 'athlete' },
+                    { label: 'ベジタリアン寄り（野菜中心）', value: 'vegetarian_oriented' },
+                    { label: '魚好き家族（魚料理多め）', value: 'fish_lover' },
+                    { label: '肉好き家族（肉料理多め）', value: 'meat_lover' },
+                    { label: 'シニア向け（やわらかめ・薄味）', value: 'senior_friendly' },
+                    { label: '作り置き中心（週末まとめて調理）', value: 'meal_prep' },
+                    { label: 'ワンプレート（カフェ風盛り付け）', value: 'one_plate' }
+                ]
+            },
+            {
                 id: 'allergies',
                 type: 'multi-choice',
                 text: 'アレルギーはありますか？（複数選択可）',
@@ -731,7 +759,8 @@ const appHtml = `<!DOCTYPE html>
 
                 const planRes = await axios.post('/api/plans/generate', { 
                     household_id,
-                    menu_variety: appState.data.menu_variety || 'balanced'
+                    menu_variety: appState.data.menu_variety || 'balanced',
+                    supervisor_mode: appState.data.supervisor_mode || 'general'
                 });
                 appState.planId = planRes.data.plan_id;
                 
@@ -1355,9 +1384,96 @@ async function route(req: Request, env: Bindings): Promise<Response> {
 
     const plan_id = uuid();
     const menu_variety = body.menu_variety || 'balanced';
+    const supervisor_mode = body.supervisor_mode || 'general';
     
     // 期間計算
     const period = buildPeriod(household.start_date, household.months);
+    
+    // 監修者モードに応じたレシピフィルタ
+    let supervisorFilter = '';
+    let timeFilter = '';
+    
+    switch (supervisor_mode) {
+      case 'nutritionist':
+        // 栄養士監修：バランス重視
+        supervisorFilter = '';
+        break;
+      case 'trendy_mom':
+        // イケイケママ：おしゃれ料理（人気度高め）
+        supervisorFilter = 'AND popularity >= 7';
+        break;
+      case 'diet':
+        // ダイエット：低カロリー（時短も兼ねる）
+        timeFilter = 'AND time_min <= 30';
+        break;
+      case 'high_calorie_dad':
+        // 高カロリーパパ：ボリューム満点
+        supervisorFilter = 'AND popularity >= 8';
+        break;
+      case 'quick_mom':
+        // 時短ママ：15分以内
+        timeFilter = 'AND time_min <= 15';
+        break;
+      case 'budget_conscious':
+        // 節約：人気度中程度
+        supervisorFilter = 'AND popularity BETWEEN 6 AND 9';
+        break;
+      case 'gourmet_dad':
+        // グルメパパ：バラエティ重視
+        supervisorFilter = 'AND popularity BETWEEN 4 AND 7';
+        break;
+      case 'japanese_traditional':
+        // 和食中心：和食レシピ優先（タイトルに「煮」「焼」「蒸」を含む）
+        supervisorFilter = '';
+        break;
+      case 'western':
+        // 洋食中心：パスタ・グラタン系
+        supervisorFilter = '';
+        break;
+      case 'chinese':
+        // 中華好き
+        supervisorFilter = '';
+        break;
+      case 'ethnic':
+        // エスニック
+        supervisorFilter = '';
+        break;
+      case 'kids_favorite':
+        // 子供大好き：定番人気
+        supervisorFilter = 'AND popularity >= 9';
+        break;
+      case 'athlete':
+        // アスリート：高タンパク質
+        supervisorFilter = '';
+        break;
+      case 'vegetarian_oriented':
+        // ベジタリアン寄り：野菜中心
+        supervisorFilter = '';
+        break;
+      case 'fish_lover':
+        // 魚好き
+        supervisorFilter = '';
+        break;
+      case 'meat_lover':
+        // 肉好き
+        supervisorFilter = '';
+        break;
+      case 'senior_friendly':
+        // シニア向け：やわらかめ
+        supervisorFilter = '';
+        break;
+      case 'meal_prep':
+        // 作り置き
+        supervisorFilter = '';
+        break;
+      case 'one_plate':
+        // ワンプレート
+        supervisorFilter = '';
+        break;
+      default:
+        // 一般
+        supervisorFilter = '';
+    }
     
     // メニューバラエティ設定に応じたレシピ取得
     let popularityFilter = '';
@@ -1370,17 +1486,20 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     }
     // balanced: 全レシピから選択（フィルタなし）
     
+    // 監修者モードとメニューバラエティを組み合わせる
+    const combinedFilter = popularityFilter + ' ' + supervisorFilter + ' ' + timeFilter;
+    
     // 全レシピを人気度順に取得
     const allMainRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='main' ${popularityFilter} ORDER BY popularity DESC, RANDOM()`
+      `SELECT * FROM recipes WHERE role='main' ${combinedFilter} ORDER BY popularity DESC, RANDOM()`
     ).all();
     
     const allSideRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='side' ${popularityFilter} ORDER BY popularity DESC, RANDOM()`
+      `SELECT * FROM recipes WHERE role='side' ${combinedFilter} ORDER BY popularity DESC, RANDOM()`
     ).all();
     
     const allSoupRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='soup' ${popularityFilter} ORDER BY popularity DESC, RANDOM()`
+      `SELECT * FROM recipes WHERE role='soup' ${combinedFilter} ORDER BY popularity DESC, RANDOM()`
     ).all();
 
     let mainRecipes = (allMainRecipes.results ?? []) as any[];
