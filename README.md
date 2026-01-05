@@ -14,6 +14,12 @@ AIチャット形式で質問に答えるだけで、家族構成・予算・調
 - 低予算ほど食材を使い回し、無駄を減らす設計
 - 主婦の「考える負担」を軽減する
 
+### ビジネスモデル
+
+- **無料で利用可能** - すべての機能を無料で提供
+- **広告収入** - バナー広告とアフィリエイトで運営
+- **メルマガ配信** - 週1回のレシピ情報配信
+
 ## 主な機能
 
 ### ✅ 完成している機能
@@ -39,19 +45,39 @@ AIチャット形式で質問に答えるだけで、家族構成・予算・調
    - 推定調理時間の表示
    - ホバーエフェクトで選択しやすく
 
-4. **印刷機能（NEW!）** ✨
+4. **印刷機能** ✨
    - A4サイズで印刷可能
    - 10日分を1ページに収録
    - 1ヶ月分（30日）を3ページで出力
    - 印刷専用CSS最適化
    - 印刷ボタンをワンクリックで実行
 
-5. **データベース（Cloudflare D1）**
+5. **広告管理機能** 💰 **NEW!**
+   - 広告枠の設置（ヘッダー、サイドバー、フッター、カレンダー下部）
+   - バナー広告とアフィリエイトリンクに対応
+   - クリック数・表示回数のトラッキング
+   - 広告効果測定（収益最適化）
+   - サンプル広告を設置済み（管理画面から変更可能）
+
+6. **メルマガ機能** 📧 **NEW!**
+   - メルマガ登録・解除
+   - 購読者管理
+   - 配信履歴の記録
+   - フッターに登録フォームを設置
+
+7. **お問い合わせ機能** 💬 **NEW!**
+   - チャット形式の問い合わせフォーム
+   - 問い合わせ履歴の管理
+   - スレッド形式で会話を記録
+
+8. **データベース（Cloudflare D1）**
    - レシピマスタ（103件）
    - 食材マスタ（154件）
    - レシピ-食材関連データ（47件）
-   - 家族プロファイル
-   - 献立計画
+   - 会員管理テーブル（準備済み）
+   - メルマガ購読者テーブル
+   - 問い合わせテーブル
+   - 広告管理テーブル（6枠設置済み）
 
 ### 🚧 今後の実装予定（優先度順）
 
@@ -255,6 +281,114 @@ webapp/
 7. **レシピ拡充**
    - 103件 → 500件へ拡大
 
+## 広告管理・収益化
+
+### 広告枠の配置
+
+| 広告枠名 | ページ | 位置 | サイズ | 説明 |
+|---------|--------|------|--------|------|
+| `slot_top_header` | TOPページ | ヘッダー下 | 728x90 | 最初に目に入る横長バナー |
+| `slot_top_sidebar` | TOPページ | サイドバー | 300x250 | 右側の大型広告枠 |
+| `slot_top_footer` | TOPページ | フッター | 728x90 | ページ下部のバナー |
+| `slot_calendar_top` | カレンダー | 上部 | 728x90 | カレンダー表示前 |
+| `slot_calendar_inline` | カレンダー | 中間 | 728x90 | 15日目付近に表示 |
+| `slot_calendar_bottom` | カレンダー | 下部 | 728x90 | カレンダー表示後 |
+
+### 広告の設置方法
+
+1. **データベースに広告を登録**
+```sql
+INSERT INTO ad_contents (ad_id, slot_id, ad_type, title, link_url, html_code, priority, is_active)
+VALUES (
+  'ad_001',
+  'slot_top_header',
+  'banner',
+  '広告タイトル',
+  'https://example.com/product',
+  '<a href="https://example.com/product"><img src="https://example.com/banner.jpg" width="728" height="90"></a>',
+  1,
+  1
+);
+```
+
+2. **アフィリエイトコードの設置**
+```sql
+INSERT INTO ad_contents (ad_id, slot_id, ad_type, title, link_url, html_code, priority, is_active)
+VALUES (
+  'ad_002',
+  'slot_top_sidebar',
+  'affiliate_link',
+  'Amazon アフィリエイト',
+  'https://amzn.to/xxxxx',
+  '<iframe src="//rcm-fe.amazon-adsystem.com/..." width="300" height="250"></iframe>',
+  1,
+  1
+);
+```
+
+### 広告効果の測定
+
+- **クリック数**: `ad_clicks` テーブルで自動記録
+- **表示回数**: `ad_impressions` テーブルで自動記録
+- **収益レポート**: データベースから集計可能
+
+```sql
+-- クリック数の集計
+SELECT ac.title, COUNT(*) as clicks
+FROM ad_clicks acl
+JOIN ad_contents ac ON acl.ad_id = ac.ad_id
+GROUP BY ac.ad_id, ac.title
+ORDER BY clicks DESC;
+
+-- 表示回数の集計
+SELECT ac.title, COUNT(*) as impressions
+FROM ad_impressions ai
+JOIN ad_contents ac ON ai.ad_id = ac.ad_id
+GROUP BY ac.ad_id, ac.title
+ORDER BY impressions DESC;
+```
+
+## メルマガ管理
+
+### メルマガ購読者の管理
+
+```sql
+-- 購読者一覧
+SELECT email, subscribed_at, status
+FROM newsletter_subscribers
+WHERE status = 'active'
+ORDER BY subscribed_at DESC;
+
+-- 配信履歴
+SELECT subject, sent_at, recipient_count
+FROM newsletter_deliveries
+ORDER BY sent_at DESC;
+```
+
+### メルマガの配信方法
+
+1. **配信コンテンツをデータベースに登録**
+2. **外部メール配信サービス（SendGrid, Mailgun等）と連携**
+3. **購読者リストをエクスポートして一斉送信**
+
+## お問い合わせ管理
+
+### 問い合わせの確認
+
+```sql
+-- 未対応の問い合わせ
+SELECT thread_id, email, name, subject, created_at
+FROM support_threads
+WHERE status = 'open'
+ORDER BY created_at DESC;
+
+-- 問い合わせの詳細
+SELECT sm.message, sm.sender_type, sm.created_at
+FROM support_messages sm
+WHERE sm.thread_id = 'xxxxx'
+ORDER BY sm.created_at ASC;
+```
+
 ## デプロイ
 
 ### Cloudflare Pages デプロイ（完了済み）
@@ -288,14 +422,19 @@ npx wrangler d1 execute aichef-production --remote --command="SELECT * FROM reci
 ## 公開URL
 
 - **本番環境（Cloudflare Pages）**: https://aichef-595.pages.dev
-- **最新デプロイ**: https://3b230f98.aichef-595.pages.dev ✨ NEW
-- **APIヘルスチェック**: https://3b230f98.aichef-595.pages.dev/api/health
+- **最新デプロイ**: https://710028ce.aichef-595.pages.dev ✨ **NEW - 収益化機能実装版**
+- **APIヘルスチェック**: https://710028ce.aichef-595.pages.dev/api/health
 - **プロジェクト名**: aichef
 - **開発環境（Sandbox）**: https://3000-i2ssbzavhkm9slw3om8jl-2b54fc91.sandbox.novita.ai
 
 ### デプロイ履歴
 
-- **2026-01-04 18:00** - UI改善+印刷機能+100レシピ追加 ✅ 最新
+- **2026-01-05 02:00** - 収益化機能実装 ✅ **最新**
+  - 広告管理機能（6枠設置、トラッキング）
+  - メルマガ登録・解除
+  - お問い合わせフォーム
+  - データベーステーブル12個追加（合計28テーブル）
+- **2026-01-04 18:00** - UI改善+印刷機能+100レシピ追加
   - カレンダーをグリッド表示に改善
   - A4印刷機能実装（10日分/ページ）
   - レシピ100件追加（主菜50、副菜30、汁物20）
