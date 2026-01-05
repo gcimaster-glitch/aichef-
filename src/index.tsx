@@ -221,24 +221,24 @@ const appHtml = `<!DOCTYPE html>
         }
     </style>
 </head>
-<body class="bg-gray-50">
-    <div id="app" class="container mx-auto px-4 py-8 max-w-6xl">
+<body class="bg-gray-50" style="overflow-x: hidden;">
+    <div id="app" class="container mx-auto px-4 py-8 max-w-6xl" style="max-width: min(1536px, 100vw); overflow-x: hidden;">
         <!-- ヘッダー -->
         <!-- アプリヘッダー - 横長バナー -->
-        <div class="no-print mb-8 relative overflow-hidden rounded-2xl" style="height: 200px;">
+        <div class="no-print mb-8 relative overflow-hidden rounded-2xl" style="height: 200px; max-width: 100%;">
             <div class="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-gradient"></div>
             <div class="absolute inset-0 flex items-center justify-center">
                 <div class="text-center text-white px-4">
                     <div class="flex items-center justify-center gap-3 mb-2">
-                        <i class="fas fa-utensils text-5xl"></i>
-                        <h1 class="text-5xl md:text-6xl font-bold" style="text-shadow: 3px 3px 6px rgba(0,0,0,0.3);">
+                        <i class="fas fa-utensils text-4xl md:text-5xl"></i>
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold" style="text-shadow: 3px 3px 6px rgba(0,0,0,0.3);">
                             AICHEFS
                         </h1>
                     </div>
-                    <h2 class="text-2xl md:text-3xl font-bold mb-3" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                    <h2 class="text-xl md:text-2xl lg:text-3xl font-bold mb-3" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
                         AIシェフ
                     </h2>
-                    <p class="text-lg md:text-xl opacity-95" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                    <p class="text-base md:text-lg lg:text-xl opacity-95" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                         考えなくていい、悩まなくていい。今日から1ヶ月分の晩ごはんが決まります。
                     </p>
                 </div>
@@ -328,10 +328,10 @@ const appHtml = `<!DOCTYPE html>
         </div>
         
         <!-- フッターセクション（デザイン改善版） -->
-        <footer class="no-print mt-12 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white rounded-2xl overflow-hidden shadow-2xl">
+        <footer class="no-print mt-12 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white rounded-2xl shadow-2xl" style="overflow: hidden; max-width: 100vw;">
             <!-- 波のアニメーション背景 -->
-            <div class="relative overflow-hidden">
-                <div class="absolute inset-0 opacity-20">
+            <div class="relative" style="overflow: hidden; max-height: 100%;">
+                <div class="absolute inset-0 opacity-20" style="pointer-events: none;">
                     <svg class="absolute bottom-0 w-full h-32" viewBox="0 0 1200 120" preserveAspectRatio="none">
                         <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" 
                               fill="currentColor" class="text-purple-700 opacity-50 animate-wave"></path>
