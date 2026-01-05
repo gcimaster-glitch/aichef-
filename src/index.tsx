@@ -1023,6 +1023,30 @@ const appHtml = `<!DOCTYPE html>
                     user_request: userRequest
                 });
                 
+                // 代替レシピのHTML生成
+                let alternativesHtml = '';
+                if (res.data.alternatives && res.data.alternatives.length > 0) {
+                    alternativesHtml = \`
+                        <div class="mt-4 pt-4 border-t">
+                            <p class="text-sm font-semibold text-gray-700 mb-3">💡 おすすめの代替レシピ（クリックで差し替え）</p>
+                            <div class="space-y-2">
+                                \${res.data.alternatives.map((alt, index) => \`
+                                    <button onclick="replaceRecipe('\${planDayId}', '\${alt.role}', '\${alt.recipe_id}', '\${alt.title}')" 
+                                            class="w-full text-left px-4 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <span class="font-medium text-gray-800">\${index + 1}. \${alt.title}</span>
+                                                <span class="text-xs text-gray-500 ml-2">約\${alt.time_min}分</span>
+                                            </div>
+                                            <i class="fas fa-arrow-right text-green-600"></i>
+                                        </div>
+                                    </button>
+                                \`).join('')}
+                            </div>
+                        </div>
+                    \`;
+                }
+                
                 content.innerHTML = \`
                     <div class="prose max-w-none">
                         <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg mb-4">
@@ -1033,6 +1057,7 @@ const appHtml = `<!DOCTYPE html>
                             <p class="text-sm text-gray-600 mb-2"><strong>AIの提案：</strong></p>
                             <p class="text-gray-800 leading-relaxed whitespace-pre-wrap">\${res.data.suggestion}</p>
                         </div>
+                        \${alternativesHtml}
                     </div>
                 \`;
             } catch (error) {
@@ -1048,6 +1073,32 @@ const appHtml = `<!DOCTYPE html>
             const modal = document.getElementById('ai-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+        }
+        
+        async function replaceRecipe(planDayId, role, newRecipeId, newRecipeTitle) {
+            if (!confirm(\`「\${newRecipeTitle}」に差し替えますか？\`)) {
+                return;
+            }
+            
+            try {
+                const res = await axios.post('/api/plans/replace-recipe', {
+                    plan_day_id: planDayId,
+                    role: role,
+                    new_recipe_id: newRecipeId
+                });
+                
+                if (res.data.success) {
+                    alert('献立を差し替えました！画面を更新してください。');
+                    closeAIModal();
+                    // ページをリロードして最新の献立を表示
+                    location.reload();
+                } else {
+                    alert('差し替えに失敗しました');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('エラーが発生しました');
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1379,24 +1430,58 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return shuffled;
     };
     
-    // レシピを拡張（期間分のレシピを確保）
-    const extendRecipes = (recipes: any[], count: number) => {
-      const extended = [];
-      for (let i = 0; i < count; i++) {
-        extended.push(recipes[i % recipes.length]);
-      }
-      return shuffleArray(extended);
+    // 直近N日間の重複をチェックして選択
+    const selectRecipeWithoutRecent = (recipes: any[], recentRecipes: any[], minDays: number = 7) => {
+      // 直近minDays日間に使われていないレシピを探す
+      const recentIds = recentRecipes.slice(-minDays).map(r => r?.recipe_id);
+      const available = recipes.filter(r => !recentIds.includes(r.recipe_id));
+      
+      // 利用可能なレシピがない場合は全体からランダムに選択
+      const pool = available.length > 0 ? available : recipes;
+      return pool[Math.floor(Math.random() * pool.length)];
     };
     
-    const shuffledMainRecipes = extendRecipes(mainRecipes, period.dates.length);
-    const shuffledSideRecipes = extendRecipes(sideRecipes, period.dates.length);
-    const shuffledSoupRecipes = extendRecipes(soupRecipes, period.dates.length);
+    // カレー系のレシピ判定
+    const isCurryOrStew = (recipe: any) => {
+      const curryKeywords = ['カレー', 'シチュー', 'ハヤシライス', 'ドリア'];
+      return curryKeywords.some(keyword => recipe.title?.includes(keyword));
+    };
+    
+    // レシピをシャッフル
+    const shuffledMainRecipes = shuffleArray([...mainRecipes]);
+    const shuffledSideRecipes = shuffleArray([...sideRecipes]);
+    const shuffledSoupRecipes = shuffleArray([...soupRecipes]);
+    
+    // 使用済みレシピの履歴
+    const usedMainRecipes: any[] = [];
+    const usedSideRecipes: any[] = [];
+    const usedSoupRecipes: any[] = [];
     
     for (let i = 0; i < period.dates.length; i++) {
       const date = period.dates[i];
-      const main = shuffledMainRecipes[i];
-      const side = shuffledSideRecipes[i];
-      const soup = shuffledSoupRecipes[i];
+      
+      // 重複を避けてレシピを選択
+      const main = selectRecipeWithoutRecent(shuffledMainRecipes, usedMainRecipes, 7);
+      const side = selectRecipeWithoutRecent(shuffledSideRecipes, usedSideRecipes, 7);
+      
+      // カレー系の場合は汁物をサラダ系に変更
+      let soup;
+      if (isCurryOrStew(main)) {
+        // サラダ系の副菜を汁物として使用
+        const saladRecipes = shuffledSideRecipes.filter(r => 
+          r.title?.includes('サラダ') || r.title?.includes('和え')
+        );
+        soup = saladRecipes.length > 0 
+          ? selectRecipeWithoutRecent(saladRecipes, usedSoupRecipes, 7)
+          : selectRecipeWithoutRecent(shuffledSoupRecipes, usedSoupRecipes, 7);
+      } else {
+        soup = selectRecipeWithoutRecent(shuffledSoupRecipes, usedSoupRecipes, 7);
+      }
+      
+      // 履歴に追加
+      usedMainRecipes.push(main);
+      usedSideRecipes.push(side);
+      usedSoupRecipes.push(soup);
       
       const plan_day_id = uuid();
       
@@ -1691,9 +1776,69 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         }
       }, user_request as string);
       
-      return json({ suggestion });
+      // ユーザーの要望に基づいて代替レシピを検索
+      const currentMain = (recipes.results || []).find((r: any) => r.role === 'main');
+      
+      // 代替レシピを3つ取得
+      const alternativeRecipes = await env.DB.prepare(`
+        SELECT recipe_id, title, time_min, role
+        FROM recipes
+        WHERE role = 'main' 
+        AND recipe_id != ?
+        ORDER BY RANDOM()
+        LIMIT 3
+      `).bind(currentMain?.recipe_id || '').all();
+      
+      return json({ 
+        suggestion,
+        alternatives: (alternativeRecipes.results || []).map((r: any) => ({
+          recipe_id: r.recipe_id,
+          title: r.title,
+          time_min: r.time_min,
+          role: r.role
+        }))
+      });
     } catch (error: any) {
       console.error('OpenAI API error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // POST /api/plans/replace-recipe - 献立のレシピを差し替え
+  if (pathname === "/api/plans/replace-recipe" && req.method === "POST") {
+    const body = await readJson(req);
+    const { plan_day_id, role, new_recipe_id } = body;
+    
+    if (!plan_day_id || !role || !new_recipe_id) {
+      return badRequest("Missing required fields: plan_day_id, role, new_recipe_id");
+    }
+    
+    try {
+      // 現在のレシピを削除
+      await env.DB.prepare(
+        `DELETE FROM meal_plan_day_recipes 
+         WHERE plan_day_id = ? AND role = ?`
+      ).bind(plan_day_id, role).run();
+      
+      // 新しいレシピを挿入
+      await env.DB.prepare(
+        `INSERT INTO meal_plan_day_recipes (plan_day_id, role, recipe_id) 
+         VALUES (?, ?, ?)`
+      ).bind(plan_day_id, role, new_recipe_id).run();
+      
+      // 更新されたレシピ情報を返す
+      const newRecipe = await env.DB.prepare(
+        `SELECT recipe_id, title, time_min, role 
+         FROM recipes 
+         WHERE recipe_id = ?`
+      ).bind(new_recipe_id).first();
+      
+      return json({ 
+        success: true,
+        recipe: newRecipe
+      });
+    } catch (error: any) {
+      console.error('Recipe replacement error:', error);
       return json({ error: { message: error.message } }, 500);
     }
   }
