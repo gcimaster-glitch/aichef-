@@ -327,111 +327,112 @@ const appHtml = `<!DOCTYPE html>
             <div id="ad-calendar-bottom" class="ad-container no-print mt-8" style="display:flex;justify-content:center;"></div>
         </div>
         
-        <!-- フッターセクション（デザイン改善版） -->
-        <footer class="no-print mt-12 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white rounded-2xl shadow-2xl" style="overflow: hidden; max-width: 100vw;">
+        <!-- フッターセクション（完全レスポンシブ版） -->
+        <footer class="no-print mt-12 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white rounded-2xl shadow-2xl" style="overflow: hidden; max-width: 100%; width: 100%; box-sizing: border-box;">
             <!-- 波のアニメーション背景 -->
-            <div class="relative" style="overflow: hidden; max-height: 100%;">
+            <div class="relative" style="overflow: hidden;">
                 <div class="absolute inset-0 opacity-20" style="pointer-events: none;">
-                    <svg class="absolute bottom-0 w-full h-32" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                    <svg class="absolute bottom-0 w-full h-32" viewBox="0 0 1200 120" preserveAspectRatio="none" style="overflow: hidden;">
                         <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" 
                               fill="currentColor" class="text-purple-700 opacity-50 animate-wave"></path>
                     </svg>
                 </div>
                 
-                <div class="relative z-10 p-8 md:p-12">
+                <div class="relative z-10 p-4 sm:p-6 md:p-8 lg:p-12" style="max-width: 100%; overflow: hidden;">
                     <!-- メインコンテンツエリア -->
-                    <div class="max-w-6xl mx-auto">
+                    <div class="max-w-6xl mx-auto" style="max-width: 100%; overflow: hidden; word-wrap: break-word;">
                         <!-- トップセクション -->
-                        <div class="grid md:grid-cols-3 gap-8 mb-8">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-8">
                             <!-- ブランド情報 -->
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                                        <i class="fas fa-utensils text-2xl text-white"></i>
+                            <div class="space-y-4" style="overflow: hidden; word-wrap: break-word;">
+                                <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+                                        <i class="fas fa-utensils text-xl sm:text-2xl text-white"></i>
                                     </div>
-                                    <div>
-                                        <h3 class="text-2xl font-bold">Aメニュー</h3>
-                                        <p class="text-sm text-purple-200">今日の献立、明日の笑顔</p>
+                                    <div style="overflow: hidden;">
+                                        <h3 class="text-xl sm:text-2xl font-bold" style="word-wrap: break-word;">Aメニュー</h3>
+                                        <p class="text-xs sm:text-sm text-purple-200" style="word-wrap: break-word;">今日の献立、明日の笑顔</p>
                                     </div>
                                 </div>
-                                <p class="text-sm text-purple-200 leading-relaxed">
+                                <p class="text-xs sm:text-sm text-purple-200 leading-relaxed" style="word-wrap: break-word; overflow-wrap: break-word;">
                                     AIが考える、あなたの家族にぴったりの献立。毎日の食事が楽しくなります。
                                 </p>
-                                <div class="flex gap-3">
-                                    <a href="#" class="w-10 h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110">
-                                        <i class="fab fa-twitter"></i>
+                                <div class="flex gap-2 sm:gap-3 flex-wrap">
+                                    <a href="#" class="w-9 h-9 sm:w-10 sm:h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110 flex-shrink-0">
+                                        <i class="fab fa-twitter text-sm sm:text-base"></i>
                                     </a>
-                                    <a href="#" class="w-10 h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110">
-                                        <i class="fab fa-facebook"></i>
+                                    <a href="#" class="w-9 h-9 sm:w-10 sm:h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110 flex-shrink-0">
+                                        <i class="fab fa-facebook text-sm sm:text-base"></i>
                                     </a>
-                                    <a href="#" class="w-10 h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110">
-                                        <i class="fab fa-instagram"></i>
+                                    <a href="#" class="w-9 h-9 sm:w-10 sm:h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110 flex-shrink-0">
+                                        <i class="fab fa-instagram text-sm sm:text-base"></i>
                                     </a>
                                 </div>
                             </div>
                             
                             <!-- クイックリンク -->
-                            <div>
-                                <h4 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                    <i class="fas fa-link text-yellow-400"></i>
-                                    クイックリンク
+                            <div style="overflow: hidden; word-wrap: break-word;">
+                                <h4 class="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2">
+                                    <i class="fas fa-link text-yellow-400 text-sm sm:text-base"></i>
+                                    <span style="word-wrap: break-word;">クイックリンク</span>
                                 </h4>
-                                <ul class="space-y-2 text-sm">
-                                    <li><a href="/app" class="text-purple-200 hover:text-white transition flex items-center gap-2 group">
-                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition"></i>
-                                        献立作成
+                                <ul class="space-y-2 text-xs sm:text-sm">
+                                    <li><a href="/app" class="text-purple-200 hover:text-white transition flex items-center gap-2 group" style="word-wrap: break-word;">
+                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition flex-shrink-0"></i>
+                                        <span>献立作成</span>
                                     </a></li>
-                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group">
-                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition"></i>
-                                        使い方ガイド
+                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group" style="word-wrap: break-word;">
+                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition flex-shrink-0"></i>
+                                        <span>使い方ガイド</span>
                                     </a></li>
-                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group">
-                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition"></i>
-                                        よくある質問
+                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group" style="word-wrap: break-word;">
+                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition flex-shrink-0"></i>
+                                        <span>よくある質問</span>
                                     </a></li>
-                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group">
-                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition"></i>
-                                        プライバシーポリシー
+                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group" style="word-wrap: break-word;">
+                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition flex-shrink-0"></i>
+                                        <span>プライバシーポリシー</span>
                                     </a></li>
                                 </ul>
                             </div>
                             
                             <!-- メルマガ登録 -->
-                            <div>
-                                <h4 class="text-lg font-bold mb-4 flex items-center gap-2">
-                                    <i class="fas fa-envelope text-pink-400"></i>
-                                    メルマガ登録
+                            <div style="overflow: hidden; word-wrap: break-word;">
+                                <h4 class="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2">
+                                    <i class="fas fa-envelope text-pink-400 text-sm sm:text-base"></i>
+                                    <span style="word-wrap: break-word;">メルマガ登録</span>
                                 </h4>
-                                <p class="text-sm text-purple-200 mb-3">
+                                <p class="text-xs sm:text-sm text-purple-200 mb-3" style="word-wrap: break-word; overflow-wrap: break-word;">
                                     お得な情報や新機能をお届けします
                                 </p>
-                                <div class="flex gap-2">
+                                <div class="flex gap-2 flex-wrap">
                                     <input type="email" id="newsletter-email" placeholder="メールアドレス" 
-                                           class="flex-1 px-4 py-2 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:bg-opacity-30 transition">
+                                           class="flex-1 min-w-0 px-3 sm:px-4 py-2 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:bg-opacity-30 transition text-xs sm:text-sm"
+                                           style="max-width: 100%; word-wrap: break-word;">
                                     <button onclick="subscribeNewsletter()" 
-                                            class="px-6 py-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-lg hover:from-pink-600 hover:to-orange-600 transition transform hover:scale-105 shadow-lg font-semibold whitespace-nowrap">
+                                            class="px-4 sm:px-6 py-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-lg hover:from-pink-600 hover:to-orange-600 transition transform hover:scale-105 shadow-lg font-semibold whitespace-nowrap text-xs sm:text-sm flex-shrink-0">
                                         登録
                                     </button>
                                 </div>
-                                <p id="newsletter-message" class="text-xs mt-2"></p>
+                                <p id="newsletter-message" class="text-xs mt-2" style="word-wrap: break-word; overflow-wrap: break-word;"></p>
                             </div>
                         </div>
                         
                         <!-- お問い合わせボタン -->
-                        <div class="text-center py-6 border-t border-white border-opacity-20">
+                        <div class="text-center py-4 sm:py-6 border-t border-white border-opacity-20">
                             <button onclick="openContactForm()" 
-                                    class="inline-flex items-center gap-2 px-8 py-3 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-full transition transform hover:scale-105 backdrop-blur-sm border border-white border-opacity-30">
-                                <i class="fas fa-comment-dots text-pink-400"></i>
+                                    class="inline-flex items-center gap-2 px-6 sm:px-8 py-2 sm:py-3 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-full transition transform hover:scale-105 backdrop-blur-sm border border-white border-opacity-30 text-sm sm:text-base flex-wrap justify-center">
+                                <i class="fas fa-comment-dots text-pink-400 flex-shrink-0"></i>
                                 <span class="font-semibold">お問い合わせ</span>
                             </button>
                         </div>
                         
                         <!-- コピーライト -->
-                        <div class="text-center py-4 border-t border-white border-opacity-20">
-                            <p class="text-sm text-purple-200">
+                        <div class="text-center py-3 sm:py-4 border-t border-white border-opacity-20" style="overflow: hidden; word-wrap: break-word;">
+                            <p class="text-xs sm:text-sm text-purple-200" style="word-wrap: break-word; overflow-wrap: break-word;">
                                 &copy; 2026 <span class="font-bold text-white">Aメニュー</span>. All rights reserved.
                             </p>
-                            <p class="text-xs text-purple-300 mt-1">
+                            <p class="text-xs text-purple-300 mt-1" style="word-wrap: break-word; overflow-wrap: break-word;">
                                 Made with <i class="fas fa-heart text-pink-400 animate-pulse"></i> in Japan
                             </p>
                         </div>
