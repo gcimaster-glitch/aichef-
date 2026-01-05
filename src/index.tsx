@@ -1333,21 +1333,37 @@ async function route(req: Request, env: Bindings): Promise<Response> {
        VALUES (?, ?, ?, ?, 'generated')`
     ).bind(plan_id, body.household_id, household.start_date, household.months).run();
 
-    // 各日の献立作成（バラエティを持たせる）
+    // 各日の献立作成（重複を最小化）
     const days: any[] = [];
-    let mainIndex = 0;
-    let sideIndex = 0;
-    let soupIndex = 0;
     
-    for (const date of period.dates) {
-      // 循環させて選択（同じレシピが連続しないように）
-      const main = mainRecipes[mainIndex % mainRecipes.length];
-      const side = sideRecipes[sideIndex % sideRecipes.length];
-      const soup = soupRecipes[soupIndex % soupRecipes.length];
-      
-      mainIndex++;
-      sideIndex++;
-      soupIndex++;
+    // レシピをシャッフルして重複を防ぐ
+    const shuffleArray = (array: any[]) => {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    };
+    
+    // レシピを拡張（期間分のレシピを確保）
+    const extendRecipes = (recipes: any[], count: number) => {
+      const extended = [];
+      for (let i = 0; i < count; i++) {
+        extended.push(recipes[i % recipes.length]);
+      }
+      return shuffleArray(extended);
+    };
+    
+    const shuffledMainRecipes = extendRecipes(mainRecipes, period.dates.length);
+    const shuffledSideRecipes = extendRecipes(sideRecipes, period.dates.length);
+    const shuffledSoupRecipes = extendRecipes(soupRecipes, period.dates.length);
+    
+    for (let i = 0; i < period.dates.length; i++) {
+      const date = period.dates[i];
+      const main = shuffledMainRecipes[i];
+      const side = shuffledSideRecipes[i];
+      const soup = shuffledSoupRecipes[i];
       
       const plan_day_id = uuid();
       
@@ -1377,7 +1393,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       ).bind(plan_day_id, "soup", soup.recipe_id).run();
 
       days.push({
+        plan_day_id,  // plan_day_idを追加
         date,
+        estimated_time_min: (main.time_min || 30) + (side.time_min || 15) + (soup.time_min || 10),
         recipes: [
           { role: "main", recipe_id: main.recipe_id, title: main.title, time_min: main.time_min },
           { role: "side", recipe_id: side.recipe_id, title: side.title, time_min: side.time_min },
