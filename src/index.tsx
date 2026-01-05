@@ -1393,8 +1393,113 @@ const appHtml = `<!DOCTYPE html>
         // ========================================
         // 買い物リスト生成
         // ========================================
-        function generateShoppingList() {
-            alert('買い物リスト機能は開発中です！\\n\\n近日公開予定：\\n・週ごとの食材リスト\\n・カテゴリ別表示\\n・PDF出力');
+        async function generateShoppingList() {
+            if (!appState.planId) {
+                alert('献立データがありません');
+                return;
+            }
+            
+            try {
+                const res = await axios.get(\`/api/shopping-list/\${appState.planId}\`);
+                const data = res.data;
+                
+                // モーダルを表示
+                showShoppingListModal(data);
+            } catch (error) {
+                console.error('買い物リスト生成エラー:', error);
+                alert('買い物リストの生成に失敗しました');
+            }
+        }
+        
+        function showShoppingListModal(data) {
+            const modal = document.getElementById('shopping-modal');
+            const content = document.getElementById('shopping-modal-content');
+            
+            let html = \`
+                <div class="mb-4 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-bold text-lg mb-2">📋 買い物リスト</h4>
+                    <p class="text-sm text-gray-600">合計 \${data.totalItems} 品目</p>
+                </div>
+            \`;
+            
+            // カテゴリ別に表示
+            const categories = Object.keys(data.shoppingList).sort();
+            
+            categories.forEach(category => {
+                const items = data.shoppingList[category];
+                
+                html += \`
+                    <div class="mb-6">
+                        <h5 class="font-bold text-md mb-3 pb-2 border-b border-gray-300 flex items-center gap-2">
+                            <span class="text-xl">\${getCategoryIcon(category)}</span>
+                            <span>\${category}</span>
+                            <span class="text-sm text-gray-500">（\${items.length}品）</span>
+                        </h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            \${items.map(item => \`
+                                <div class="flex items-center p-2 bg-gray-50 rounded">
+                                    <input type="checkbox" class="mr-3 w-4 h-4">
+                                    <span class="flex-1">\${item.name}</span>
+                                    <span class="text-sm text-gray-600 ml-2">\${item.quantity}\${item.unit}</span>
+                                </div>
+                            \`).join('')}
+                        </div>
+                    </div>
+                \`;
+            });
+            
+            // 週ごとの情報を表示
+            if (data.weeks && data.weeks.length > 0) {
+                html += \`
+                    <div class="mt-6 p-4 bg-green-50 rounded-lg">
+                        <h5 class="font-bold text-md mb-2">📅 週ごとの買い物スケジュール</h5>
+                        <div class="space-y-2">
+                            \${data.weeks.map(week => \`
+                                <div class="text-sm">
+                                    <strong>第\${week.weekNumber}週</strong>: \${week.startDate} 〜 \${week.endDate}
+                                </div>
+                            \`).join('')}
+                        </div>
+                    </div>
+                \`;
+            }
+            
+            html += \`
+                <div class="mt-6 flex gap-2 justify-end">
+                    <button onclick="printShoppingList()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                        <i class="fas fa-print"></i> 印刷
+                    </button>
+                    <button onclick="closeShoppingModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                        閉じる
+                    </button>
+                </div>
+            \`;
+            
+            content.innerHTML = html;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        
+        function getCategoryIcon(category) {
+            const icons = {
+                '野菜': '🥬',
+                '肉・魚': '🥩',
+                '卵・乳製品': '🥚',
+                '豆腐・豆類': '🫘',
+                '調味料': '🧂',
+                'その他': '📦'
+            };
+            return icons[category] || '📦';
+        }
+        
+        function closeShoppingModal() {
+            const modal = document.getElementById('shopping-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        
+        function printShoppingList() {
+            window.print();
         }
         
         // ========================================
@@ -1468,6 +1573,24 @@ const appHtml = `<!DOCTYPE html>
                 </button>
             </div>
             <div id="ai-modal-content" class="p-6 overflow-y-auto" style="max-height: calc(80vh - 80px);">
+                <!-- コンテンツはJavaScriptで動的に挿入 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 買い物リストモーダル -->
+    <div id="shopping-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4" style="backdrop-filter: blur(4px);">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">
+                    <i class="fas fa-shopping-cart mr-2"></i>
+                    買い物リスト
+                </h3>
+                <button onclick="closeShoppingModal()" class="text-white hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="shopping-modal-content" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
                 <!-- コンテンツはJavaScriptで動的に挿入 -->
             </div>
         </div>
@@ -2276,6 +2399,126 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       });
     } catch (error: any) {
       console.error('Recipe replacement error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // ========================================
+  // 買い物リストAPI
+  // ========================================
+  
+  // GET /api/shopping-list/:plan_id - 買い物リストを生成
+  if (pathname.match(/^\/api\/shopping-list\/[^/]+$/) && req.method === "GET") {
+    const plan_id = pathname.split("/").pop();
+    
+    try {
+      // プランの全日程を取得
+      const planDays = await env.DB.prepare(`
+        SELECT plan_day_id, date
+        FROM meal_plan_days
+        WHERE plan_id = ?
+        ORDER BY date ASC
+      `).bind(plan_id).all();
+      
+      if (!planDays.results || planDays.results.length === 0) {
+        return badRequest("Plan not found");
+      }
+      
+      // 全ての献立のレシピIDを取得
+      const allRecipeIds: string[] = [];
+      for (const day of (planDays.results as any[])) {
+        const recipes = await env.DB.prepare(`
+          SELECT recipe_id
+          FROM meal_plan_day_recipes
+          WHERE plan_day_id = ?
+        `).bind(day.plan_day_id).all();
+        
+        (recipes.results || []).forEach((r: any) => {
+          allRecipeIds.push(r.recipe_id);
+        });
+      }
+      
+      // レシピの食材を集計
+      const ingredientMap: Record<string, {
+        name: string;
+        category: string;
+        quantity: number;
+        unit: string;
+      }> = {};
+      
+      for (const recipeId of allRecipeIds) {
+        const ingredients = await env.DB.prepare(`
+          SELECT 
+            i.ingredient_id,
+            i.name,
+            i.category,
+            ri.quantity,
+            ri.unit
+          FROM recipe_ingredients ri
+          JOIN ingredients i ON ri.ingredient_id = i.ingredient_id
+          WHERE ri.recipe_id = ?
+        `).bind(recipeId).all();
+        
+        (ingredients.results || []).forEach((ing: any) => {
+          const key = ing.ingredient_id;
+          if (ingredientMap[key]) {
+            // 同じ食材を合算
+            ingredientMap[key].quantity += ing.quantity;
+          } else {
+            ingredientMap[key] = {
+              name: ing.name,
+              category: ing.category,
+              quantity: ing.quantity,
+              unit: ing.unit
+            };
+          }
+        });
+      }
+      
+      // カテゴリ別に整理
+      const categoryNames: Record<string, string> = {
+        'vegetables': '野菜',
+        'meat_fish': '肉・魚',
+        'dairy_eggs': '卵・乳製品',
+        'tofu_beans': '豆腐・豆類',
+        'seasonings': '調味料',
+        'others': 'その他'
+      };
+      
+      const shoppingList: Record<string, any[]> = {};
+      
+      Object.values(ingredientMap).forEach((ing: any) => {
+        const categoryJa = categoryNames[ing.category] || 'その他';
+        if (!shoppingList[categoryJa]) {
+          shoppingList[categoryJa] = [];
+        }
+        shoppingList[categoryJa].push({
+          name: ing.name,
+          quantity: Math.ceil(ing.quantity), // 切り上げ
+          unit: ing.unit
+        });
+      });
+      
+      // 週ごとに分割（7日間ずつ）
+      const weeks = [];
+      const daysArray = planDays.results as any[];
+      for (let i = 0; i < daysArray.length; i += 7) {
+        const weekDays = daysArray.slice(i, i + 7);
+        weeks.push({
+          weekNumber: Math.floor(i / 7) + 1,
+          startDate: weekDays[0].date,
+          endDate: weekDays[weekDays.length - 1].date
+        });
+      }
+      
+      return json({
+        plan_id,
+        weeks,
+        totalItems: Object.values(ingredientMap).length,
+        shoppingList
+      });
+    } catch (error: any) {
+      console.error('Shopping list generation error:', error);
       return json({ error: { message: error.message } }, 500);
     }
   }
