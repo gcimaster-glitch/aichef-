@@ -668,12 +668,22 @@ const appHtml = `<!DOCTYPE html>
                 field: 'dislikes',
                 options: [
                     { label: 'なし', value: 'none' },
-                    { label: 'トマト', value: 'tomato' },
-                    { label: 'なす', value: 'eggplant' },
-                    { label: 'ピーマン', value: 'green_pepper' },
-                    { label: 'セロリ', value: 'celery' },
-                    { label: 'パクチー', value: 'cilantro' },
-                    { label: 'きのこ', value: 'mushroom' }
+                    { label: '🐟 魚全般', value: 'fish' },
+                    { label: '🍤 エビ', value: 'shrimp' },
+                    { label: '🦀 カニ', value: 'crab' },
+                    { label: '🐙 タコ', value: 'octopus' },
+                    { label: '🦑 イカ', value: 'squid' },
+                    { label: '🐚 貝類（あさり・しじみ・ホタテ等）', value: 'shellfish' },
+                    { label: '🍖 内臓類・モツ（レバー・ハツ・ホルモン等）', value: 'offal' },
+                    { label: '🍅 トマト', value: 'tomato' },
+                    { label: '🍆 なす', value: 'eggplant' },
+                    { label: '🫑 ピーマン', value: 'green_pepper' },
+                    { label: '🥬 セロリ', value: 'celery' },
+                    { label: '🌿 パクチー', value: 'cilantro' },
+                    { label: '🍄 きのこ類', value: 'mushroom' },
+                    { label: '🧄 にんにく', value: 'garlic' },
+                    { label: '🧅 玉ねぎ', value: 'onion' },
+                    { label: '🌶️ 辛いもの', value: 'spicy' }
                 ]
             },
             {
@@ -2026,6 +2036,11 @@ const appHtml = `<!DOCTYPE html>
                     </div>
                     <div class="flex items-center gap-4 text-sm flex-wrap">
                         <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
+                            <i class="fas fa-users text-orange-600"></i>
+                            <span class="font-semibold text-gray-700">人数:</span>
+                            <span class="text-gray-900">\${data.membersCount || 2} 人分</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
                             <i class="fas fa-calendar-alt text-blue-600"></i>
                             <span class="font-semibold text-gray-700">期間:</span>
                             <span class="text-gray-900">\${periodInfo}</span>
@@ -2042,7 +2057,7 @@ const appHtml = `<!DOCTYPE html>
                         </div>
                     </div>
                     <p class="text-xs text-gray-600 mt-2">
-                        <i class="fas fa-info-circle"></i> この期間の全献立に必要な食材をまとめています
+                        <i class="fas fa-info-circle"></i> この期間の全献立に必要な食材（\${data.membersCount || 2}人分）をまとめています
                     </p>
                 </div>
                 
@@ -3279,6 +3294,114 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     
     console.log('取得レシピ数 - main:', mainRecipes.length, 'side:', sideRecipes.length, 'soup:', soupRecipes.length);
     
+    // 🚨 嫌いな食材・アレルギーのフィルタリング
+    console.log('=== 嫌いな食材・アレルギーフィルタリング開始 ===');
+    
+    // household の嫌いな食材とアレルギーを取得
+    const dislikesJson = household.dislikes_json || '[]';
+    const allergiesStandardJson = household.allergies_standard_json || '[]';
+    const dislikes = JSON.parse(dislikesJson);
+    const allergiesStandard = JSON.parse(allergiesStandardJson);
+    
+    console.log('嫌いな食材:', dislikes);
+    console.log('アレルギー:', allergiesStandard);
+    
+    // 除外する食材IDのマッピング（食材名 → ingredient_id）
+    const dislikeMapping: { [key: string]: string[] } = {
+      'fish': ['fish_salmon', 'fish_mackerel', 'fish_tuna', 'fish_sardine', 'fish_cod', 'fish_yellowtail', 'fish_sea_bream', 'fish_horse_mackerel', 'fish_saury'],
+      'shrimp': ['seafood_shrimp', 'shrimp'],
+      'crab': ['seafood_crab', 'crab'],
+      'octopus': ['seafood_octopus', 'octopus'],
+      'squid': ['seafood_squid', 'squid'],
+      'shellfish': ['seafood_clam', 'seafood_scallop', 'seafood_oyster', 'seafood_mussel', 'clam', 'scallop', 'oyster'],
+      'offal': ['meat_liver', 'meat_heart', 'meat_intestine', 'meat_stomach', 'offal', 'liver', 'heart'],
+      'tomato': ['veg_tomato', 'tomato'],
+      'eggplant': ['veg_eggplant', 'eggplant', 'nasu'],
+      'green_pepper': ['veg_green_pepper', 'bell_pepper', 'piman'],
+      'celery': ['veg_celery', 'celery'],
+      'cilantro': ['herb_cilantro', 'cilantro', 'coriander'],
+      'mushroom': ['mushroom_shiitake', 'mushroom_enoki', 'mushroom_shimeji', 'mushroom', 'kinoko'],
+      'garlic': ['seasoning_garlic', 'garlic', 'ninniku'],
+      'onion': ['veg_onion', 'onion', 'tamanegi'],
+      'spicy': ['chili', 'pepper_red', 'spice_chili']
+    };
+    
+    const allergyMapping: { [key: string]: string[] } = {
+      'egg': ['egg', 'dairy_egg'],
+      'milk': ['milk', 'dairy_milk', 'cheese', 'butter', 'cream'],
+      'wheat': ['flour', 'wheat', 'bread', 'noodles'],
+      'shrimp': ['seafood_shrimp', 'shrimp'],
+      'crab': ['seafood_crab', 'crab'],
+      'buckwheat': ['soba', 'buckwheat'],
+      'peanut': ['peanut', 'nuts_peanut']
+    };
+    
+    // 除外する食材IDのセットを作成
+    const excludedIngredientIds = new Set<string>();
+    
+    // 嫌いな食材を追加
+    dislikes.forEach((dislike: string) => {
+      if (dislike !== 'none' && dislikeMapping[dislike]) {
+        dislikeMapping[dislike].forEach(id => excludedIngredientIds.add(id));
+      }
+    });
+    
+    // アレルギー食材を追加
+    allergiesStandard.forEach((allergy: string) => {
+      if (allergy !== 'none' && allergyMapping[allergy]) {
+        allergyMapping[allergy].forEach(id => excludedIngredientIds.add(id));
+      }
+    });
+    
+    console.log('除外する食材ID数:', excludedIngredientIds.size);
+    console.log('除外する食材ID:', Array.from(excludedIngredientIds));
+    
+    // レシピをフィルタリング（除外食材を含むレシピを除外）
+    const filterRecipesByIngredients = async (recipes: any[]) => {
+      if (excludedIngredientIds.size === 0) {
+        console.log('除外食材なし。フィルタリングスキップ');
+        return recipes;
+      }
+      
+      const filteredRecipes = [];
+      
+      for (const recipe of recipes) {
+        // このレシピの材料を取得
+        const ingredients = await env.DB.prepare(
+          `SELECT ingredient_id FROM recipe_ingredients WHERE recipe_id = ?`
+        ).bind(recipe.recipe_id).all();
+        
+        const recipeIngredientIds = (ingredients.results || []).map((ing: any) => ing.ingredient_id);
+        
+        // 除外食材が含まれているかチェック
+        const hasExcludedIngredient = recipeIngredientIds.some(id => 
+          excludedIngredientIds.has(id) || 
+          // 部分一致もチェック（例: 'fish_salmon' に 'fish' が含まれる）
+          Array.from(excludedIngredientIds).some(excludedId => id.includes(excludedId))
+        );
+        
+        if (!hasExcludedIngredient) {
+          filteredRecipes.push(recipe);
+        } else {
+          console.log(`除外: ${recipe.title} (除外食材を含む)`);
+        }
+      }
+      
+      console.log(`フィルタリング結果: ${recipes.length} → ${filteredRecipes.length} レシピ`);
+      return filteredRecipes;
+    };
+    
+    // 全てのレシピをフィルタリング
+    console.log('主菜フィルタリング開始...');
+    mainRecipes = await filterRecipesByIngredients(mainRecipes);
+    console.log('副菜フィルタリング開始...');
+    sideRecipes = await filterRecipesByIngredients(sideRecipes);
+    console.log('汁物フィルタリング開始...');
+    soupRecipes = await filterRecipesByIngredients(soupRecipes);
+    
+    console.log('=== フィルタリング完了 ===');
+    console.log('フィルタリング後のレシピ数 - main:', mainRecipes.length, 'side:', sideRecipes.length, 'soup:', soupRecipes.length);
+    
     // レシピが不足している場合は全体から取得
     // 30日間で7日間隔を守るには、最低でも50個のレシピが必要
     const MINIMUM_RECIPES = 50;
@@ -3937,6 +4060,21 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     const plan_id = pathname.split("/").pop();
     
     try {
+      // プラン情報を取得（人数情報を含む）
+      const plan = await env.DB.prepare(`
+        SELECT mp.*, h.members_count
+        FROM meal_plans mp
+        JOIN households h ON mp.household_id = h.household_id
+        WHERE mp.plan_id = ?
+      `).bind(plan_id).first() as any;
+      
+      if (!plan) {
+        return badRequest("Plan not found");
+      }
+      
+      const membersCount = plan.members_count || 2; // デフォルト2人
+      console.log('買い物リスト生成 - 人数:', membersCount);
+      
       // プランの全日程を取得
       const planDays = await env.DB.prepare(`
         SELECT plan_day_id, date
@@ -4007,13 +4145,16 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           
           (ingredients.results || []).forEach((ing: any) => {
             const key = ing.ingredient_id;
+            // 人数分の数量を計算（レシピは通常2人前なので、members_count / 2 を掛ける）
+            const adjustedQuantity = ing.quantity * (membersCount / 2);
+            
             if (weekIngredientMap[key]) {
-              weekIngredientMap[key].quantity += ing.quantity;
+              weekIngredientMap[key].quantity += adjustedQuantity;
             } else {
               weekIngredientMap[key] = {
                 name: ing.name,
                 category: ing.category,
-                quantity: ing.quantity,
+                quantity: adjustedQuantity,
                 unit: ing.unit
               };
             }
@@ -4076,13 +4217,16 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         
         (ingredients.results || []).forEach((ing: any) => {
           const key = ing.ingredient_id;
+          // 人数分の数量を計算
+          const adjustedQuantity = ing.quantity * (membersCount / 2);
+          
           if (allIngredientMap[key]) {
-            allIngredientMap[key].quantity += ing.quantity;
+            allIngredientMap[key].quantity += adjustedQuantity;
           } else {
             allIngredientMap[key] = {
               name: ing.name,
               category: ing.category,
-              quantity: ing.quantity,
+              quantity: adjustedQuantity,
               unit: ing.unit
             };
           }
@@ -4115,6 +4259,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       
       return json({
         plan_id,
+        membersCount,
         startDate: daysArray[0].date,
         endDate: daysArray[daysArray.length - 1].date,
         totalDays: daysArray.length,
