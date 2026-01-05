@@ -591,8 +591,20 @@ const appHtml = `<!DOCTYPE html>
                 input.className = 'w-full px-4 py-2 border rounded';
                 input.placeholder = question.placeholder || '';
                 
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'flex gap-2 mt-2';
+                
+                // 戻るボタン
+                if (appState.step > 0) {
+                    const backBtn = document.createElement('button');
+                    backBtn.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
+                    backBtn.textContent = '← 戻る';
+                    backBtn.onclick = () => prevStep();
+                    btnGroup.appendChild(backBtn);
+                }
+                
                 const btn = document.createElement('button');
-                btn.className = 'mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
+                btn.className = 'flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
                 btn.textContent = '次へ';
                 btn.onclick = () => {
                     const value = input.value.trim();
@@ -609,26 +621,22 @@ const appHtml = `<!DOCTYPE html>
                         alert('入力してください');
                     }
                 };
+                btnGroup.appendChild(btn);
                 
                 // optionalフィールドにはスキップボタンを追加
                 if (question.optional) {
                     const skipBtn = document.createElement('button');
-                    skipBtn.className = 'mt-2 ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
+                    skipBtn.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
                     skipBtn.textContent = 'スキップ';
                     skipBtn.onclick = () => {
                         addMessage('（スキップ）', false);
                         nextStep();
                     };
-                    inputAreaEl.appendChild(input);
-                    const btnGroup = document.createElement('div');
-                    btnGroup.className = 'flex gap-2 mt-2';
-                    btnGroup.appendChild(btn);
                     btnGroup.appendChild(skipBtn);
-                    inputAreaEl.appendChild(btnGroup);
-                } else {
-                    inputAreaEl.appendChild(input);
-                    inputAreaEl.appendChild(btn);
                 }
+                
+                inputAreaEl.appendChild(input);
+                inputAreaEl.appendChild(btnGroup);
             }
             else if (question.type === 'date') {
                 const input = document.createElement('input');
@@ -636,17 +644,30 @@ const appHtml = `<!DOCTYPE html>
                 input.className = 'w-full px-4 py-2 border rounded';
                 input.value = new Date().toISOString().split('T')[0];
                 
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'flex gap-2 mt-2';
+                
+                // 戻るボタン
+                if (appState.step > 0) {
+                    const backBtn = document.createElement('button');
+                    backBtn.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
+                    backBtn.textContent = '← 戻る';
+                    backBtn.onclick = () => prevStep();
+                    btnGroup.appendChild(backBtn);
+                }
+                
                 const btn = document.createElement('button');
-                btn.className = 'mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
+                btn.className = 'flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
                 btn.textContent = '次へ';
                 btn.onclick = () => {
                     appState.data[question.field] = input.value;
                     addMessage(input.value, false);
                     nextStep();
                 };
+                btnGroup.appendChild(btn);
                 
                 inputAreaEl.appendChild(input);
-                inputAreaEl.appendChild(btn);
+                inputAreaEl.appendChild(btnGroup);
             }
             else if (question.type === 'number') {
                 const input = document.createElement('input');
@@ -675,8 +696,10 @@ const appHtml = `<!DOCTYPE html>
                 inputAreaEl.appendChild(btn);
             }
             else if (question.type === 'choice') {
+                const container = document.createElement('div');
+                
                 const btnContainer = document.createElement('div');
-                btnContainer.className = 'flex flex-wrap gap-2';
+                btnContainer.className = 'flex flex-wrap gap-2 mb-2';
                 question.options.forEach(opt => {
                     const btn = document.createElement('button');
                     btn.className = 'px-4 py-2 bg-gray-100 border rounded hover:bg-blue-100';
@@ -688,7 +711,18 @@ const appHtml = `<!DOCTYPE html>
                     };
                     btnContainer.appendChild(btn);
                 });
-                inputAreaEl.appendChild(btnContainer);
+                container.appendChild(btnContainer);
+                
+                // 戻るボタン
+                if (appState.step > 0) {
+                    const backBtn = document.createElement('button');
+                    backBtn.className = 'mt-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
+                    backBtn.textContent = '← 戻る';
+                    backBtn.onclick = () => prevStep();
+                    container.appendChild(backBtn);
+                }
+                
+                inputAreaEl.appendChild(container);
             }
             else if (question.type === 'multi-choice') {
                 const selected = new Set();
@@ -717,7 +751,7 @@ const appHtml = `<!DOCTYPE html>
                 });
                 
                 const confirmBtn = document.createElement('button');
-                confirmBtn.className = 'w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
+                confirmBtn.className = 'flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
                 confirmBtn.textContent = '次へ';
                 confirmBtn.onclick = () => {
                     appState.data.allergies.standard = Array.from(selected).filter(v => v !== 'none');
@@ -726,8 +760,22 @@ const appHtml = `<!DOCTYPE html>
                     nextStep();
                 };
                 
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'flex gap-2';
+                
+                // 戻るボタン
+                if (appState.step > 0) {
+                    const backBtn = document.createElement('button');
+                    backBtn.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
+                    backBtn.textContent = '← 戻る';
+                    backBtn.onclick = () => prevStep();
+                    btnGroup.appendChild(backBtn);
+                }
+                
+                btnGroup.appendChild(confirmBtn);
+                
                 inputAreaEl.appendChild(btnContainer);
-                inputAreaEl.appendChild(confirmBtn);
+                inputAreaEl.appendChild(btnGroup);
             }
             else if (question.type === 'confirm') {
                 const summary = \`
@@ -742,15 +790,27 @@ const appHtml = `<!DOCTYPE html>
                 \`;
                 inputAreaEl.innerHTML = summary;
                 
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'flex gap-2';
+                
+                // 戻るボタン
+                const backBtn = document.createElement('button');
+                backBtn.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
+                backBtn.textContent = '← 戻る';
+                backBtn.onclick = () => prevStep();
+                btnGroup.appendChild(backBtn);
+                
                 const btn = document.createElement('button');
-                btn.className = 'w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
+                btn.className = 'flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
                 btn.textContent = '献立を作成する';
                 btn.onclick = async () => {
                     btn.disabled = true;
                     btn.textContent = '生成中...';
                     await generatePlan();
                 };
-                inputAreaEl.appendChild(btn);
+                btnGroup.appendChild(btn);
+                
+                inputAreaEl.appendChild(btnGroup);
             }
         }
 
@@ -772,6 +832,51 @@ const appHtml = `<!DOCTYPE html>
                 const question = questions[appState.step];
                 
                 // メッセージエリアをクリア（ページ分割式）
+                messagesEl.innerHTML = '';
+                
+                // プログレスバー表示
+                const progress = Math.round((appState.step / questions.length) * 100);
+                const progressHtml = \`
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>質問 \${appState.step + 1} / \${questions.length}</span>
+                            <span>\${progress}% 完了</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: \${progress}%"></div>
+                        </div>
+                    </div>
+                \`;
+                messagesEl.innerHTML = progressHtml;
+                
+                addMessage(question.text);
+                showInput(question);
+            }
+        }
+        
+        function prevStep() {
+            // 最初の質問より前には戻れない
+            if (appState.step <= 0) {
+                return;
+            }
+            
+            // 条件付き質問を考慮して前の質問を探す
+            let prevIndex = appState.step - 1;
+            while (prevIndex >= 0) {
+                const question = questions[prevIndex];
+                // condition関数がある場合は条件をチェック
+                if (question.condition && !question.condition(appState.data)) {
+                    prevIndex--;
+                    continue;
+                }
+                break;
+            }
+            
+            if (prevIndex >= 0) {
+                appState.step = prevIndex;
+                const question = questions[appState.step];
+                
+                // メッセージエリアをクリア
                 messagesEl.innerHTML = '';
                 
                 // プログレスバー表示
@@ -1216,10 +1321,10 @@ const appHtml = `<!DOCTYPE html>
                 });
                 
                 if (res.data.success) {
-                    alert('献立を差し替えました！画面を更新してください。');
+                    alert('献立を差し替えました！');
                     closeAIModal();
-                    // ページをリロードして最新の献立を表示
-                    location.reload();
+                    // 献立を再取得して表示を更新
+                    await refreshCalendar();
                 } else {
                     alert('差し替えに失敗しました');
                 }
@@ -1232,6 +1337,30 @@ const appHtml = `<!DOCTYPE html>
         // ========================================
         // 表示切り替え機能
         // ========================================
+        async function refreshCalendar() {
+            if (!appState.planId) {
+                return;
+            }
+            
+            try {
+                // プランの献立を再取得
+                const res = await axios.get(\`/api/plans/\${appState.planId}\`);
+                const days = res.data.days;
+                
+                // データを更新
+                calendarData = days;
+                
+                // 現在の表示モードで再描画
+                if (currentViewMode === 'calendar') {
+                    renderCalendarView(days);
+                } else {
+                    renderGridView(days);
+                }
+            } catch (error) {
+                console.error('カレンダー更新エラー:', error);
+            }
+        }
+        
         function toggleCalendarView() {
             currentViewMode = currentViewMode === 'grid' ? 'calendar' : 'grid';
             const toggleText = document.getElementById('view-toggle-text');
