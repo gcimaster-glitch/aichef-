@@ -864,11 +864,26 @@ const appHtml = `<!DOCTYPE html>
                 const container = document.createElement('div');
                 
                 const btnContainer = document.createElement('div');
-                btnContainer.className = 'flex flex-wrap gap-2 mb-2';
+                btnContainer.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4';
                 question.options.forEach(opt => {
                     const btn = document.createElement('button');
-                    btn.className = 'px-4 py-2 bg-gray-100 border rounded hover:bg-blue-100';
-                    btn.textContent = opt.label;
+                    btn.className = 'group relative px-5 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl hover:from-blue-100 hover:to-indigo-100 hover:border-blue-400 hover:shadow-lg transition-all duration-200 transform hover:scale-105 text-left';
+                    
+                    // Create inner HTML elements
+                    const iconDiv = document.createElement('div');
+                    iconDiv.className = 'flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md';
+                    iconDiv.innerHTML = '<i class="fas fa-check opacity-0 group-hover:opacity-100 transition-opacity"></i>';
+                    
+                    const labelSpan = document.createElement('span');
+                    labelSpan.className = 'text-gray-800 font-medium group-hover:text-blue-700';
+                    labelSpan.textContent = opt.label;
+                    
+                    const flexDiv = document.createElement('div');
+                    flexDiv.className = 'flex items-center gap-3';
+                    flexDiv.appendChild(iconDiv);
+                    flexDiv.appendChild(labelSpan);
+                    
+                    btn.appendChild(flexDiv);
                     btn.onclick = () => {
                         appState.data[question.field] = opt.value;
                         addMessage(opt.label, false);
@@ -892,23 +907,65 @@ const appHtml = `<!DOCTYPE html>
             else if (question.type === 'multi-choice') {
                 const selected = new Set();
                 const btnContainer = document.createElement('div');
-                btnContainer.className = 'flex flex-wrap gap-2 mb-2';
+                btnContainer.className = 'grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4';
                 
                 question.options.forEach(opt => {
                     const btn = document.createElement('button');
-                    btn.className = 'px-4 py-2 bg-gray-100 border rounded hover:bg-blue-100';
-                    btn.textContent = opt.label;
+                    btn.className = 'group relative px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all duration-200 text-left';
+                    
+                    // Create inner elements
+                    const checkbox = document.createElement('div');
+                    checkbox.className = 'flex-shrink-0 w-6 h-6 border-2 border-gray-300 rounded-md flex items-center justify-center transition-all';
+                    
+                    const checkIcon = document.createElement('i');
+                    checkIcon.className = 'fas fa-check text-white text-xs opacity-0';
+                    checkbox.appendChild(checkIcon);
+                    
+                    const labelSpan = document.createElement('span');
+                    labelSpan.className = 'text-sm font-medium text-gray-700';
+                    labelSpan.textContent = opt.label;
+                    
+                    const flexDiv = document.createElement('div');
+                    flexDiv.className = 'flex items-center gap-2';
+                    flexDiv.appendChild(checkbox);
+                    flexDiv.appendChild(labelSpan);
+                    
+                    btn.appendChild(flexDiv);
+                    
                     btn.onclick = () => {
                         if (opt.value === 'none') {
                             selected.clear();
-                            btnContainer.querySelectorAll('button').forEach(b => b.classList.remove('bg-blue-200'));
+                            btnContainer.querySelectorAll('button').forEach(b => {
+                                b.classList.remove('border-blue-500', 'bg-blue-50');
+                                b.querySelector('div div').classList.remove('bg-blue-500', 'border-blue-500');
+                                b.querySelector('i').classList.add('opacity-0');
+                            });
+                            checkbox.classList.add('bg-blue-500', 'border-blue-500');
+                            checkIcon.classList.remove('opacity-0');
+                            selected.add(opt.value);
+                            btn.classList.add('border-blue-500', 'bg-blue-50');
                         } else {
+                            // 「なし」のチェックを外す
+                            const noneBtn = Array.from(btnContainer.querySelectorAll('button')).find(b => 
+                                b.textContent.includes('なし')
+                            );
+                            if (noneBtn) {
+                                noneBtn.classList.remove('border-blue-500', 'bg-blue-50');
+                                noneBtn.querySelector('div div').classList.remove('bg-blue-500', 'border-blue-500');
+                                noneBtn.querySelector('i').classList.add('opacity-0');
+                            }
+                            selected.delete('none');
+                            
                             if (selected.has(opt.value)) {
                                 selected.delete(opt.value);
-                                btn.classList.remove('bg-blue-200');
+                                btn.classList.remove('border-blue-500', 'bg-blue-50');
+                                checkbox.classList.remove('bg-blue-500', 'border-blue-500');
+                                checkIcon.classList.add('opacity-0');
                             } else {
                                 selected.add(opt.value);
-                                btn.classList.add('bg-blue-200');
+                                btn.classList.add('border-blue-500', 'bg-blue-50');
+                                checkbox.classList.add('bg-blue-500', 'border-blue-500');
+                                checkIcon.classList.remove('opacity-0');
                             }
                         }
                     };
@@ -916,8 +973,8 @@ const appHtml = `<!DOCTYPE html>
                 });
                 
                 const confirmBtn = document.createElement('button');
-                confirmBtn.className = 'flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
-                confirmBtn.textContent = '次へ';
+                confirmBtn.className = 'flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold';
+                confirmBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i>次へ';
                 confirmBtn.onclick = () => {
                     appState.data.allergies.standard = Array.from(selected).filter(v => v !== 'none');
                     const msg = selected.size === 0 || selected.has('none') ? 'なし' : Array.from(selected).join(', ');
