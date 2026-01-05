@@ -1178,7 +1178,7 @@ const appHtml = `<!DOCTYPE html>
                             document.getElementById('progress-bar').style.width = '100%';
                             document.getElementById('progress-text').textContent = '献立カレンダー作成中... 100%';
                         }, 4000);
-                    </script>
+                    <\/script>
                 \`;
                 messagesEl.innerHTML = loadingHtml;
                 
