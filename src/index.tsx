@@ -2,9 +2,11 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { serveStatic } from 'hono/cloudflare-workers'
 import { LANDING_HTML } from './landing-content'
+import { explainMenuChoice, suggestMenuAdjustment } from './openai-helper'
 
 type Bindings = {
   DB?: D1Database;
+  OPENAI_API_KEY?: string;
 }
 
 type Json = Record<string, unknown>;
@@ -235,6 +237,8 @@ const appHtml = `<!DOCTYPE html>
     <script>
         const appState = {
             step: 0,
+            householdId: null,
+            planId: null,
             data: {
                 title: '',
                 start_date: '',
@@ -690,6 +694,7 @@ const appHtml = `<!DOCTYPE html>
                 
                 const householdRes = await axios.post('/api/households', appState.data);
                 const household_id = householdRes.data.household_id;
+                appState.householdId = household_id; // household_idを保存
 
                 const planRes = await axios.post('/api/plans/generate', { 
                     household_id,
@@ -755,7 +760,7 @@ const appHtml = `<!DOCTYPE html>
                     const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(day.date).getDay()];
 
                     html += \`
-                        <div class="day-card">
+                        <div class="day-card" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
                             <div class="day-date text-lg font-bold text-gray-800 mb-3 border-b pb-2">
                                 \${day.date} (\${dayOfWeek})
                             </div>
@@ -766,6 +771,14 @@ const appHtml = `<!DOCTYPE html>
                             </div>
                             <div class="mt-3 text-xs text-gray-500 border-t pt-2">
                                 <i class="far fa-clock"></i> 約\${day.estimated_time_min}分
+                            </div>
+                            <div class="mt-3 flex gap-2 no-print">
+                                <button onclick="explainMenu('\${day.plan_day_id || ''}', '\${day.date}')" class="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-xs font-medium transition-colors">
+                                    <i class="fas fa-comment-dots"></i> なぜこの献立？
+                                </button>
+                                <button onclick="suggestChange('\${day.plan_day_id || ''}', '\${day.date}')" class="flex-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-xs font-medium transition-colors">
+                                    <i class="fas fa-sync-alt"></i> 変更する
+                                </button>
                             </div>
                         </div>
                     \`;
@@ -909,6 +922,101 @@ const appHtml = `<!DOCTYPE html>
             }
         }
 
+        // ========================================
+        // AI対話機能
+        // ========================================
+        async function explainMenu(planDayId, date) {
+            if (!planDayId) {
+                alert('献立情報が見つかりません');
+                return;
+            }
+            
+            // モーダルを表示
+            const modal = document.getElementById('ai-modal');
+            const title = document.getElementById('ai-modal-title');
+            const content = document.getElementById('ai-modal-content');
+            
+            title.textContent = \`\${date}の献立について\`;
+            content.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i><p class="mt-4 text-gray-600">AIが説明を生成中...</p></div>';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            try {
+                const res = await axios.post('/api/ai/explain-menu', {
+                    plan_day_id: planDayId,
+                    household_id: appState.householdId
+                });
+                
+                content.innerHTML = \`
+                    <div class="prose max-w-none">
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+                            <p class="text-gray-800 leading-relaxed">\${res.data.explanation}</p>
+                        </div>
+                    </div>
+                \`;
+            } catch (error) {
+                content.innerHTML = \`
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                        <p class="text-red-700">エラーが発生しました。もう一度お試しください。</p>
+                    </div>
+                \`;
+            }
+        }
+        
+        async function suggestChange(planDayId, date) {
+            if (!planDayId) {
+                alert('献立情報が見つかりません');
+                return;
+            }
+            
+            const userRequest = prompt(\`\${date}の献立をどのように変更しますか？\\n\\n例：\\n・魚が多いので肉料理に変えて\\n・もっと時短にして（15分以内）\\n・野菜を多めにして\`);
+            
+            if (!userRequest) return;
+            
+            // モーダルを表示
+            const modal = document.getElementById('ai-modal');
+            const title = document.getElementById('ai-modal-title');
+            const content = document.getElementById('ai-modal-content');
+            
+            title.textContent = '献立変更の提案';
+            content.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-orange-500"></i><p class="mt-4 text-gray-600">AIが提案を作成中...</p></div>';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            try {
+                const res = await axios.post('/api/ai/suggest-adjustment', {
+                    plan_day_id: planDayId,
+                    household_id: appState.householdId,
+                    user_request: userRequest
+                });
+                
+                content.innerHTML = \`
+                    <div class="prose max-w-none">
+                        <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg mb-4">
+                            <p class="text-sm text-gray-600 mb-2"><strong>あなたの要望：</strong></p>
+                            <p class="text-gray-800">\${userRequest}</p>
+                        </div>
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+                            <p class="text-sm text-gray-600 mb-2"><strong>AIの提案：</strong></p>
+                            <p class="text-gray-800 leading-relaxed whitespace-pre-wrap">\${res.data.suggestion}</p>
+                        </div>
+                    </div>
+                \`;
+            } catch (error) {
+                content.innerHTML = \`
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                        <p class="text-red-700">エラーが発生しました。もう一度お試しください。</p>
+                    </div>
+                \`;
+            }
+        }
+        
+        function closeAIModal() {
+            const modal = document.getElementById('ai-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             const question = questions[0];
             addMessage(question.text);
@@ -918,6 +1026,22 @@ const appHtml = `<!DOCTYPE html>
             loadAds('top_page');
         });
     </script>
+    
+    <!-- AIモーダル -->
+    <div id="ai-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4" style="backdrop-filter: blur(4px);">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4 flex justify-between items-center">
+                <h3 id="ai-modal-title" class="text-xl font-bold text-white"></h3>
+                <button onclick="closeAIModal()" class="text-white hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="ai-modal-content" class="p-6 overflow-y-auto" style="max-height: calc(80vh - 80px);">
+                <!-- コンテンツはJavaScriptで動的に挿入 -->
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
 `;
@@ -1373,6 +1497,154 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     `).bind(impression_id, ad_id, page_location).run();
     
     return json({ success: true, impression_id });
+  }
+
+  // ========================================
+  // AI対話API（OpenAI）
+  // ========================================
+  
+  // POST /api/ai/explain-menu - 献立の理由説明
+  if (pathname === "/api/ai/explain-menu" && req.method === "POST") {
+    const apiKey = env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return badRequest("OpenAI API key not configured");
+    }
+    
+    const body = await readJson(req);
+    const { plan_day_id, household_id } = body;
+    
+    if (!plan_day_id || !household_id) {
+      return badRequest("Missing plan_day_id or household_id");
+    }
+    
+    try {
+      // 献立日の情報を取得
+      const dayInfo = await env.DB.prepare(`
+        SELECT mpd.date, mpd.estimated_time_min, mpd.estimated_cost_tier
+        FROM meal_plan_days mpd
+        WHERE mpd.plan_day_id = ?
+      `).bind(plan_day_id).first();
+      
+      if (!dayInfo) {
+        return badRequest("Plan day not found");
+      }
+      
+      // レシピ情報を取得
+      const recipes = await env.DB.prepare(`
+        SELECT r.recipe_id, r.title, r.role
+        FROM meal_plan_day_recipes mpdr
+        JOIN recipes r ON mpdr.recipe_id = r.recipe_id
+        WHERE mpdr.plan_day_id = ?
+      `).bind(plan_day_id).all();
+      
+      // 家族情報を取得
+      const household = await env.DB.prepare(`
+        SELECT members_count, budget_tier_per_person, cooking_time_limit_min,
+               dislikes_json, allergies_standard_json, children_ages_json
+        FROM households
+        WHERE household_id = ?
+      `).bind(household_id).first();
+      
+      if (!household) {
+        return badRequest("Household not found");
+      }
+      
+      // OpenAI APIを呼び出し
+      const explanation = await explainMenuChoice(apiKey, {
+        household_id,
+        plan_day_id,
+        date: dayInfo.date as string,
+        recipes: (recipes.results || []).map((r: any) => ({
+          role: r.role,
+          title: r.title
+        })),
+        household_info: {
+          members_count: household.members_count as number,
+          children_ages: JSON.parse(household.children_ages_json as string || '[]'),
+          budget_tier_per_person: household.budget_tier_per_person as number,
+          cooking_time_limit_min: household.cooking_time_limit_min as number,
+          dislikes: JSON.parse(household.dislikes_json as string || '[]'),
+          allergies: JSON.parse(household.allergies_standard_json as string || '[]')
+        }
+      });
+      
+      return json({ explanation });
+    } catch (error: any) {
+      console.error('OpenAI API error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // POST /api/ai/suggest-adjustment - 献立調整の提案
+  if (pathname === "/api/ai/suggest-adjustment" && req.method === "POST") {
+    const apiKey = env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return badRequest("OpenAI API key not configured");
+    }
+    
+    const body = await readJson(req);
+    const { plan_day_id, household_id, user_request } = body;
+    
+    if (!plan_day_id || !household_id || !user_request) {
+      return badRequest("Missing required fields");
+    }
+    
+    try {
+      // 献立日の情報を取得
+      const dayInfo = await env.DB.prepare(`
+        SELECT mpd.date, mpd.estimated_time_min, mpd.estimated_cost_tier
+        FROM meal_plan_days mpd
+        WHERE mpd.plan_day_id = ?
+      `).bind(plan_day_id).first();
+      
+      if (!dayInfo) {
+        return badRequest("Plan day not found");
+      }
+      
+      // レシピ情報を取得
+      const recipes = await env.DB.prepare(`
+        SELECT r.recipe_id, r.title, r.role
+        FROM meal_plan_day_recipes mpdr
+        JOIN recipes r ON mpdr.recipe_id = r.recipe_id
+        WHERE mpdr.plan_day_id = ?
+      `).bind(plan_day_id).all();
+      
+      // 家族情報を取得
+      const household = await env.DB.prepare(`
+        SELECT members_count, budget_tier_per_person, cooking_time_limit_min,
+               dislikes_json, allergies_standard_json, children_ages_json
+        FROM households
+        WHERE household_id = ?
+      `).bind(household_id).first();
+      
+      if (!household) {
+        return badRequest("Household not found");
+      }
+      
+      // OpenAI APIを呼び出し
+      const suggestion = await suggestMenuAdjustment(apiKey, {
+        household_id,
+        plan_day_id,
+        date: dayInfo.date as string,
+        recipes: (recipes.results || []).map((r: any) => ({
+          role: r.role,
+          title: r.title
+        })),
+        household_info: {
+          members_count: household.members_count as number,
+          children_ages: JSON.parse(household.children_ages_json as string || '[]'),
+          budget_tier_per_person: household.budget_tier_per_person as number,
+          cooking_time_limit_min: household.cooking_time_limit_min as number,
+          dislikes: JSON.parse(household.dislikes_json as string || '[]'),
+          allergies: JSON.parse(household.allergies_standard_json as string || '[]')
+        }
+      }, user_request as string);
+      
+      return json({ suggestion });
+    } catch (error: any) {
+      console.error('OpenAI API error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
   }
 
   // ========================================
