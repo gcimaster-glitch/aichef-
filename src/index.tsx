@@ -1149,7 +1149,7 @@ const appHtml = `<!DOCTYPE html>
                         </div>
                     </div>
                     
-                    <script>
+                    <\/script>
                         // アニメーションシーケンス
                         setTimeout(() => {
                             document.getElementById('step-1').classList.add('scale-105');
