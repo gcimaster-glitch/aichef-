@@ -1110,10 +1110,28 @@ const appHtml = `<!DOCTYPE html>
                 const adults_count = appState.data.adults_count || 2;
                 const children_count = appState.data.children_count || 0;
                 appState.data.members_count = adults_count + children_count;
+                
+                // 子供の年齢帯を設定
+                const childAgeBands = [];
+                if (appState.data.children_ages) {
+                    for (const ageRange of appState.data.children_ages) {
+                        if (ageRange === '0-2') childAgeBands.push('preschool');
+                        else if (ageRange === '3-5') childAgeBands.push('preschool');
+                        else if (ageRange === '6-12') childAgeBands.push('elementary');
+                        else if (ageRange === '13-18') childAgeBands.push('junior_high');
+                        else childAgeBands.push('preschool');
+                    }
+                }
+                
                 appState.data.members = [
                     ...Array(adults_count).fill({ gender: 'unknown', age_band: 'adult' }),
-                    ...Array(children_count).fill({ gender: 'unknown', age_band: 'child' })
+                    ...childAgeBands.map(band => ({ gender: 'unknown', age_band: band }))
                 ];
+                
+                // 必須フィールドのデフォルト値を設定
+                appState.data.budget_distribution = appState.data.budget_distribution || 'average';
+                appState.data.dislikes = appState.data.family_dislikes || [];
+                appState.data.allergies = appState.data.allergies || { standard: [], free_text: [] };
                 
                 const householdRes = await axios.post('/api/households', appState.data);
                 const household_id = householdRes.data.household_id;
@@ -1503,7 +1521,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       body.months,
       season,
       body.budget_tier_per_person,
-      body.budget_distribution,
+      body.budget_distribution || 'average',
       cooking,
       shopping,
       fish,
