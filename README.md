@@ -467,16 +467,21 @@ npx wrangler d1 execute aichef-production --remote --command="SELECT * FROM reci
 ## 公開URL
 
 - **本番環境（Cloudflare Pages）**: https://aichef-595.pages.dev
-- **最新デプロイ**: https://bcc0df48.aichef-595.pages.dev ✨ **NEW - ランディングページ + 600レシピ + 子供向け機能**
-  - **ランディングページ**: https://bcc0df48.aichef-595.pages.dev/
-  - **献立作成アプリ**: https://bcc0df48.aichef-595.pages.dev/app
-- **APIヘルスチェック**: https://bcc0df48.aichef-595.pages.dev/api/health
+- **最新デプロイ**: https://cad22079.aichef-595.pages.dev ✨ **NEW - 献立バラエティ改善版**
+  - **ランディングページ**: https://cad22079.aichef-595.pages.dev/
+  - **献立作成アプリ**: https://cad22079.aichef-595.pages.dev/app
+- **APIヘルスチェック**: https://cad22079.aichef-595.pages.dev/api/health
 - **プロジェクト名**: aichef
 - **開発環境（Sandbox）**: https://3000-i2ssbzavhkm9slw3om8jl-2b54fc91.sandbox.novita.ai
 
 ### デプロイ履歴
 
-- **2026-01-05 11:00** - ランディングページ + 600レシピ + 子供向け機能 ✅ **最新**
+- **2026-01-05 12:00** - 献立バラエティ改善 ✅ **最新**
+  - **修正**: 同じ献立ばかり出る問題を解決
+  - レシピ選択ロジックを改善（LIMIT 1 → ORDER BY RANDOM()）
+  - 循環選択アルゴリズム実装（30日間で重複を最小化）
+  - 703レシピを活用した多様な献立生成
+- **2026-01-05 11:00** - ランディングページ + 600レシピ + 子供向け機能
   - Apple風ランディングページ実装（7セクション構成）
   - 家族写真3枚追加（キッチン、食卓、豊富な献立）
   - レシピ600品追加（主菜300、副菜200、汁物100）
