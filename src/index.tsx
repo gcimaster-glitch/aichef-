@@ -2870,14 +2870,28 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return curryKeywords.some(keyword => recipe.title?.includes(keyword));
     };
     
-    // 同じカテゴリの連続を避ける関数（7日間厳守）
+    // 同じカテゴリの連続を避ける関数（7日間厳守 + カレー系の7日間隔厳守）
     const avoidSameCategory = (recipes: any[], lastRecipe: any, recentRecipes: any[], minDays: number) => {
       const recentIds = recentRecipes.slice(-minDays).map(r => r?.recipe_id);
       
       // 直近7日間に使われていないレシピ
       let available = recipes.filter(r => !recentIds.includes(r.recipe_id));
       
-      // 直前がカレー系の場合、カレー系を除外
+      // カレー系のレシピIDを直近7日間から抽出
+      const recentCurryIds = recentRecipes.slice(-minDays)
+        .filter(r => r && isCurryOrStew(r))
+        .map(r => r.recipe_id);
+      
+      // カレー系を選択する場合は、直近7日間にカレー系がないかチェック
+      available = available.filter(r => {
+        if (isCurryOrStew(r)) {
+          // このレシピがカレー系の場合、直近7日間にカレー系がないことを確認
+          return recentCurryIds.length === 0;
+        }
+        return true;
+      });
+      
+      // 直前がカレー系の場合、さらにカレー系を除外（連続防止）
       if (lastRecipe && isCurryOrStew(lastRecipe)) {
         available = available.filter(r => !isCurryOrStew(r));
       }
@@ -2886,7 +2900,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       if (available.length === 0) {
         console.error('警告: カテゴリフィルタ後のレシピが不足しています');
         // 7日間ルールを緩和せず、カレー系だけ除外
-        available = recipes.filter(r => !recentIds.includes(r.recipe_id));
+        available = recipes.filter(r => !recentIds.includes(r.recipe_id) && !isCurryOrStew(r));
         if (available.length === 0) {
           // 最終手段：最も古いレシピを選択（ただしカレー系は避ける）
           const nonCurry = recipes.filter(r => !isCurryOrStew(r));
