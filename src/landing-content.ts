@@ -459,7 +459,22 @@ export const LANDING_HTML = `<!DOCTYPE html>
                 </div>
             </div>
             
+            <!-- ログイン・会員登録 -->
             <div style="text-align:center;margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.1);">
+                <div style="display:flex;gap:1rem;justify-content:center;margin-bottom:1.5rem;flex-wrap:wrap;">
+                    <a href="/register" style="padding:12px 24px;background:linear-gradient(135deg, #10b981, #3b82f6);color:white;text-decoration:none;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:0.5rem;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fas fa-user-plus"></i>
+                        会員登録
+                    </a>
+                    <a href="/login" style="padding:12px 24px;background:linear-gradient(135deg, #667eea, #764ba2);color:white;text-decoration:none;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:0.5rem;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fas fa-sign-in-alt"></i>
+                        ログイン
+                    </a>
+                    <a href="/admin/login" style="padding:12px 24px;background:linear-gradient(135deg, #1f2937, #374151);color:white;text-decoration:none;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:0.5rem;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fas fa-user-shield"></i>
+                        管理者ログイン
+                    </a>
+                </div>
                 <p style="opacity:0.6;">&copy; 2026 AICHEFS AIシェフ. All rights reserved.</p>
             </div>
         </div>

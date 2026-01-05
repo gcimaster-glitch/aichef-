@@ -164,6 +164,120 @@ const ADMIN_LOGIN_HTML = `
 </html>
 `;
 
+const REGISTER_HTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会員登録 - AICHEFS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen flex items-center justify-center py-12">
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full mx-4">
+        <div class="text-center mb-8">
+            <i class="fas fa-user-plus text-5xl text-green-600 mb-4"></i>
+            <h1 class="text-3xl font-bold text-gray-800">AICHEFS</h1>
+            <p class="text-gray-600 mt-2">新規会員登録</p>
+        </div>
+        
+        <form id="registerForm" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">お名前</label>
+                <input type="text" id="name" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent" placeholder="山田 太郎">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
+                <input type="email" id="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent" placeholder="example@email.com">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">パスワード</label>
+                <input type="password" id="password" required minlength="8" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent" placeholder="8文字以上">
+                <p class="text-xs text-gray-500 mt-1">8文字以上で入力してください</p>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">パスワード（確認）</label>
+                <input type="password" id="password_confirm" required minlength="8" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent" placeholder="もう一度入力">
+            </div>
+            
+            <div id="error-message" class="hidden text-red-600 text-sm"></div>
+            <div id="success-message" class="hidden text-green-600 text-sm"></div>
+            
+            <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 transition">
+                <i class="fas fa-user-plus mr-2"></i>会員登録
+            </button>
+        </form>
+        
+        <div class="mt-6 text-center space-y-2">
+            <p class="text-sm text-gray-600">
+                すでにアカウントをお持ちの方は
+                <a href="/login" class="text-green-600 hover:underline">ログイン</a>
+            </p>
+            <a href="/" class="text-sm text-gray-500 hover:underline block">トップページに戻る</a>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const password_confirm = document.getElementById('password_confirm').value;
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
+            
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+            
+            // パスワード一致チェック
+            if (password !== password_confirm) {
+                errorDiv.textContent = 'パスワードが一致しません';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            // パスワード長チェック
+            if (password.length < 8) {
+                errorDiv.textContent = 'パスワードは8文字以上で入力してください';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    successDiv.textContent = '会員登録が完了しました！ログイン画面に移動します...';
+                    successDiv.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    errorDiv.textContent = data.error || '登録に失敗しました';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'ネットワークエラーが発生しました';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
+`;
+
 // ========================================
 // Landing Page (TOPページ) - 静的ファイルとして配信
 // ========================================
@@ -4984,6 +5098,61 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   // 認証API
   // ========================================
   
+  // 簡易パスワードハッシュ化関数（本番環境ではbcryptなどを使用）
+  const hashPassword = async (password: string): Promise<string> => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+  
+  // POST /api/auth/register - 会員登録
+  if (pathname === "/api/auth/register" && req.method === "POST") {
+    const body = await readJson(req);
+    const name = (body.name as string)?.trim();
+    const email = (body.email as string)?.trim();
+    const password = (body.password as string)?.trim();
+    
+    if (!name || !email || !password) {
+      return badRequest("名前、メールアドレス、パスワードを入力してください");
+    }
+    
+    // パスワード長チェック
+    if (password.length < 8) {
+      return badRequest("パスワードは8文字以上で入力してください");
+    }
+    
+    // メールアドレス重複チェック
+    const existingUser = await env.DB.prepare(`
+      SELECT household_id FROM households WHERE email = ?
+    `).bind(email).first();
+    
+    if (existingUser) {
+      return json({ error: "このメールアドレスは既に登録されています" }, 400);
+    }
+    
+    // パスワードハッシュ化
+    const password_hash = await hashPassword(password);
+    
+    // 新規ユーザー作成
+    const household_id = uuid();
+    
+    await env.DB.prepare(`
+      INSERT INTO households (
+        household_id, title, members_count, email, password_hash,
+        start_date, months, budget_tier_per_person, budget_distribution,
+        dislikes_json, allergies_standard_json, created_at
+      ) VALUES (?, ?, 1, ?, ?, date('now'), 1, 800, 'average', '[]', '[]', CURRENT_TIMESTAMP)
+    `).bind(household_id, name, email, password_hash).run();
+    
+    return json({ 
+      success: true,
+      message: "会員登録が完了しました",
+      household_id
+    });
+  }
+  
   // POST /api/auth/login - ユーザーログイン
   if (pathname === "/api/auth/login" && req.method === "POST") {
     const body = await readJson(req);
@@ -4994,14 +5163,20 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return badRequest("メールアドレスとパスワードを入力してください");
     }
     
-    // 簡易認証（本番環境ではパスワードハッシュを使用）
+    // ユーザー情報取得
     const user = await env.DB.prepare(`
-      SELECT household_id, title as name, email, created_at 
+      SELECT household_id, title as name, email, password_hash, created_at 
       FROM households 
       WHERE email = ?
     `).bind(email).first();
     
     if (!user) {
+      return json({ error: "メールアドレスまたはパスワードが間違っています" }, 401);
+    }
+    
+    // パスワード検証
+    const password_hash = await hashPassword(password);
+    if (password_hash !== user.password_hash) {
       return json({ error: "メールアドレスまたはパスワードが間違っています" }, 401);
     }
     
@@ -5241,6 +5416,18 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   // ========================================
   if (pathname === "/admin/login") {
     return new Response(ADMIN_LOGIN_HTML, {
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store'
+      }
+    });
+  }
+
+  // ========================================
+  // /register：会員登録画面
+  // ========================================
+  if (pathname === "/register") {
+    return new Response(REGISTER_HTML, {
       headers: { 
         'content-type': 'text/html; charset=utf-8',
         'cache-control': 'no-store'
