@@ -1421,9 +1421,6 @@ const appHtml = `<!DOCTYPE html>
             modal.classList.remove('flex');
         }
         
-        // グローバルスコープに公開
-        window.closeAIModal = closeAIModal;
-        
         async function replaceRecipe(planDayId, role, newRecipeId, newRecipeTitle) {
             if (!confirm(\`「\${newRecipeTitle}」に差し替えますか？\`)) {
                 return;
@@ -1449,9 +1446,6 @@ const appHtml = `<!DOCTYPE html>
                 alert('エラーが発生しました');
             }
         }
-        
-        // グローバルスコープに公開
-        window.replaceRecipe = replaceRecipe;
         
         // ========================================
         // 表示切り替え機能
@@ -2350,6 +2344,8 @@ const appHtml = `<!DOCTYPE html>
         window.submitContact = submitContact;
         window.explainMenu = explainMenu;
         window.suggestChange = suggestChange;
+        window.closeAIModal = closeAIModal;
+        window.replaceRecipe = replaceRecipe;
         window.showRecipeDetail = showRecipeDetail;
         window.addToFavorites = addToFavorites;
         window.removeFromFavorites = removeFromFavorites;
