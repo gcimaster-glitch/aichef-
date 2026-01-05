@@ -1416,20 +1416,24 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     // 期間計算
     const period = buildPeriod(household.start_date, household.months);
     
-    // サンプル：毎日同じ3品を返す簡易実装（MVP）
-    const main = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='main' LIMIT 1`
-    ).first() as any;
+    // 全レシピを取得
+    const allMainRecipes = await env.DB.prepare(
+      `SELECT * FROM recipes WHERE role='main' ORDER BY RANDOM()`
+    ).all();
     
-    const side = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='side' LIMIT 1`
-    ).first() as any;
+    const allSideRecipes = await env.DB.prepare(
+      `SELECT * FROM recipes WHERE role='side' ORDER BY RANDOM()`
+    ).all();
     
-    const soup = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='soup' LIMIT 1`
-    ).first() as any;
+    const allSoupRecipes = await env.DB.prepare(
+      `SELECT * FROM recipes WHERE role='soup' ORDER BY RANDOM()`
+    ).all();
 
-    if (!main || !side || !soup) {
+    const mainRecipes = (allMainRecipes.results ?? []) as any[];
+    const sideRecipes = (allSideRecipes.results ?? []) as any[];
+    const soupRecipes = (allSoupRecipes.results ?? []) as any[];
+
+    if (mainRecipes.length === 0 || sideRecipes.length === 0 || soupRecipes.length === 0) {
       return badRequest("Not enough recipes in database");
     }
 
@@ -1439,9 +1443,22 @@ async function route(req: Request, env: Bindings): Promise<Response> {
        VALUES (?, ?, ?, ?, 'generated')`
     ).bind(plan_id, body.household_id, household.start_date, household.months).run();
 
-    // 各日の献立作成
+    // 各日の献立作成（バラエティを持たせる）
     const days: any[] = [];
+    let mainIndex = 0;
+    let sideIndex = 0;
+    let soupIndex = 0;
+    
     for (const date of period.dates) {
+      // 循環させて選択（同じレシピが連続しないように）
+      const main = mainRecipes[mainIndex % mainRecipes.length];
+      const side = sideRecipes[sideIndex % sideRecipes.length];
+      const soup = soupRecipes[soupIndex % soupRecipes.length];
+      
+      mainIndex++;
+      sideIndex++;
+      soupIndex++;
+      
       const plan_day_id = uuid();
       
       await env.DB.prepare(
@@ -1451,7 +1468,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         plan_day_id,
         plan_id,
         date,
-        main.time_min + side.time_min + soup.time_min,
+        (main.time_min || 30) + (side.time_min || 15) + (soup.time_min || 10),
         household.budget_tier_per_person,
         ""
       ).run();
@@ -1472,9 +1489,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       days.push({
         date,
         recipes: [
-          { role: "main", recipe_id: main.recipe_id, title: main.title },
-          { role: "side", recipe_id: side.recipe_id, title: side.title },
-          { role: "soup", recipe_id: soup.recipe_id, title: soup.title }
+          { role: "main", recipe_id: main.recipe_id, title: main.title, time_min: main.time_min },
+          { role: "side", recipe_id: side.recipe_id, title: side.title, time_min: side.time_min },
+          { role: "soup", recipe_id: soup.recipe_id, title: soup.title, time_min: soup.time_min }
         ]
       });
     }
