@@ -186,6 +186,24 @@ const appHtml = `<!DOCTYPE html>
         .calendar-btn:hover {
             background-color: #2563eb;
         }
+        
+        /* アニメーションバナー用スタイル */
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradient 4s ease infinite;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -213,6 +231,28 @@ const appHtml = `<!DOCTYPE html>
 
         <!-- 献立カレンダー（生成後に表示） -->
         <div id="calendar-container" class="hidden bg-white rounded-lg shadow-lg p-6">
+            <!-- 献立ページ上部アニメーションバナー -->
+            <div class="no-print mb-6 rounded-xl overflow-hidden relative" style="height: 120px;">
+                <div class="absolute inset-0 bg-gradient-to-r from-orange-400 via-red-400 to-pink-400 animate-gradient"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center text-white">
+                        <h1 class="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg">
+                            🍳 今日の献立、明日の笑顔 🥗
+                        </h1>
+                        <p class="text-sm md:text-base opacity-90 drop-shadow">
+                            毎日の献立があなたの家族に笑顔を届けます
+                        </p>
+                    </div>
+                </div>
+                <!-- アニメーション装飾 -->
+                <div class="absolute top-4 left-4 animate-bounce" style="animation-delay: 0.2s;">
+                    <i class="fas fa-utensils text-white text-2xl opacity-30"></i>
+                </div>
+                <div class="absolute bottom-4 right-4 animate-bounce" style="animation-delay: 0.5s;">
+                    <i class="fas fa-heart text-white text-2xl opacity-30"></i>
+                </div>
+            </div>
+            
             <div class="flex justify-between items-center mb-6 no-print">
                 <h2 class="text-3xl font-bold">
                     <i class="fas fa-calendar-alt mr-2"></i>
@@ -254,48 +294,33 @@ const appHtml = `<!DOCTYPE html>
         </div>
         
         <!-- フッターセクション（メルマガ・お問い合わせ） -->
-        <footer class="no-print mt-12 bg-white rounded-lg shadow-lg p-8">
-            <div class="grid md:grid-cols-2 gap-8">
-                <!-- メルマガ登録 -->
-                <div>
-                    <h3 class="text-xl font-bold mb-4">
-                        <i class="fas fa-envelope mr-2"></i>
-                        メルマガ登録
-                    </h3>
-                    <p class="text-gray-600 mb-4 text-sm">
-                        週1回、おすすめレシピや献立のヒントをお届けします。
-                    </p>
-                    <div class="flex gap-2">
-                        <input type="email" id="newsletter-email" placeholder="メールアドレス" 
-                               class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button onclick="subscribeNewsletter()" 
-                                class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
-                            登録
-                        </button>
-                    </div>
-                    <p id="newsletter-message" class="text-sm mt-2"></p>
-                </div>
-                
-                <!-- お問い合わせ -->
-                <div>
-                    <h3 class="text-xl font-bold mb-4">
-                        <i class="fas fa-comment-dots mr-2"></i>
-                        お問い合わせ
-                    </h3>
-                    <p class="text-gray-600 mb-4 text-sm">
-                        ご質問やご要望がございましたら、お気軽にお問い合わせください。
-                    </p>
-                    <button onclick="openContactForm()" 
-                            class="w-full px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-                        お問い合わせフォームを開く
+        <footer class="no-print mt-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 max-w-4xl mx-auto">
+                <!-- メルマガ登録（コンパクト） -->
+                <div class="flex items-center gap-2 flex-1 w-full md:w-auto">
+                    <i class="fas fa-envelope text-gray-400"></i>
+                    <input type="email" id="newsletter-email" placeholder="メールアドレス" 
+                           class="flex-1 px-3 py-1.5 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <button onclick="subscribeNewsletter()" 
+                            class="px-4 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition whitespace-nowrap">
+                        登録
                     </button>
                 </div>
+                
+                <!-- お問い合わせ（コンパクト） -->
+                <button onclick="openContactForm()" 
+                        class="px-4 py-1.5 text-sm text-gray-600 hover:text-blue-500 transition whitespace-nowrap">
+                    <i class="fas fa-comment-dots mr-1"></i>
+                    お問い合わせ
+                </button>
             </div>
             
-            <!-- サイドバー広告枠 -->
-            <div id="ad-sidebar" class="ad-container mt-8" style="display:flex;justify-content:center;"></div>
+            <p id="newsletter-message" class="text-xs text-center mt-2"></p>
             
-            <div class="text-center text-gray-500 text-sm mt-8 pt-8 border-t">
+            <!-- サイドバー広告枠 -->
+            <div id="ad-sidebar" class="ad-container mt-4" style="display:flex;justify-content:center;"></div>
+            
+            <div class="text-center text-gray-400 text-xs mt-4">
                 <p>&copy; 2026 Aメニュー. All rights reserved.</p>
             </div>
         </footer>
