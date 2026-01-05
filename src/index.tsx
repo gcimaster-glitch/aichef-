@@ -2096,6 +2096,11 @@ const appHtml = `<!DOCTYPE html>
             return false;
         }
         
+        function handleDragLeave(event) {
+            const dropTarget = event.currentTarget;
+            dropTarget.style.border = '';
+        }
+        
         async function handleDrop(event) {
             if (event.stopPropagation) {
                 event.stopPropagation();
