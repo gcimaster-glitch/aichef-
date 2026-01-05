@@ -1113,7 +1113,7 @@ const appHtml = `<!DOCTYPE html>
                 
                 // 子供の年齢帯を設定
                 const childAgeBands = [];
-                if (appState.data.children_ages) {
+                if (appState.data.children_ages && appState.data.children_ages.length > 0) {
                     for (const ageRange of appState.data.children_ages) {
                         if (ageRange === '0-2') childAgeBands.push('preschool');
                         else if (ageRange === '3-5') childAgeBands.push('preschool');
@@ -1121,6 +1121,11 @@ const appHtml = `<!DOCTYPE html>
                         else if (ageRange === '13-18') childAgeBands.push('junior_high');
                         else childAgeBands.push('preschool');
                     }
+                }
+                
+                // 年齢が指定されていない子供はpreschoolをデフォルトに
+                while (childAgeBands.length < children_count) {
+                    childAgeBands.push('preschool');
                 }
                 
                 appState.data.members = [
@@ -1374,6 +1379,7 @@ app.use('/api/*', cors())
 
 // 静的ファイル配信
 app.use('/static/*', serveStatic({ root: './public' }))
+app.use('/images/*', serveStatic({ root: './public' }))
 
 // ========================================
 // ユーティリティ関数
@@ -1505,14 +1511,23 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     const dislikesJson = JSON.stringify(body.dislikes ?? []);
     const allergiesStd = JSON.stringify((body.allergies as any)?.standard ?? []);
     const allergiesFree = JSON.stringify((body.allergies as any)?.free_text ?? []);
+    
+    // budget_distributionは文字列として扱う
+    const budgetDistribution = (body.budget_distribution as string) || 'average';
+    
+    // 子供情報のJSON化
+    const childrenAgesJson = body.children_ages ? JSON.stringify(body.children_ages) : '[]';
+    const childrenDislikesJson = body.children_dislikes ? JSON.stringify(body.children_dislikes) : '[]';
+    const familyDislikesJson = body.family_dislikes ? JSON.stringify(body.family_dislikes) : '[]';
 
     await env.DB.prepare(
       `INSERT INTO households
        (household_id, title, members_count, start_date, months, season,
         budget_tier_per_person, budget_distribution, cooking_time_limit_min,
         shopping_frequency, fish_frequency,
-        dislikes_json, allergies_standard_json, allergies_free_text_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        dislikes_json, allergies_standard_json, allergies_free_text_json,
+        children_ages_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       household_id,
       body.title,
@@ -1521,13 +1536,14 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       body.months,
       season,
       body.budget_tier_per_person,
-      body.budget_distribution || 'average',
+      budgetDistribution,
       cooking,
       shopping,
       fish,
       dislikesJson,
       allergiesStd,
-      allergiesFree
+      allergiesFree,
+      childrenAgesJson
     ).run();
 
     // メンバー保存
@@ -1898,15 +1914,10 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   }
 
   // ========================================
-  // ルートパス：ランディングページを返す
+  // ルートパス：ランディングページにリダイレクト
   // ========================================
   if (pathname === "/" || pathname === "/index.html") {
-    return new Response(landingHtml, {
-      headers: { 
-        'content-type': 'text/html; charset=utf-8',
-        'cache-control': 'public, max-age=3600'
-      }
-    });
+    return c.redirect('/landing.html');
   }
   
   // ========================================
