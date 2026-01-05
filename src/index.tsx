@@ -1380,6 +1380,7 @@ app.use('/api/*', cors())
 // 静的ファイル配信
 app.use('/static/*', serveStatic({ root: './public' }))
 app.use('/images/*', serveStatic({ root: './public' }))
+app.use('/landing.html', serveStatic({ path: './public/landing.html' }))
 
 // ========================================
 // ユーティリティ関数
@@ -1914,10 +1915,15 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   }
 
   // ========================================
-  // ルートパス：ランディングページにリダイレクト
+  // ルートパス：ランディングページを返す
   // ========================================
   if (pathname === "/" || pathname === "/index.html") {
-    return c.redirect('/landing.html');
+    return new Response(landingHtml, {
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'public, max-age=3600'
+      }
+    });
   }
   
   // ========================================

@@ -6,11 +6,16 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [
     build({
-      exclude: ['/static/*', '/images/*']
+      exclude: ['/static/*', '/images/*', '/landing.html']
     }),
     devServer({
       adapter,
       entry: 'src/index.tsx'
     })
-  ]
+  ],
+  publicDir: 'public',
+  build: {
+    outDir: 'dist',
+    emptyOutDir: false // Don't delete public files
+  }
 })
