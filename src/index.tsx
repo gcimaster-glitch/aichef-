@@ -728,18 +728,61 @@ const appHtml = `<!DOCTYPE html>
                 text: '何ヶ月分作りますか？',
                 field: 'months',
                 options: [
-                    { label: '1ヶ月', value: 1 },
-                    { label: '2ヶ月', value: 2 },
-                    { label: '3ヶ月', value: 3 }
+                    { label: '1ヶ月', value: 1 }
                 ]
             },
             {
-                id: 'members_count',
-                type: 'number',
-                text: '家族は何人ですか？',
-                field: 'members_count',
-                min: 1,
-                max: 10
+                id: 'adults_count',
+                type: 'choice',
+                text: '大人は何人ですか？',
+                field: 'adults_count',
+                options: [
+                    { label: '1人', value: 1 },
+                    { label: '2人', value: 2 },
+                    { label: '3人', value: 3 },
+                    { label: '4人', value: 4 }
+                ]
+            },
+            {
+                id: 'children_count',
+                type: 'choice',
+                text: 'お子さんは何人ですか？',
+                field: 'children_count',
+                options: [
+                    { label: 'いない', value: 0 },
+                    { label: '1人', value: 1 },
+                    { label: '2人', value: 2 },
+                    { label: '3人', value: 3 }
+                ]
+            },
+            {
+                id: 'children_ages',
+                type: 'multi-choice',
+                text: 'お子さんの年齢を教えてください（複数選択可）',
+                field: 'children_ages',
+                condition: (data) => data.children_count > 0,
+                options: [
+                    { label: '0-2歳（離乳食・幼児食）', value: '0-2' },
+                    { label: '3-5歳（幼児）', value: '3-5' },
+                    { label: '6-12歳（小学生）', value: '6-12' },
+                    { label: '13-18歳（中高生）', value: '13-18' }
+                ]
+            },
+            {
+                id: 'children_dislikes',
+                type: 'multi-choice',
+                text: 'お子さんの好き嫌いはありますか？（複数選択可）',
+                field: 'children_dislikes',
+                condition: (data) => data.children_count > 0,
+                options: [
+                    { label: 'なし', value: 'none' },
+                    { label: '野菜全般', value: 'vegetables' },
+                    { label: '魚', value: 'fish' },
+                    { label: '肉', value: 'meat' },
+                    { label: 'ピーマン・にんじん', value: 'green_veg' },
+                    { label: 'きのこ類', value: 'mushrooms' },
+                    { label: '辛いもの', value: 'spicy' }
+                ]
             },
             {
                 id: 'budget',
@@ -751,8 +794,7 @@ const appHtml = `<!DOCTYPE html>
                     { label: '500円（節約）', value: 500 },
                     { label: '800円（標準）', value: 800 },
                     { label: '1000円（やや贅沢）', value: 1000 },
-                    { label: '1200円（贅沢）', value: 1200 },
-                    { label: '1500円（ご褒美）', value: 1500 }
+                    { label: '1200円（贅沢）', value: 1200 }
                 ]
             },
             {
@@ -761,10 +803,21 @@ const appHtml = `<!DOCTYPE html>
                 text: '平日の調理時間の目安は？',
                 field: 'cooking_time_limit_min',
                 options: [
-                    { label: '15分', value: 15 },
-                    { label: '30分', value: 30 },
-                    { label: '45分', value: 45 },
-                    { label: '60分', value: 60 }
+                    { label: '15分（超時短）', value: 15 },
+                    { label: '30分（時短）', value: 30 },
+                    { label: '45分（標準）', value: 45 },
+                    { label: '60分（じっくり）', value: 60 }
+                ]
+            },
+            {
+                id: 'menu_variety',
+                type: 'choice',
+                text: '定番メニューの頻度は？',
+                field: 'menu_variety',
+                options: [
+                    { label: '定番中心（唐揚げ・ハンバーグ多め）', value: 'popular' },
+                    { label: 'バランス（定番とバラエティ）', value: 'balanced' },
+                    { label: 'バラエティ重視（珍しい料理も）', value: 'variety' }
                 ]
             },
             {
@@ -784,9 +837,24 @@ const appHtml = `<!DOCTYPE html>
                 ]
             },
             {
+                id: 'dislikes',
+                type: 'multi-choice',
+                text: '家族全員が苦手な食材はありますか？（複数選択可）',
+                field: 'dislikes',
+                options: [
+                    { label: 'なし', value: 'none' },
+                    { label: 'トマト', value: 'tomato' },
+                    { label: 'なす', value: 'eggplant' },
+                    { label: 'ピーマン', value: 'green_pepper' },
+                    { label: 'セロリ', value: 'celery' },
+                    { label: 'パクチー', value: 'cilantro' },
+                    { label: 'きのこ', value: 'mushroom' }
+                ]
+            },
+            {
                 id: 'confirm',
                 type: 'confirm',
-                text: 'これで1ヶ月分の献立を作成します。よろしいですか？',
+                text: '設定完了です！<br>これで1ヶ月分の献立を作成します。よろしいですか？',
                 summary: true
             }
         ];
@@ -977,9 +1045,40 @@ const appHtml = `<!DOCTYPE html>
         }
 
         function nextStep() {
-            if (appState.step < questions.length - 1) {
-                appState.step++;
+            // 条件付き質問のスキップ処理
+            let nextIndex = appState.step + 1;
+            while (nextIndex < questions.length) {
+                const question = questions[nextIndex];
+                // condition関数がある場合は条件をチェック
+                if (question.condition && !question.condition(appState.data)) {
+                    nextIndex++;
+                    continue;
+                }
+                break;
+            }
+            
+            if (nextIndex < questions.length) {
+                appState.step = nextIndex;
                 const question = questions[appState.step];
+                
+                // メッセージエリアをクリア（ページ分割式）
+                messagesEl.innerHTML = '';
+                
+                // プログレスバー表示
+                const progress = Math.round((appState.step / questions.length) * 100);
+                const progressHtml = \`
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>質問 \${appState.step + 1} / \${questions.length}</span>
+                            <span>\${progress}% 完了</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: \${progress}%"></div>
+                        </div>
+                    </div>
+                \`;
+                messagesEl.innerHTML = progressHtml;
+                
                 addMessage(question.text);
                 showInput(question);
             }
@@ -987,20 +1086,70 @@ const appHtml = `<!DOCTYPE html>
 
         async function generatePlan() {
             try {
+                // ローディングアニメーション表示
+                messagesEl.innerHTML = '';
+                inputAreaEl.innerHTML = '';
+                
+                const loadingHtml = \`
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <div class="relative w-24 h-24 mb-6">
+                            <!-- 回転するアニメーション -->
+                            <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+                            <div class="absolute inset-0 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">献立を作成中...</h3>
+                        <p class="text-gray-600 mb-4">AIがあなたの家族に最適な献立を考えています</p>
+                        <div class="text-sm text-gray-500">
+                            <p class="animate-pulse">✨ 703品のレシピから最適な組み合わせを選択中</p>
+                        </div>
+                    </div>
+                \`;
+                messagesEl.innerHTML = loadingHtml;
+                
+                // 家族構成を計算
+                const adults_count = appState.data.adults_count || 2;
+                const children_count = appState.data.children_count || 0;
+                appState.data.members_count = adults_count + children_count;
+                appState.data.members = [
+                    ...Array(adults_count).fill({ gender: 'unknown', age_band: 'adult' }),
+                    ...Array(children_count).fill({ gender: 'unknown', age_band: 'child' })
+                ];
+                
                 const householdRes = await axios.post('/api/households', appState.data);
                 const household_id = householdRes.data.household_id;
-                addMessage('家族プロファイルを作成しました！');
 
-                const planRes = await axios.post('/api/plans/generate', { household_id });
+                const planRes = await axios.post('/api/plans/generate', { 
+                    household_id,
+                    menu_variety: appState.data.menu_variety || 'balanced'
+                });
                 appState.planId = planRes.data.plan_id;
-                addMessage('✨ 献立が完成しました！');
                 
-                document.getElementById('chat-container').classList.add('hidden');
-                showCalendar(planRes.data.days);
+                // 成功メッセージ
+                messagesEl.innerHTML = \`
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <div class="text-6xl mb-4">🎉</div>
+                        <h3 class="text-3xl font-bold text-gray-800 mb-2">献立が完成しました！</h3>
+                        <p class="text-gray-600">30日分の献立をご覧ください</p>
+                    </div>
+                \`;
+                
+                setTimeout(() => {
+                    document.getElementById('chat-container').classList.add('hidden');
+                    showCalendar(planRes.data.days);
+                }, 2000);
 
             } catch (error) {
                 console.error(error);
-                addMessage('エラーが発生しました。もう一度お試しください。');
+                messagesEl.innerHTML = \`
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <div class="text-6xl mb-4">😢</div>
+                        <h3 class="text-2xl font-bold text-red-600 mb-2">エラーが発生しました</h3>
+                        <p class="text-gray-600 mb-4">もう一度お試しください</p>
+                        <button onclick="location.reload()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            最初からやり直す
+                        </button>
+                    </div>
+                \`;
             }
         }
 
@@ -1412,26 +1561,58 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     if (!household) return badRequest("household not found");
 
     const plan_id = uuid();
+    const menu_variety = body.menu_variety || 'balanced';
     
     // 期間計算
     const period = buildPeriod(household.start_date, household.months);
     
-    // 全レシピを取得
+    // メニューバラエティ設定に応じたレシピ取得
+    let popularityFilter = '';
+    if (menu_variety === 'popular') {
+      // 定番中心：人気度8以上を優先
+      popularityFilter = 'AND popularity >= 8';
+    } else if (menu_variety === 'variety') {
+      // バラエティ重視：人気度3-7を優先
+      popularityFilter = 'AND popularity BETWEEN 3 AND 7';
+    }
+    // balanced: 全レシピから選択（フィルタなし）
+    
+    // 全レシピを人気度順に取得
     const allMainRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='main' ORDER BY RANDOM()`
+      `SELECT * FROM recipes WHERE role='main' ${popularityFilter} ORDER BY popularity DESC, RANDOM()`
     ).all();
     
     const allSideRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='side' ORDER BY RANDOM()`
+      `SELECT * FROM recipes WHERE role='side' ${popularityFilter} ORDER BY popularity DESC, RANDOM()`
     ).all();
     
     const allSoupRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='soup' ORDER BY RANDOM()`
+      `SELECT * FROM recipes WHERE role='soup' ${popularityFilter} ORDER BY popularity DESC, RANDOM()`
     ).all();
 
-    const mainRecipes = (allMainRecipes.results ?? []) as any[];
-    const sideRecipes = (allSideRecipes.results ?? []) as any[];
-    const soupRecipes = (allSoupRecipes.results ?? []) as any[];
+    let mainRecipes = (allMainRecipes.results ?? []) as any[];
+    let sideRecipes = (allSideRecipes.results ?? []) as any[];
+    let soupRecipes = (allSoupRecipes.results ?? []) as any[];
+    
+    // レシピが不足している場合は全体から取得
+    if (mainRecipes.length < 30) {
+      const fallback = await env.DB.prepare(
+        `SELECT * FROM recipes WHERE role='main' ORDER BY popularity DESC, RANDOM()`
+      ).all();
+      mainRecipes = (fallback.results ?? []) as any[];
+    }
+    if (sideRecipes.length < 30) {
+      const fallback = await env.DB.prepare(
+        `SELECT * FROM recipes WHERE role='side' ORDER BY popularity DESC, RANDOM()`
+      ).all();
+      sideRecipes = (fallback.results ?? []) as any[];
+    }
+    if (soupRecipes.length < 30) {
+      const fallback = await env.DB.prepare(
+        `SELECT * FROM recipes WHERE role='soup' ORDER BY popularity DESC, RANDOM()`
+      ).all();
+      soupRecipes = (fallback.results ?? []) as any[];
+    }
 
     if (mainRecipes.length === 0 || sideRecipes.length === 0 || soupRecipes.length === 0) {
       return badRequest("Not enough recipes in database");
