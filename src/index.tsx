@@ -12,6 +12,159 @@ type Bindings = {
 type Json = Record<string, unknown>;
 
 // ========================================
+// Login Pages
+// ========================================
+const LOGIN_HTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - AICHEFS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full mx-4">
+        <div class="text-center mb-8">
+            <i class="fas fa-utensils text-5xl text-purple-600 mb-4"></i>
+            <h1 class="text-3xl font-bold text-gray-800">AICHEFS</h1>
+            <p class="text-gray-600 mt-2">ログイン</p>
+        </div>
+        
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
+                <input type="email" id="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">パスワード</label>
+                <input type="password" id="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent">
+            </div>
+            
+            <div id="error-message" class="hidden text-red-600 text-sm"></div>
+            
+            <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition">
+                <i class="fas fa-sign-in-alt mr-2"></i>ログイン
+            </button>
+        </form>
+        
+        <div class="mt-6 text-center">
+            <a href="/" class="text-sm text-purple-600 hover:underline">トップページに戻る</a>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-message');
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('session_id', data.session_id);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = '/app';
+                } else {
+                    errorDiv.textContent = data.error || 'ログインに失敗しました';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'ネットワークエラーが発生しました';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
+`;
+
+const ADMIN_LOGIN_HTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ログイン - AICHEFS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-700 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full mx-4">
+        <div class="text-center mb-8">
+            <i class="fas fa-shield-alt text-5xl text-gray-800 mb-4"></i>
+            <h1 class="text-3xl font-bold text-gray-800">AICHEFS</h1>
+            <p class="text-gray-600 mt-2">管理者ログイン</p>
+        </div>
+        
+        <form id="adminLoginForm" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">ユーザー名</label>
+                <input type="text" id="username" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">パスワード</label>
+                <input type="password" id="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
+            </div>
+            
+            <div id="error-message" class="hidden text-red-600 text-sm"></div>
+            
+            <button type="submit" class="w-full bg-gradient-to-r from-gray-800 to-gray-900 text-white py-3 rounded-lg font-semibold hover:from-gray-900 hover:to-black transition">
+                <i class="fas fa-user-shield mr-2"></i>管理者としてログイン
+            </button>
+        </form>
+        
+        <div class="mt-6 text-center">
+            <a href="/" class="text-sm text-gray-600 hover:underline">トップページに戻る</a>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-message');
+            
+            try {
+                const response = await fetch('/api/auth/admin-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('admin_session_id', data.session_id);
+                    localStorage.setItem('admin', JSON.stringify(data.admin));
+                    window.location.href = '/admin';
+                } else {
+                    errorDiv.textContent = data.error || 'ログインに失敗しました';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'ネットワークエラーが発生しました';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
+`;
+
+// ========================================
 // Landing Page (TOPページ) - 静的ファイルとして配信
 // ========================================
 // landingHtmlは削除しました。landing.htmlは静的ファイルとして配信されます。
