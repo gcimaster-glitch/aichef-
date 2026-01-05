@@ -76,6 +76,70 @@ const appHtml = `<!DOCTYPE html>
                 size: A4;
                 margin: 15mm;
             }
+            
+            /* カレンダー印刷時のスタイル */
+            .calendar-grid-month {
+                display: grid !important;
+                grid-template-columns: repeat(7, 1fr) !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                page-break-inside: avoid;
+            }
+            
+            .calendar-day-cell {
+                min-height: 80px !important;
+                padding: 4px !important;
+                border: 1px solid #ccc !important;
+                page-break-inside: avoid;
+            }
+            
+            .calendar-day-content {
+                font-size: 8pt !important;
+            }
+            
+            .calendar-day-actions {
+                display: none !important;
+            }
+            
+            /* モーダルの背景を非表示 */
+            .modal-backdrop,
+            .fixed.inset-0 {
+                display: none !important;
+            }
+            
+            /* 買い物リスト印刷用スタイル */
+            #shopping-modal {
+                position: static !important;
+                background: white !important;
+                backdrop-filter: none !important;
+            }
+            
+            #shopping-modal > div {
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+            
+            #shopping-modal .bg-gradient-to-r {
+                background: white !important;
+                color: black !important;
+                border-bottom: 2px solid #000 !important;
+            }
+            
+            #shopping-modal button {
+                display: none !important;
+            }
+            
+            #shopping-modal-content {
+                max-height: none !important;
+            }
+            
+            /* 週ごとの買い物リストの改ページ */
+            .week-shopping-list {
+                page-break-before: auto;
+                page-break-after: auto;
+                page-break-inside: avoid;
+            }
         }
         
         /* 画面表示用スタイル */
@@ -94,8 +158,17 @@ const appHtml = `<!DOCTYPE html>
         }
         
         .day-card:hover {
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+            border-color: #3b82f6;
+        }
+        
+        .day-card[draggable="true"]:hover {
+            cursor: grab;
+        }
+        
+        .day-card[draggable="true"]:active {
+            cursor: grabbing;
         }
         
         .recipe-badge {
@@ -117,6 +190,43 @@ const appHtml = `<!DOCTYPE html>
             gap: 1px;
             background-color: #e5e7eb;
             border: 1px solid #e5e7eb;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        
+        /* レスポンシブ対応 */
+        @media screen and (max-width: 768px) {
+            .calendar-grid-month {
+                font-size: 12px;
+            }
+            
+            .calendar-day-cell {
+                min-height: 80px;
+                padding: 4px;
+            }
+            
+            .calendar-day-content {
+                font-size: 9px;
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            .calendar-grid-month {
+                font-size: 10px;
+            }
+            
+            .calendar-day-cell {
+                min-height: 60px;
+                padding: 2px;
+            }
+            
+            .calendar-day-content {
+                font-size: 8px;
+            }
+            
+            .calendar-day-number {
+                font-size: 12px;
+            }
         }
         
         .calendar-header {
@@ -425,6 +535,22 @@ const appHtml = `<!DOCTYPE html>
                                 <i class="fas fa-comment-dots text-pink-400 flex-shrink-0"></i>
                                 <span class="font-semibold">お問い合わせ</span>
                             </button>
+                        </div>
+                        
+                        <!-- ログインボタン -->
+                        <div class="text-center py-4 sm:py-6 border-t border-white border-opacity-20">
+                            <div class="flex gap-4 justify-center flex-wrap">
+                                <a href="/login" 
+                                   class="inline-flex items-center gap-2 px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 rounded-full transition transform hover:scale-105 shadow-lg text-sm sm:text-base font-semibold">
+                                    <i class="fas fa-user flex-shrink-0"></i>
+                                    <span>ユーザーログイン</span>
+                                </a>
+                                <a href="/admin/login" 
+                                   class="inline-flex items-center gap-2 px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 rounded-full transition transform hover:scale-105 shadow-lg text-sm sm:text-base font-semibold">
+                                    <i class="fas fa-user-shield flex-shrink-0"></i>
+                                    <span>管理者ログイン</span>
+                                </a>
+                            </div>
                         </div>
                         
                         <!-- コピーライト -->
@@ -2149,7 +2275,7 @@ const appHtml = `<!DOCTYPE html>
                 
                 <!-- 週ごとの買い物リスト -->
                 \${(data.weeklyLists || []).map((week, index) => \`
-                    <div id="content-week-\${index}" class="shopping-content hidden">
+                    <div id="content-week-\${index}" class="shopping-content week-shopping-list hidden">
                         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-4">
                             <div class="flex items-center justify-between mb-2">
                                 <h5 class="font-bold text-lg text-gray-800">
@@ -2664,6 +2790,18 @@ const appHtml = `<!DOCTYPE html>
                     date: dropTarget.dataset.date
                 };
                 
+                // ローディング表示
+                const loadingToast = document.createElement('div');
+                loadingToast.id = 'drag-loading-toast';
+                loadingToast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
+                const spinnerDiv = document.createElement('div');
+                spinnerDiv.className = 'animate-spin rounded-full h-5 w-5 border-b-2 border-white';
+                const spanText = document.createElement('span');
+                spanText.textContent = '献立を入れ替え中...';
+                loadingToast.appendChild(spinnerDiv);
+                loadingToast.appendChild(spanText);
+                document.body.appendChild(loadingToast);
+                
                 // サーバーに献立の入れ替えをリクエスト
                 try {
                     const res = await axios.post('/api/plans/swap-days', {
@@ -2684,16 +2822,28 @@ const appHtml = `<!DOCTYPE html>
                             renderGridView(calendarData);
                         }
                         
+                        // ローディングを削除
+                        loadingToast.remove();
+                        
                         // 成功メッセージ
                         const toast = document.createElement('div');
-                        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-                        toast.textContent = '✓ 献立を入れ替えました';
+                        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce';
+                        toast.innerHTML = '<i class="fas fa-check-circle mr-2"></i>✓ 献立を入れ替えました';
                         document.body.appendChild(toast);
                         setTimeout(() => toast.remove(), 2000);
                     }
                 } catch (error) {
                     console.error('献立の入れ替えエラー:', error);
-                    alert('献立の入れ替えに失敗しました');
+                    // ローディングを削除
+                    if (document.getElementById('drag-loading-toast')) {
+                        document.getElementById('drag-loading-toast').remove();
+                    }
+                    // エラーメッセージ
+                    const errorToast = document.createElement('div');
+                    errorToast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                    errorToast.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>献立の入れ替えに失敗しました';
+                    document.body.appendChild(errorToast);
+                    setTimeout(() => errorToast.remove(), 3000);
                 }
             }
             
@@ -2984,6 +3134,223 @@ const appHtml = `<!DOCTYPE html>
         </div>
     </div>
 
+</body>
+</html>
+`;
+
+// ログイン画面HTML
+const loginHTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - Aメニュー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full">
+        <!-- ロゴ部分 -->
+        <div class="text-center mb-8">
+            <a href="/" class="inline-block">
+                <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl">
+                    <i class="fas fa-utensils text-4xl text-white"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800">Aメニュー</h1>
+                <p class="text-gray-600">今日の献立、明日の笑顔</p>
+            </a>
+        </div>
+
+        <!-- ログインカード -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+                <i class="fas fa-sign-in-alt text-indigo-600 mr-2"></i>
+                ログイン
+            </h2>
+
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-envelope text-indigo-600 mr-2"></i>
+                        メールアドレス
+                    </label>
+                    <input type="email" id="email" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                           placeholder="example@email.com">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-lock text-indigo-600 mr-2"></i>
+                        パスワード
+                    </label>
+                    <input type="password" id="password" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                           placeholder="••••••••">
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="remember" 
+                               class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                        <span class="ml-2 text-sm text-gray-600">ログイン状態を保持</span>
+                    </label>
+                    <a href="#" class="text-sm text-indigo-600 hover:text-indigo-700 font-semibold">
+                        パスワードを忘れた？
+                    </a>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-3 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition transform hover:scale-105 shadow-lg">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    ログイン
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    アカウントをお持ちでない方は
+                    <a href="/register" class="text-indigo-600 hover:text-indigo-700 font-semibold">
+                        新規登録
+                    </a>
+                </p>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <a href="/" class="block text-center text-sm text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    トップページに戻る
+                </a>
+            </div>
+        </div>
+
+        <!-- 管理者ログインへのリンク -->
+        <div class="mt-6 text-center">
+            <a href="/admin/login" class="text-sm text-purple-600 hover:text-purple-700 font-semibold">
+                <i class="fas fa-user-shield mr-2"></i>
+                管理者の方はこちら
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+
+            try {
+                // TODO: 実際のAPI呼び出しに置き換え
+                alert('ログイン機能は現在開発中です。\\nメール: ' + email);
+                
+                // 仮のリダイレクト
+                // window.location.href = '/app';
+            } catch (error) {
+                alert('ログインに失敗しました。もう一度お試しください。');
+            }
+        });
+    </script>
+</body>
+</html>
+`;
+
+// 管理者ログイン画面HTML
+const adminLoginHTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ログイン - Aメニュー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full">
+        <!-- ロゴ部分 -->
+        <div class="text-center mb-8">
+            <a href="/" class="inline-block">
+                <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl border-4 border-white border-opacity-20">
+                    <i class="fas fa-user-shield text-4xl text-white"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-white">Aメニュー</h1>
+                <p class="text-purple-200">管理者専用ページ</p>
+            </a>
+        </div>
+
+        <!-- ログインカード -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white border-opacity-20">
+            <h2 class="text-2xl font-bold text-white mb-6 text-center">
+                <i class="fas fa-shield-alt text-purple-400 mr-2"></i>
+                管理者ログイン
+            </h2>
+
+            <form id="admin-login-form" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-purple-200 mb-2">
+                        <i class="fas fa-user text-purple-400 mr-2"></i>
+                        管理者ID
+                    </label>
+                    <input type="text" id="admin-id" required
+                           class="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-purple-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                           placeholder="admin">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-purple-200 mb-2">
+                        <i class="fas fa-key text-purple-400 mr-2"></i>
+                        パスワード
+                    </label>
+                    <input type="password" id="admin-password" required
+                           class="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-purple-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                           placeholder="••••••••">
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white font-bold py-3 rounded-lg hover:from-purple-600 hover:to-pink-700 transition transform hover:scale-105 shadow-lg">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    ログイン
+                </button>
+            </form>
+
+            <div class="mt-6 pt-6 border-t border-white border-opacity-20">
+                <a href="/" class="block text-center text-sm text-purple-200 hover:text-white">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    トップページに戻る
+                </a>
+            </div>
+        </div>
+
+        <!-- ユーザーログインへのリンク -->
+        <div class="mt-6 text-center">
+            <a href="/login" class="text-sm text-purple-300 hover:text-white font-semibold">
+                <i class="fas fa-user mr-2"></i>
+                一般ユーザーの方はこちら
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const adminId = document.getElementById('admin-id').value;
+            const password = document.getElementById('admin-password').value;
+
+            try {
+                // TODO: 実際のAPI呼び出しに置き換え
+                alert('管理者ログイン機能は現在開発中です。\\n管理者ID: ' + adminId);
+                
+                // 仮のリダイレクト
+                // window.location.href = '/admin/dashboard';
+            } catch (error) {
+                alert('ログインに失敗しました。もう一度お試しください。');
+            }
+        });
+    </script>
 </body>
 </html>
 `;
@@ -3384,12 +3751,12 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     };
     
     const allergyMapping: { [key: string]: string[] } = {
-      'egg': ['egg', 'dairy_egg'],
+      'egg': ['egg', 'ing_egg', 'dairy_egg'],
       'milk': ['milk', 'dairy_milk', 'cheese', 'butter', 'cream'],
-      'wheat': ['flour', 'wheat', 'bread', 'noodles'],
+      'wheat': ['flour', 'wheat', 'bread', 'noodles', 'ing_bread', 'ing_pasta', 'noodle_udon', 'noodle_ramen', 'noodle_pasta', 'noodle_soba'],
       'shrimp': ['seafood_shrimp', 'shrimp'],
       'crab': ['seafood_crab', 'crab'],
-      'buckwheat': ['soba', 'buckwheat'],
+      'buckwheat': ['soba', 'buckwheat', 'noodle_soba'],
       'peanut': ['peanut', 'nuts_peanut']
     };
     
@@ -4461,6 +4828,76 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   }
 
   // ========================================
+  // 認証API
+  // ========================================
+  
+  // POST /api/auth/login - ユーザーログイン
+  if (pathname === "/api/auth/login" && req.method === "POST") {
+    const body = await readJson(req);
+    const email = (body.email as string)?.trim();
+    const password = (body.password as string)?.trim();
+    
+    if (!email || !password) {
+      return badRequest("メールアドレスとパスワードを入力してください");
+    }
+    
+    // 簡易認証（本番環境ではパスワードハッシュを使用）
+    const user = await env.DB.prepare(`
+      SELECT household_id, title as name, email, created_at 
+      FROM households 
+      WHERE email = ?
+    `).bind(email).first();
+    
+    if (!user) {
+      return json({ error: "メールアドレスまたはパスワードが間違っています" }, 401);
+    }
+    
+    // セッションIDを生成（本番環境ではJWTを使用）
+    const session_id = uuid();
+    
+    return json({ 
+      success: true,
+      session_id,
+      user: {
+        household_id: user.household_id,
+        name: user.name,
+        email: user.email
+      }
+    });
+  }
+  
+  // POST /api/auth/admin-login - 管理者ログイン
+  if (pathname === "/api/auth/admin-login" && req.method === "POST") {
+    const body = await readJson(req);
+    const username = (body.username as string)?.trim();
+    const password = (body.password as string)?.trim();
+    
+    if (!username || !password) {
+      return badRequest("ユーザー名とパスワードを入力してください");
+    }
+    
+    // 簡易認証（本番環境では環境変数や専用テーブルを使用）
+    const ADMIN_USERNAME = "admin";
+    const ADMIN_PASSWORD = "aichef2026"; // 本番環境では環境変数に設定
+    
+    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+      return json({ error: "ユーザー名またはパスワードが間違っています" }, 401);
+    }
+    
+    // セッションIDを生成
+    const session_id = uuid();
+    
+    return json({ 
+      success: true,
+      session_id,
+      admin: {
+        username,
+        role: "admin"
+      }
+    });
+  }
+
+  // ========================================
   // /admin：管理画面を返す
   // ========================================
   if (pathname === "/admin" || pathname === "/admin/") {
@@ -4630,6 +5067,30 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       headers: { 
         'content-type': 'text/html; charset=utf-8',
         'cache-control': 'public, max-age=3600'
+      }
+    });
+  }
+
+  // ========================================
+  // /login：ユーザーログイン画面
+  // ========================================
+  if (pathname === "/login") {
+    return new Response(LOGIN_HTML, {
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store'
+      }
+    });
+  }
+
+  // ========================================
+  // /admin/login：管理者ログイン画面
+  // ========================================
+  if (pathname === "/admin/login") {
+    return new Response(ADMIN_LOGIN_HTML, {
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store'
       }
     });
   }
