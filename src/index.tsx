@@ -117,6 +117,9 @@ const indexHtml = `<!DOCTYPE html>
             </p>
         </header>
 
+        <!-- TOPページヘッダー広告 -->
+        <div id="ad-top-header" class="ad-container no-print mb-6" style="display:flex;justify-content:center;"></div>
+
         <!-- チャットエリア -->
         <div id="chat-container" class="bg-white rounded-lg shadow-lg p-6 mb-6">
             <div id="messages" class="space-y-4 mb-6"></div>
@@ -142,6 +145,83 @@ const indexHtml = `<!DOCTYPE html>
             </div>
             
             <div id="calendar-content"></div>
+            
+            <!-- カレンダー下部広告 -->
+            <div id="ad-calendar-bottom" class="ad-container no-print mt-8" style="display:flex;justify-content:center;"></div>
+        </div>
+        
+        <!-- フッターセクション（メルマガ・お問い合わせ） -->
+        <footer class="no-print mt-12 bg-white rounded-lg shadow-lg p-8">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- メルマガ登録 -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4">
+                        <i class="fas fa-envelope mr-2"></i>
+                        メルマガ登録
+                    </h3>
+                    <p class="text-gray-600 mb-4 text-sm">
+                        週1回、おすすめレシピや献立のヒントをお届けします。
+                    </p>
+                    <div class="flex gap-2">
+                        <input type="email" id="newsletter-email" placeholder="メールアドレス" 
+                               class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button onclick="subscribeNewsletter()" 
+                                class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+                            登録
+                        </button>
+                    </div>
+                    <p id="newsletter-message" class="text-sm mt-2"></p>
+                </div>
+                
+                <!-- お問い合わせ -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4">
+                        <i class="fas fa-comment-dots mr-2"></i>
+                        お問い合わせ
+                    </h3>
+                    <p class="text-gray-600 mb-4 text-sm">
+                        ご質問やご要望がございましたら、お気軽にお問い合わせください。
+                    </p>
+                    <button onclick="openContactForm()" 
+                            class="w-full px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                        お問い合わせフォームを開く
+                    </button>
+                </div>
+            </div>
+            
+            <!-- サイドバー広告枠 -->
+            <div id="ad-sidebar" class="ad-container mt-8" style="display:flex;justify-content:center;"></div>
+            
+            <div class="text-center text-gray-500 text-sm mt-8 pt-8 border-t">
+                <p>&copy; 2026 Aメニュー. All rights reserved.</p>
+            </div>
+        </footer>
+        
+        <!-- お問い合わせモーダル -->
+        <div id="contact-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">お問い合わせ</h3>
+                    <button onclick="closeContactForm()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <input type="text" id="contact-name" placeholder="お名前" 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="email" id="contact-email" placeholder="メールアドレス" 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="contact-subject" placeholder="件名" 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <textarea id="contact-message" placeholder="お問い合わせ内容" rows="5"
+                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <button onclick="submitContact()" 
+                            class="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                        送信
+                    </button>
+                    <p id="contact-message-result" class="text-sm text-center"></p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -517,12 +597,147 @@ const indexHtml = `<!DOCTYPE html>
             }
             
             calendarContentEl.innerHTML = html;
+            
+            // カレンダー下部の広告を読み込み
+            loadAds('calendar_page');
+        }
+        
+        // ========================================
+        // 広告読み込み
+        // ========================================
+        async function loadAds(page_location) {
+            try {
+                const res = await axios.get(\`/api/ads/\${page_location}\`);
+                const ads = res.data.ads || [];
+                
+                ads.forEach(ad => {
+                    const containerId = getAdContainerId(ad.slot_name);
+                    const container = document.getElementById(containerId);
+                    if (!container) return;
+                    
+                    // 広告を表示
+                    if (ad.html_code) {
+                        container.innerHTML = ad.html_code;
+                    } else if (ad.image_url) {
+                        container.innerHTML = \`<a href="\${ad.link_url}" target="_blank" onclick="trackAdClick('\${ad.ad_id}')">
+                            <img src="\${ad.image_url}" alt="\${ad.title}" style="max-width:\${ad.width}px;max-height:\${ad.height}px;">
+                        </a>\`;
+                    }
+                    
+                    // インプレッション記録
+                    trackAdImpression(ad.ad_id, page_location);
+                });
+            } catch (error) {
+                console.error('広告読み込みエラー:', error);
+            }
+        }
+        
+        function getAdContainerId(slot_name) {
+            const map = {
+                'TOPページヘッダーバナー': 'ad-top-header',
+                'TOPページサイドバー': 'ad-sidebar',
+                'カレンダーページ下部バナー': 'ad-calendar-bottom'
+            };
+            return map[slot_name] || 'ad-container';
+        }
+        
+        async function trackAdClick(ad_id) {
+            try {
+                await axios.post('/api/ads/track/click', { ad_id });
+            } catch (error) {
+                console.error('クリック追跡エラー:', error);
+            }
+        }
+        
+        async function trackAdImpression(ad_id, page_location) {
+            try {
+                await axios.post('/api/ads/track/impression', { ad_id, page_location });
+            } catch (error) {
+                console.error('表示追跡エラー:', error);
+            }
+        }
+        
+        // ========================================
+        // メルマガ登録
+        // ========================================
+        async function subscribeNewsletter() {
+            const emailInput = document.getElementById('newsletter-email');
+            const messageEl = document.getElementById('newsletter-message');
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                messageEl.textContent = 'メールアドレスを入力してください';
+                messageEl.className = 'text-sm mt-2 text-red-500';
+                return;
+            }
+            
+            try {
+                const res = await axios.post('/api/newsletter/subscribe', { email });
+                messageEl.textContent = res.data.message;
+                messageEl.className = 'text-sm mt-2 text-green-600';
+                emailInput.value = '';
+            } catch (error) {
+                messageEl.textContent = 'エラーが発生しました';
+                messageEl.className = 'text-sm mt-2 text-red-500';
+            }
+        }
+        
+        // ========================================
+        // お問い合わせフォーム
+        // ========================================
+        function openContactForm() {
+            const modal = document.getElementById('contact-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        
+        function closeContactForm() {
+            const modal = document.getElementById('contact-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            // フォームをクリア
+            document.getElementById('contact-name').value = '';
+            document.getElementById('contact-email').value = '';
+            document.getElementById('contact-subject').value = '';
+            document.getElementById('contact-message').value = '';
+            document.getElementById('contact-message-result').textContent = '';
+        }
+        
+        async function submitContact() {
+            const name = document.getElementById('contact-name').value.trim();
+            const email = document.getElementById('contact-email').value.trim();
+            const subject = document.getElementById('contact-subject').value.trim();
+            const message = document.getElementById('contact-message').value.trim();
+            const resultEl = document.getElementById('contact-message-result');
+            
+            if (!name || !email || !subject || !message) {
+                resultEl.textContent = 'すべての項目を入力してください';
+                resultEl.className = 'text-sm text-center text-red-500';
+                return;
+            }
+            
+            try {
+                const res = await axios.post('/api/support/create', { name, email, subject, message });
+                resultEl.textContent = res.data.message;
+                resultEl.className = 'text-sm text-center text-green-600';
+                
+                setTimeout(() => {
+                    closeContactForm();
+                }, 2000);
+            } catch (error) {
+                resultEl.textContent = 'エラーが発生しました';
+                resultEl.className = 'text-sm text-center text-red-500';
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             const question = questions[0];
             addMessage(question.text);
             showInput(question);
+            
+            // TOPページの広告を読み込み
+            loadAds('top_page');
         });
     </script>
 </body>
@@ -860,6 +1075,154 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       months: plan.months,
       days: resultDays,
     });
+  }
+
+  // ========================================
+  // 広告API
+  // ========================================
+  
+  // GET /api/ads/:page_location - 指定ページの広告を取得
+  if (pathname.startsWith("/api/ads/") && req.method === "GET") {
+    const page_location = pathname.split("/api/ads/")[1];
+    
+    const ads = await env.DB.prepare(`
+      SELECT ac.ad_id, ac.ad_type, ac.title, ac.image_url, ac.link_url, ac.html_code,
+             ads.slot_id, ads.slot_name, ads.position, ads.width, ads.height
+      FROM ad_contents ac
+      JOIN ad_slots ads ON ac.slot_id = ads.slot_id
+      WHERE ads.page_location = ? AND ac.is_active = 1 AND ads.is_active = 1
+        AND (ac.start_date IS NULL OR ac.start_date <= DATE('now'))
+        AND (ac.end_date IS NULL OR ac.end_date >= DATE('now'))
+      ORDER BY ac.priority DESC, ac.created_at DESC
+    `).bind(page_location).all();
+    
+    return json({ ads: ads.results || [] });
+  }
+  
+  // POST /api/ads/track/click - 広告クリックを記録
+  if (pathname === "/api/ads/track/click" && req.method === "POST") {
+    const body = await readJson(req);
+    const ad_id = body.ad_id as string;
+    
+    if (!ad_id) return badRequest("Missing ad_id");
+    
+    const click_id = uuid();
+    const ip_address = req.headers.get("cf-connecting-ip") || "unknown";
+    const user_agent = req.headers.get("user-agent") || "unknown";
+    
+    await env.DB.prepare(`
+      INSERT INTO ad_clicks (click_id, ad_id, ip_address, user_agent, clicked_at)
+      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).bind(click_id, ad_id, ip_address, user_agent).run();
+    
+    return json({ success: true, click_id });
+  }
+  
+  // POST /api/ads/track/impression - 広告表示を記録
+  if (pathname === "/api/ads/track/impression" && req.method === "POST") {
+    const body = await readJson(req);
+    const ad_id = body.ad_id as string;
+    const page_location = body.page_location as string;
+    
+    if (!ad_id || !page_location) return badRequest("Missing ad_id or page_location");
+    
+    const impression_id = uuid();
+    
+    await env.DB.prepare(`
+      INSERT INTO ad_impressions (impression_id, ad_id, page_location, viewed_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+    `).bind(impression_id, ad_id, page_location).run();
+    
+    return json({ success: true, impression_id });
+  }
+
+  // ========================================
+  // メルマガAPI（簡易版）
+  // ========================================
+  
+  // POST /api/newsletter/subscribe - メルマガ登録
+  if (pathname === "/api/newsletter/subscribe" && req.method === "POST") {
+    const body = await readJson(req);
+    const email = (body.email as string)?.trim();
+    
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return badRequest("Invalid email address");
+    }
+    
+    // 既に登録済みかチェック
+    const existing = await env.DB.prepare(
+      "SELECT subscriber_id, status FROM newsletter_subscribers WHERE email = ?"
+    ).bind(email).first();
+    
+    if (existing) {
+      if (existing.status === 'active') {
+        return json({ message: "このメールアドレスは既に登録されています" });
+      } else {
+        // 再登録
+        await env.DB.prepare(
+          "UPDATE newsletter_subscribers SET status = 'active', subscribed_at = CURRENT_TIMESTAMP WHERE email = ?"
+        ).bind(email).run();
+        return json({ message: "メルマガ登録を再開しました" });
+      }
+    }
+    
+    const subscriber_id = uuid();
+    await env.DB.prepare(`
+      INSERT INTO newsletter_subscribers (subscriber_id, email, status, subscribed_at)
+      VALUES (?, ?, 'active', CURRENT_TIMESTAMP)
+    `).bind(subscriber_id, email).run();
+    
+    return json({ message: "メルマガ登録が完了しました", subscriber_id });
+  }
+  
+  // POST /api/newsletter/unsubscribe - メルマガ解除
+  if (pathname === "/api/newsletter/unsubscribe" && req.method === "POST") {
+    const body = await readJson(req);
+    const email = (body.email as string)?.trim();
+    
+    if (!email) return badRequest("Missing email");
+    
+    await env.DB.prepare(`
+      UPDATE newsletter_subscribers 
+      SET status = 'unsubscribed', unsubscribed_at = CURRENT_TIMESTAMP 
+      WHERE email = ?
+    `).bind(email).run();
+    
+    return json({ message: "メルマガ登録を解除しました" });
+  }
+
+  // ========================================
+  // 問い合わせAPI（簡易版）
+  // ========================================
+  
+  // POST /api/support/create - 問い合わせ作成
+  if (pathname === "/api/support/create" && req.method === "POST") {
+    const body = await readJson(req);
+    const email = (body.email as string)?.trim();
+    const name = (body.name as string)?.trim();
+    const subject = (body.subject as string)?.trim();
+    const message = (body.message as string)?.trim();
+    
+    if (!email || !name || !subject || !message) {
+      return badRequest("Missing required fields: email, name, subject, message");
+    }
+    
+    const thread_id = uuid();
+    const message_id = uuid();
+    
+    // スレッド作成
+    await env.DB.prepare(`
+      INSERT INTO support_threads (thread_id, email, name, subject, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, 'open', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `).bind(thread_id, email, name, subject).run();
+    
+    // 最初のメッセージを作成
+    await env.DB.prepare(`
+      INSERT INTO support_messages (message_id, thread_id, sender_type, message, created_at)
+      VALUES (?, ?, 'member', ?, CURRENT_TIMESTAMP)
+    `).bind(message_id, thread_id, message).run();
+    
+    return json({ message: "お問い合わせを受け付けました", thread_id });
   }
 
   // ========================================
