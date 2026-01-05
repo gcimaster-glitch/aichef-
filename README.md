@@ -467,20 +467,23 @@ npx wrangler d1 execute aichef-production --remote --command="SELECT * FROM reci
 ## 公開URL
 
 - **本番環境（Cloudflare Pages）**: https://aichef-595.pages.dev
-- **最新デプロイ**: https://cad22079.aichef-595.pages.dev ✨ **NEW - 献立バラエティ改善版**
-  - **ランディングページ**: https://cad22079.aichef-595.pages.dev/
-  - **献立作成アプリ**: https://cad22079.aichef-595.pages.dev/app
-- **APIヘルスチェック**: https://cad22079.aichef-595.pages.dev/api/health
+- **最新デプロイ**: https://c843dba3.aichef-595.pages.dev ✨ **NEW - UX大幅改善版**
+  - **ランディングページ**: https://c843dba3.aichef-595.pages.dev/
+  - **献立作成アプリ**: https://c843dba3.aichef-595.pages.dev/app
+- **APIヘルスチェック**: https://c843dba3.aichef-595.pages.dev/api/health
 - **プロジェクト名**: aichef
-- **開発環境（Sandbox）**: https://3000-i2ssbzavhkm9slw3om8jl-2b54fc91.sandbox.novita.ai
 
 ### デプロイ履歴
 
-- **2026-01-05 12:00** - 献立バラエティ改善 ✅ **最新**
-  - **修正**: 同じ献立ばかり出る問題を解決
-  - レシピ選択ロジックを改善（LIMIT 1 → ORDER BY RANDOM()）
-  - 循環選択アルゴリズム実装（30日間で重複を最小化）
-  - 703レシピを活用した多様な献立生成
+- **2026-01-05 14:00** - UX大幅改善 ✅ **最新**
+  - **ページ分割式ステップUI**（スクロール不要、プログレスバー表示）
+  - **ローディングアニメーション**（献立生成中の回転アニメ）
+  - **人気度ベースのレシピ選択**（popularity 1-10）
+  - **定番メニュー頻度カスタマイズ**（定番中心/バランス/バラエティ）
+  - **詳細な家族構成質問**（大人・子供の人数、年齢、好き嫌い）
+  - **入力→選択肢への変更**（予算、時間、人数等）
+  - **条件付き質問スキップ**（子供がいない場合は年齢質問を非表示）
+  - 317レシピに人気度スコア設定完了
 - **2026-01-05 11:00** - ランディングページ + 600レシピ + 子供向け機能
   - Apple風ランディングページ実装（7セクション構成）
   - 家族写真3枚追加（キッチン、食卓、豊富な献立）
