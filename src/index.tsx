@@ -2060,10 +2060,14 @@ const appHtml = `<!DOCTYPE html>
 
         async function generatePlan() {
             try {
-                // ローディングアニメーション表示
-                messagesEl.innerHTML = '';
-                inputAreaEl.innerHTML = '';
+                // モーダルを表示
+                const modal = document.getElementById('plan-generation-modal');
+                const content = document.getElementById('plan-generation-modal-content');
                 
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                
+                // ローディングアニメーション表示
                 const loadingHtml = \`
                     <div class="flex flex-col items-center justify-center py-16 px-6">
                         <!-- メインアニメーション -->
@@ -2153,7 +2157,7 @@ const appHtml = `<!DOCTYPE html>
                         </div>
                     </div>
                 \`;
-                messagesEl.innerHTML = loadingHtml;
+                content.innerHTML = loadingHtml;
                 
                 // アニメーションシーケンス（HTMLの外で実行）
                 setTimeout(() => {
@@ -2235,15 +2239,17 @@ const appHtml = `<!DOCTYPE html>
                                    daysCount === 14 ? '2週間' :
                                    daysCount === 21 ? '3週間' :
                                    daysCount === 30 ? '4週間（1ヶ月）' : daysCount + '日間';
-                messagesEl.innerHTML = \`
+                content.innerHTML = \`
                     <div class="flex flex-col items-center justify-center py-12">
-                        <div class="text-6xl mb-4">🎉</div>
+                        <div class="text-6xl mb-4 animate-bounce">🎉</div>
                         <h3 class="text-3xl font-bold text-gray-800 mb-2">献立が完成しました！</h3>
                         <p class="text-gray-600">\${periodText}分の献立をご覧ください</p>
                     </div>
                 \`;
                 
                 setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
                     document.getElementById('chat-container').classList.add('hidden');
                     showCalendar(planRes.data.days);
                 }, 2000);
@@ -2278,7 +2284,7 @@ const appHtml = `<!DOCTYPE html>
                     errorMessage = error.message;
                 }
                 
-                messagesEl.innerHTML = \`
+                content.innerHTML = \`
                     <div class="flex flex-col items-center justify-center py-12">
                         <div class="text-6xl mb-4">😢</div>
                         <h3 class="text-2xl font-bold text-red-600 mb-2">エラーが発生しました</h3>
@@ -3947,6 +3953,21 @@ const appHtml = `<!DOCTYPE html>
     </div>
     
     <!-- 買い物リストモーダル -->
+    <!-- 献立生成モーダル -->
+    <div id="plan-generation-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4" style="backdrop-filter: blur(4px);">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 px-6 py-4 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">
+                    <i class="fas fa-utensils mr-2"></i>
+                    献立作成中
+                </h3>
+            </div>
+            <div id="plan-generation-modal-content" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
+                <!-- コンテンツはJavaScriptで動的に挿入 -->
+            </div>
+        </div>
+    </div>
+    
     <div id="shopping-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4" style="backdrop-filter: blur(4px);">
         <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4 flex justify-between items-center">
@@ -4673,12 +4694,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         }
         
         // 🐟 タイトルベースの魚フィルタリング（primary_proteinが"other"の魚料理対応）
-        if (dislikes.includes('fish') && 
-            (recipe.title.includes('鮭') || recipe.title.includes('サバ') || 
-             recipe.title.includes('アジ') || recipe.title.includes('サンマ') || 
-             recipe.title.includes('ブリ') || recipe.title.includes('タラ') || 
-             recipe.title.includes('魚') || recipe.title.includes('白身魚') ||
-             recipe.title.includes('シーフード'))) {
+        const fishKeywords = ['鮭', 'サバ', 'アジ', 'サンマ', 'ブリ', 'タラ', '魚', '白身魚', 'シーフード', '海鮮', 'まぐろ', 'マグロ', 'いわし', 'イワシ', 'かつお', 'カツオ', 'さんま', 'ぶり', 'たら'];
+        if (dislikes.includes('fish') && fishKeywords.some(keyword => recipe.title.includes(keyword))) {
           console.log(`除外: ${recipe.title} (タイトルに魚名/シーフード - 魚嫌い)`);
           continue;
         }
@@ -4704,11 +4721,10 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           continue;
         }
         
-        // 🐚 貝類嫌い対応
-        if (dislikes.includes('shellfish') && 
-            (recipe.title.includes('あさり') || recipe.title.includes('しじみ') || 
-             recipe.title.includes('牡蠣') || recipe.title.includes('ホタテ') || 
-             recipe.title.includes('貝'))) {
+        // 🐚 貝類嫌い・貝類アレルギー対応
+        const shellfishKeywords = ['あさり', 'アサリ', 'しじみ', 'シジミ', '牡蠣', 'カキ', 'ホタテ', 'ほたて', '貝'];
+        if ((dislikes.includes('shellfish') || allergiesStandard.includes('shellfish')) && 
+            shellfishKeywords.some(keyword => recipe.title.includes(keyword))) {
           console.log(`除外: ${recipe.title} (貝類料理)`);
           continue;
         }
