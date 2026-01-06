@@ -2386,9 +2386,9 @@ const appHtml = `<!DOCTYPE html>
                                 <i class="fas fa-grip-vertical text-gray-400 text-sm"></i>
                             </div>
                             <div class="space-y-2 text-sm">
-                                \${main ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> <a href="javascript:void(0)" onclick="showRecipeDetail(\\'' + main.recipe_id + '\\', \\'' + main.title + '\\')" class="text-blue-600 hover:underline cursor-pointer">' + main.title + '</a></span></div>' : ''}
-                                \${side ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-side mt-1"></span><span class="flex-1"><span class="font-semibold text-green-600">副菜:</span> <a href="javascript:void(0)" onclick="showRecipeDetail(\\'' + side.recipe_id + '\\', \\'' + side.title + '\\')" class="text-blue-600 hover:underline cursor-pointer">' + side.title + '</a></span></div>' : ''}
-                                \${soup ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-soup mt-1"></span><span class="flex-1"><span class="font-semibold text-blue-600">汁物:</span> <a href="javascript:void(0)" onclick="showRecipeDetail(\\'' + soup.recipe_id + '\\', \\'' + soup.title + '\\')" class="text-blue-600 hover:underline cursor-pointer">' + soup.title + '</a></span></div>' : ''}
+                                \${main ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + main.recipe_id + '" data-recipe-title="' + main.title + '">' + main.title + '</a></span></div>' : ''}
+                                \${side ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-side mt-1"></span><span class="flex-1"><span class="font-semibold text-green-600">副菜:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + side.recipe_id + '" data-recipe-title="' + side.title + '">' + side.title + '</a></span></div>' : ''}
+                                \${soup ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-soup mt-1"></span><span class="flex-1"><span class="font-semibold text-blue-600">汁物:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + soup.recipe_id + '" data-recipe-title="' + soup.title + '">' + soup.title + '</a></span></div>' : ''}
                             </div>
                             <div class="mt-3 text-xs text-gray-500 border-t pt-2">
                                 <i class="far fa-clock"></i> 約\${day.estimated_time_min}分
@@ -2948,9 +2948,9 @@ const appHtml = `<!DOCTYPE html>
                                 <i class="fas fa-grip-vertical text-gray-400 text-sm"></i>
                             </div>
                             <div class="space-y-2 text-sm">
-                                \${main ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> <a href="javascript:void(0)" onclick="showRecipeDetail(\\'' + main.recipe_id + '\\', \\'' + main.title + '\\')" class="text-blue-600 hover:underline cursor-pointer">' + main.title + '</a></span></div>' : ''}
-                                \${side ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-side mt-1"></span><span class="flex-1"><span class="font-semibold text-green-600">副菜:</span> <a href="javascript:void(0)" onclick="showRecipeDetail(\\'' + side.recipe_id + '\\', \\'' + side.title + '\\')" class="text-blue-600 hover:underline cursor-pointer">' + side.title + '</a></span></div>' : ''}
-                                \${soup ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-soup mt-1"></span><span class="flex-1"><span class="font-semibold text-blue-600">汁物:</span> <a href="javascript:void(0)" onclick="showRecipeDetail(\\'' + soup.recipe_id + '\\', \\'' + soup.title + '\\')" class="text-blue-600 hover:underline cursor-pointer">' + soup.title + '</a></span></div>' : ''}
+                                \${main ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + main.recipe_id + '" data-recipe-title="' + main.title + '">' + main.title + '</a></span></div>' : ''}
+                                \${side ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-side mt-1"></span><span class="flex-1"><span class="font-semibold text-green-600">副菜:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + side.recipe_id + '" data-recipe-title="' + side.title + '">' + side.title + '</a></span></div>' : ''}
+                                \${soup ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-soup mt-1"></span><span class="flex-1"><span class="font-semibold text-blue-600">汁物:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + soup.recipe_id + '" data-recipe-title="' + soup.title + '">' + soup.title + '</a></span></div>' : ''}
                             </div>
                             <div class="mt-3 text-xs text-gray-500 border-t pt-2">
                                 <i class="far fa-clock"></i> 約\${day.estimated_time_min}分
@@ -3927,6 +3927,20 @@ const appHtml = `<!DOCTYPE html>
         window.shareRecipe = shareRecipe;
         window.copyToClipboard = copyToClipboard;
         window.closeModal = closeModal;
+
+        // レシピリンクのイベントデリゲーション
+        document.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            const recipeLink = target.closest('.recipe-link');
+            if (recipeLink) {
+                e.preventDefault();
+                const recipeId = recipeLink.getAttribute('data-recipe-id');
+                const recipeTitle = recipeLink.getAttribute('data-recipe-title');
+                if (recipeId && recipeTitle) {
+                    showRecipeDetail(recipeId, recipeTitle);
+                }
+            }
+        });
         window.closeRecipeModal = closeRecipeModal;
         window.closeShoppingModal = closeShoppingModal;
         
