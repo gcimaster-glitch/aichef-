@@ -1103,7 +1103,7 @@ const appHtml = `<!DOCTYPE html>
                         AIシェフ
                     </h2>
                     <p class="text-base md:text-lg lg:text-xl opacity-95" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
-                        考えなくていい。<br>悩まなくていい。<br>今日から1ヶ月分の晩ごはんが決まります。
+                        考えなくていい。<br>悩まなくていい。<br>今日から晩ごはんが決まります。
                     </p>
                 </div>
             </div>
@@ -1133,7 +1133,7 @@ const appHtml = `<!DOCTYPE html>
                             </h2>
                         </div>
                         <p class="text-lg md:text-xl opacity-90" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
-                            30日分の献立があなたの毎日を彩ります
+                            あなたの献立があなたの毎日を彩ります
                         </p>
                     </div>
                 </div>
@@ -1402,10 +1402,13 @@ const appHtml = `<!DOCTYPE html>
             {
                 id: 'months',
                 type: 'choice',
-                text: '何ヶ月分作りますか？',
+                text: '何週間分作りますか？',
                 field: 'months',
                 options: [
-                    { label: '1ヶ月', value: 1 }
+                    { label: '1週間', value: 0.25, icon: '📅' },
+                    { label: '2週間', value: 0.5, icon: '📆' },
+                    { label: '3週間', value: 0.75, icon: '🗓️' },
+                    { label: '4週間（1ヶ月）', value: 1, icon: '📋' }
                 ]
             },
             {
@@ -1880,11 +1883,14 @@ const appHtml = `<!DOCTYPE html>
                 inputAreaEl.appendChild(btnGroup);
             }
             else if (question.type === 'confirm') {
+                const periodLabel = appState.data.months === 1 ? '4週間（1ヶ月）' : 
+                                    appState.data.months === 0.75 ? '3週間' :
+                                    appState.data.months === 0.5 ? '2週間' : '1週間';
                 const summary = \`
                     <div class="bg-gray-50 p-4 rounded mb-4">
                         <p><strong>タイトル:</strong> \${appState.data.title}</p>
                         <p><strong>開始日:</strong> \${appState.data.start_date}</p>
-                        <p><strong>期間:</strong> \${appState.data.months}ヶ月</p>
+                        <p><strong>期間:</strong> \${periodLabel}</p>
                         <p><strong>人数:</strong> \${appState.data.members_count}人</p>
                         <p><strong>予算:</strong> \${appState.data.budget_tier_per_person}円/人</p>
                         <p><strong>調理時間:</strong> \${appState.data.cooking_time_limit_min}分</p>
@@ -2172,12 +2178,17 @@ const appHtml = `<!DOCTYPE html>
                 });
                 appState.planId = planRes.data.plan_id;
                 
-                // 成功メッセージ
+                // 成功メッセージ（期間を動的に表示）
+                const daysCount = planRes.data.days.length;
+                const periodText = daysCount === 7 ? '1週間' :
+                                   daysCount === 14 ? '2週間' :
+                                   daysCount === 21 ? '3週間' :
+                                   daysCount === 30 ? '4週間（1ヶ月）' : daysCount + '日間';
                 messagesEl.innerHTML = \`
                     <div class="flex flex-col items-center justify-center py-12">
                         <div class="text-6xl mb-4">🎉</div>
                         <h3 class="text-3xl font-bold text-gray-800 mb-2">献立が完成しました！</h3>
-                        <p class="text-gray-600">30日分の献立をご覧ください</p>
+                        <p class="text-gray-600">\${periodText}分の献立をご覧ください</p>
                     </div>
                 \`;
                 
@@ -2243,7 +2254,12 @@ const appHtml = `<!DOCTYPE html>
                 behavior: 'smooth'
             });
             
-            // 🎉 完成通知トーストを表示
+            // 🎉 完成通知トーストを表示（期間を動的に表示）
+            const daysCount = days.length;
+            const periodText = daysCount === 7 ? '1週間' :
+                               daysCount === 14 ? '2週間' :
+                               daysCount === 21 ? '3週間' :
+                               daysCount === 30 ? '4週間（1ヶ月）' : daysCount + '日間';
             const toast = document.createElement('div');
             toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
             toast.style.animation = 'slideDown 0.5s ease-out, fadeOut 0.5s ease-out 4.5s';
@@ -2251,7 +2267,7 @@ const appHtml = `<!DOCTYPE html>
                 <i class="fas fa-check-circle text-3xl"></i>
                 <div>
                     <div class="font-bold text-lg">🎉 献立が完成しました！</div>
-                    <div class="text-sm opacity-90">30日分の献立をお楽しみください</div>
+                    <div class="text-sm opacity-90">\${periodText}分の献立をお楽しみください</div>
                 </div>
             \`;
             document.body.appendChild(toast);
@@ -4224,8 +4240,9 @@ function rangeDates(startYMD: string, endYMD: string): string[] {
 }
 
 function buildPeriod(start_date: string, months: number) {
-  const end_exclusive = addMonths(start_date, months);
-  const period_end = addDays(end_exclusive, -1);
+  // monthsを日数に変換（1ヶ月 = 30日として計算）
+  const days = Math.ceil(months * 30);
+  const period_end = addDays(start_date, days - 1);
   const dates = rangeDates(start_date, period_end);
   return { period_start: start_date, period_end, dates };
 }
