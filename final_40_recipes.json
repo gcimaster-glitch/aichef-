@@ -1,0 +1,264 @@
+[
+  {
+    "results": [
+      {
+        "recipe_id": "main_0348",
+        "title": "青椒肉絲（アレンジ）",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0349",
+        "title": "八宝菜",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0355",
+        "title": "麻婆茄子",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0357",
+        "title": "餃子（アレンジ）",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0358",
+        "title": "焼売",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0360",
+        "title": "天津飯（アレンジ）",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0366",
+        "title": "担々麺風（アレンジ）",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0370",
+        "title": "白身魚の甘酢あんかけ",
+        "primary_protein": "fish",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0372",
+        "title": "回鍋肉（アレンジ）",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0373",
+        "title": "青椒肉絲",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0374",
+        "title": "八宝菜（定番）",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0380",
+        "title": "麻婆茄子（定番）",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0382",
+        "title": "餃子",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "main_0383",
+        "title": "焼売（定番）",
+        "primary_protein": "other",
+        "role": "main"
+      },
+      {
+        "recipe_id": "side_040",
+        "title": "温野菜",
+        "primary_protein": "other",
+        "role": "side"
+      },
+      {
+        "recipe_id": "soup_0106",
+        "title": "けんちん汁",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0107",
+        "title": "かき玉汁（定番）",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0113",
+        "title": "ミネストローネ（定番）",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0114",
+        "title": "クラムチャウダー",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_012",
+        "title": "けんちん汁",
+        "primary_protein": "soy",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_013",
+        "title": "かき玉汁",
+        "primary_protein": "egg",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0131",
+        "title": "けんちん汁（定番）",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0132",
+        "title": "かき玉汁",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0138",
+        "title": "ミネストローネ",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0139",
+        "title": "クラムチャウダー",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0156",
+        "title": "けんちん汁",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0157",
+        "title": "かき玉汁",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0163",
+        "title": "ミネストローネ",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0164",
+        "title": "クラムチャウダー（定番）",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0181",
+        "title": "けんちん汁",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0182",
+        "title": "かき玉汁（定番）",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0188",
+        "title": "ミネストローネ（定番）",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_0189",
+        "title": "クラムチャウダー",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_020",
+        "title": "ミネストローネ",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_021",
+        "title": "クラムチャウダー",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_024",
+        "title": "トムヤムクン",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_025",
+        "title": "ポトフ",
+        "primary_protein": "chicken",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_026",
+        "title": "ガスパチョ",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_027",
+        "title": "ビシソワーズ",
+        "primary_protein": "other",
+        "role": "soup"
+      },
+      {
+        "recipe_id": "soup_029",
+        "title": "酸辣湯",
+        "primary_protein": "egg",
+        "role": "soup"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "ENAM",
+      "served_by_colo": "IAD",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 1.2502
+      },
+      "duration": 1.2502,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 1654784,
+      "rows_read": 3262,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

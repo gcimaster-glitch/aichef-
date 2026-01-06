@@ -1,0 +1,65 @@
+
+-- ミネストローネ（定番） (soup_0188)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0188', 'tofu_silken', '1', '丁', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0188', 'veg_green_onion', '1', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0188', 'seasoning_miso', '大さじ2', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0188', 'dashi_powder', '小さじ1', '小さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0188', 'water', '800', 'ml', 0);
+
+-- クラムチャウダー (soup_0189)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0189', 'tofu_silken', '1', '丁', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0189', 'veg_green_onion', '1', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0189', 'seasoning_miso', '大さじ2', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0189', 'dashi_powder', '小さじ1', '小さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0189', 'water', '800', 'ml', 0);
+
+-- ミネストローネ (soup_020)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_020', 'tofu_silken', '1', '丁', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_020', 'veg_green_onion', '1', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_020', 'seasoning_miso', '大さじ2', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_020', 'dashi_powder', '小さじ1', '小さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_020', 'water', '800', 'ml', 0);
+
+-- クラムチャウダー (soup_021)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_021', 'tofu_silken', '1', '丁', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_021', 'veg_green_onion', '1', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_021', 'seasoning_miso', '大さじ2', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_021', 'dashi_powder', '小さじ1', '小さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_021', 'water', '800', 'ml', 0);
+
+-- トムヤムクン (soup_024)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_024', 'tofu_silken', '1', '丁', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_024', 'veg_green_onion', '1', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_024', 'seasoning_miso', '大さじ2', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_024', 'dashi_powder', '小さじ1', '小さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_024', 'water', '800', 'ml', 0);
+
+-- ポトフ (soup_025)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_025', 'tofu_silken', '1', '丁', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_025', 'veg_green_onion', '1', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_025', 'seasoning_miso', '大さじ2', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_025', 'dashi_powder', '小さじ1', '小さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_025', 'water', '800', 'ml', 0);
+
+-- ガスパチョ (soup_026)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_026', 'tofu_silken', '1', '丁', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_026', 'veg_green_onion', '1', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_026', 'seasoning_miso', '大さじ2', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_026', 'dashi_powder', '小さじ1', '小さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_026', 'water', '800', 'ml', 0);
+
+-- ビシソワーズ (soup_027)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_027', 'tofu_silken', '1', '丁', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_027', 'veg_green_onion', '1', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_027', 'seasoning_miso', '大さじ2', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_027', 'dashi_powder', '小さじ1', '小さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_027', 'water', '800', 'ml', 0);
+
+-- 酸辣湯 (soup_029)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_029', 'tofu_silken', '1', '丁', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_029', 'veg_green_onion', '1', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_029', 'seasoning_miso', '大さじ2', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_029', 'dashi_powder', '小さじ1', '小さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_029', 'water', '800', 'ml', 0);
+
+-- 合計 約284 件の食材データを生成しました

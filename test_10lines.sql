@@ -1,0 +1,10 @@
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('side_038', 'veg_carrot', '1/2', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('side_038', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('side_038', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('side_040', 'veg_cabbage', '100', 'g', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('side_040', 'veg_carrot', '1/2', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('side_040', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('side_040', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0106', 'tofu_silken', '1', '丁', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0106', 'veg_green_onion', '1', '本', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('soup_0106', 'seasoning_miso', '大さじ2', '大さじ', 0);

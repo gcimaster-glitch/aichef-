@@ -1,0 +1,948 @@
+[
+  {
+    "results": [
+      {
+        "ingredient_id": "cheese",
+        "name": "チーズ",
+        "category": "dairy_eggs",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "butter",
+        "name": "バター",
+        "category": "dairy_eggs",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "yogurt",
+        "name": "ヨーグルト",
+        "category": "dairy_eggs",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "ing_egg",
+        "name": "卵",
+        "category": "dairy_eggs",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "egg",
+        "name": "卵",
+        "category": "dairy_eggs",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "milk",
+        "name": "牛乳",
+        "category": "dairy_eggs",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "cream",
+        "name": "生クリーム",
+        "category": "dairy_eggs",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "seafood_clam",
+        "name": "あさり",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seafood_shijimi",
+        "name": "しじみ",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "ing_minced_meat",
+        "name": "ひき肉",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "fish_horse_mackerel",
+        "name": "アジ",
+        "category": "meat_fish",
+        "default_unit": "尾"
+      },
+      {
+        "ingredient_id": "seafood_squid",
+        "name": "イカ",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seafood_shrimp",
+        "name": "エビ",
+        "category": "meat_fish",
+        "default_unit": "尾"
+      },
+      {
+        "ingredient_id": "fish_mackerel",
+        "name": "サバ",
+        "category": "meat_fish",
+        "default_unit": "切れ"
+      },
+      {
+        "ingredient_id": "fish_saury",
+        "name": "サンマ",
+        "category": "meat_fish",
+        "default_unit": "尾"
+      },
+      {
+        "ingredient_id": "ing_sausage",
+        "name": "ソーセージ",
+        "category": "meat_fish",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "meat_sausage",
+        "name": "ソーセージ",
+        "category": "meat_fish",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "fish_cod",
+        "name": "タラ",
+        "category": "meat_fish",
+        "default_unit": "切れ"
+      },
+      {
+        "ingredient_id": "ing_canned_tuna",
+        "name": "ツナ缶",
+        "category": "meat_fish",
+        "default_unit": "缶"
+      },
+      {
+        "ingredient_id": "meat_ham",
+        "name": "ハム",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "fish_yellowtail",
+        "name": "ブリ",
+        "category": "meat_fish",
+        "default_unit": "切れ"
+      },
+      {
+        "ingredient_id": "meat_bacon",
+        "name": "ベーコン",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "meat_ground_mix",
+        "name": "合挽肉",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "meat_ground_beef",
+        "name": "牛挽肉",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "meat_beef",
+        "name": "牛肉",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "fish_white",
+        "name": "白身魚",
+        "category": "meat_fish",
+        "default_unit": "切れ"
+      },
+      {
+        "ingredient_id": "ing_pork",
+        "name": "豚こま肉",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "meat_ground_pork",
+        "name": "豚挽肉",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "meat_pork",
+        "name": "豚肉",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "ing_fish",
+        "name": "魚",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "fish_salmon",
+        "name": "鮭",
+        "category": "meat_fish",
+        "default_unit": "切れ"
+      },
+      {
+        "ingredient_id": "ing_chicken",
+        "name": "鶏むね肉",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "meat_chicken",
+        "name": "鶏肉",
+        "category": "meat_fish",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "ing_udon",
+        "name": "うどん",
+        "category": "others",
+        "default_unit": "玉"
+      },
+      {
+        "ingredient_id": "noodle_udon",
+        "name": "うどん",
+        "category": "others",
+        "default_unit": "玉"
+      },
+      {
+        "ingredient_id": "ing_rice",
+        "name": "ごはん",
+        "category": "others",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "noodle_somen",
+        "name": "そうめん",
+        "category": "others",
+        "default_unit": "束"
+      },
+      {
+        "ingredient_id": "noodle_soba",
+        "name": "そば",
+        "category": "others",
+        "default_unit": "束"
+      },
+      {
+        "ingredient_id": "pickle_takuan",
+        "name": "たくあん",
+        "category": "others",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "pickle_kimchi",
+        "name": "キムチ",
+        "category": "others",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "canned_corn",
+        "name": "コーン缶",
+        "category": "others",
+        "default_unit": "缶"
+      },
+      {
+        "ingredient_id": "canned_tuna",
+        "name": "ツナ缶",
+        "category": "others",
+        "default_unit": "缶"
+      },
+      {
+        "ingredient_id": "canned_tomato",
+        "name": "トマト缶",
+        "category": "others",
+        "default_unit": "缶"
+      },
+      {
+        "ingredient_id": "ing_pasta",
+        "name": "パスタ",
+        "category": "others",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "noodle_pasta",
+        "name": "パスタ",
+        "category": "others",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "ing_bread",
+        "name": "パン",
+        "category": "others",
+        "default_unit": "枚"
+      },
+      {
+        "ingredient_id": "bread_crumb",
+        "name": "パン粉",
+        "category": "others",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "noodle_ramen",
+        "name": "ラーメン",
+        "category": "others",
+        "default_unit": "玉"
+      },
+      {
+        "ingredient_id": "flour",
+        "name": "小麦粉",
+        "category": "others",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "noodle_harusame",
+        "name": "春雨",
+        "category": "others",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "pickle_umeboshi",
+        "name": "梅干し",
+        "category": "others",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "water",
+        "name": "水",
+        "category": "others",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "ice",
+        "name": "氷",
+        "category": "others",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "starch",
+        "name": "片栗粉",
+        "category": "others",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "grain_rice",
+        "name": "米",
+        "category": "others",
+        "default_unit": "合"
+      },
+      {
+        "ingredient_id": "grain_bread",
+        "name": "食パン",
+        "category": "others",
+        "default_unit": "枚"
+      },
+      {
+        "ingredient_id": "grain_mochi",
+        "name": "餅",
+        "category": "others",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "dashi_bonito",
+        "name": "かつお節",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "oil_sesame",
+        "name": "ごま油",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "dashi_powder",
+        "name": "だしの素",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seasoning_tonkatsu",
+        "name": "とんかつソース",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "spice_garlic",
+        "name": "にんにく",
+        "category": "seasonings",
+        "default_unit": "片"
+      },
+      {
+        "ingredient_id": "seasoning_mirin",
+        "name": "みりん",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "seasoning_worcester",
+        "name": "ウスターソース",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "seasoning_oyster",
+        "name": "オイスターソース",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "oil_olive",
+        "name": "オリーブオイル",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "curry_roux",
+        "name": "カレールー",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seasoning_ketchup",
+        "name": "ケチャップ",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "seasoning_gochujang",
+        "name": "コチュジャン",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seasoning_consomme",
+        "name": "コンソメ",
+        "category": "seasonings",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "oil_vegetable",
+        "name": "サラダ油",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "stew_roux",
+        "name": "シチューの素",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "hayashi_roux",
+        "name": "ハヤシルー",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seasoning_bouillon",
+        "name": "ブイヨン",
+        "category": "seasonings",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "seasoning_mustard",
+        "name": "マスタード",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "ing_mayonnaise",
+        "name": "マヨネーズ",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seasoning_mayonnaise",
+        "name": "マヨネーズ",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "seasoning_chili_oil",
+        "name": "ラー油",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "ing_miso",
+        "name": "味噌",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seasoning_miso",
+        "name": "味噌",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "ing_salt",
+        "name": "塩",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seasoning_salt",
+        "name": "塩",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "spice_shiso",
+        "name": "大葉",
+        "category": "seasonings",
+        "default_unit": "枚"
+      },
+      {
+        "ingredient_id": "dashi_kombu",
+        "name": "昆布",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "ing_oil",
+        "name": "油",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "spice_nori",
+        "name": "海苔",
+        "category": "seasonings",
+        "default_unit": "枚"
+      },
+      {
+        "ingredient_id": "seaweed_nori_sheet",
+        "name": "焼き海苔",
+        "category": "seasonings",
+        "default_unit": "枚"
+      },
+      {
+        "ingredient_id": "spice_ginger",
+        "name": "生姜",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "spice_sesame_white",
+        "name": "白ごま",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seasoning_sugar",
+        "name": "砂糖",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seasoning_rice_vinegar",
+        "name": "米酢",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "seasoning_pepper",
+        "name": "胡椒",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seasoning_doubanjiang",
+        "name": "豆板醤",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "seasoning_sake",
+        "name": "酒",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "ing_vinegar",
+        "name": "酢",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "seasoning_vinegar",
+        "name": "酢",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "ing_soy_sauce",
+        "name": "醤油",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "seasoning_soy_sauce",
+        "name": "醤油",
+        "category": "seasonings",
+        "default_unit": "ml"
+      },
+      {
+        "ingredient_id": "spice_green_onion",
+        "name": "長ネギ",
+        "category": "seasonings",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "seasoning_chicken_stock",
+        "name": "鶏ガラスープの素",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "spice_sesame_black",
+        "name": "黒ごま",
+        "category": "seasonings",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "soy_okara",
+        "name": "おから",
+        "category": "tofu_beans",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "tofu_thick_fried",
+        "name": "厚揚げ",
+        "category": "tofu_beans",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "tofu_firm",
+        "name": "木綿豆腐",
+        "category": "tofu_beans",
+        "default_unit": "丁"
+      },
+      {
+        "ingredient_id": "tofu_fried",
+        "name": "油揚げ",
+        "category": "tofu_beans",
+        "default_unit": "枚"
+      },
+      {
+        "ingredient_id": "soy_natto",
+        "name": "納豆",
+        "category": "tofu_beans",
+        "default_unit": "パック"
+      },
+      {
+        "ingredient_id": "tofu_silken",
+        "name": "絹豆腐",
+        "category": "tofu_beans",
+        "default_unit": "丁"
+      },
+      {
+        "ingredient_id": "ing_tofu",
+        "name": "豆腐",
+        "category": "tofu_beans",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "veg_green_bean",
+        "name": "いんげん",
+        "category": "vegetables",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "veg_enoki",
+        "name": "えのき",
+        "category": "vegetables",
+        "default_unit": "袋"
+      },
+      {
+        "ingredient_id": "veg_pumpkin",
+        "name": "かぼちゃ",
+        "category": "vegetables",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "ing_mushroom",
+        "name": "きのこ",
+        "category": "vegetables",
+        "default_unit": "パック"
+      },
+      {
+        "ingredient_id": "veg_cucumber",
+        "name": "きゅうり",
+        "category": "vegetables",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "veg_burdock",
+        "name": "ごぼう",
+        "category": "vegetables",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "veg_sweet_potato",
+        "name": "さつまいも",
+        "category": "vegetables",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "veg_mushroom",
+        "name": "しいたけ",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "veg_shimeji",
+        "name": "しめじ",
+        "category": "vegetables",
+        "default_unit": "袋"
+      },
+      {
+        "ingredient_id": "ing_potato",
+        "name": "じゃがいも",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "veg_potato",
+        "name": "じゃがいも",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "veg_corn",
+        "name": "とうもろこし",
+        "category": "vegetables",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "ing_carrot",
+        "name": "にんじん",
+        "category": "vegetables",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "seaweed_hijiki",
+        "name": "ひじき",
+        "category": "vegetables",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "ing_spinach",
+        "name": "ほうれん草",
+        "category": "vegetables",
+        "default_unit": "束"
+      },
+      {
+        "ingredient_id": "veg_spinach",
+        "name": "ほうれん草",
+        "category": "vegetables",
+        "default_unit": "束"
+      },
+      {
+        "ingredient_id": "veg_maitake",
+        "name": "まいたけ",
+        "category": "vegetables",
+        "default_unit": "袋"
+      },
+      {
+        "ingredient_id": "ing_moyashi",
+        "name": "もやし",
+        "category": "vegetables",
+        "default_unit": "袋"
+      },
+      {
+        "ingredient_id": "veg_moyashi",
+        "name": "もやし",
+        "category": "vegetables",
+        "default_unit": "袋"
+      },
+      {
+        "ingredient_id": "seaweed_wakame",
+        "name": "わかめ",
+        "category": "vegetables",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "veg_asparagus",
+        "name": "アスパラガス",
+        "category": "vegetables",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "veg_cauliflower",
+        "name": "カリフラワー",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "ing_cabbage",
+        "name": "キャベツ",
+        "category": "vegetables",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "veg_cabbage",
+        "name": "キャベツ",
+        "category": "vegetables",
+        "default_unit": "枚"
+      },
+      {
+        "ingredient_id": "veg_zucchini",
+        "name": "ズッキーニ",
+        "category": "vegetables",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "ing_tomato",
+        "name": "トマト",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "veg_tomato",
+        "name": "トマト",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "veg_red_pepper",
+        "name": "パプリカ",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "ing_green_pepper",
+        "name": "ピーマン",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "veg_green_pepper",
+        "name": "ピーマン",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "veg_broccoli",
+        "name": "ブロッコリー",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "ing_lettuce",
+        "name": "レタス",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "veg_lettuce",
+        "name": "レタス",
+        "category": "vegetables",
+        "default_unit": "枚"
+      },
+      {
+        "ingredient_id": "veg_lotus_root",
+        "name": "レンコン",
+        "category": "vegetables",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "veg_carrot",
+        "name": "人参",
+        "category": "vegetables",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "ing_daikon",
+        "name": "大根",
+        "category": "vegetables",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "veg_daikon",
+        "name": "大根",
+        "category": "vegetables",
+        "default_unit": "cm"
+      },
+      {
+        "ingredient_id": "veg_komatsuna",
+        "name": "小松菜",
+        "category": "vegetables",
+        "default_unit": "束"
+      },
+      {
+        "ingredient_id": "veg_edamame",
+        "name": "枝豆",
+        "category": "vegetables",
+        "default_unit": "g"
+      },
+      {
+        "ingredient_id": "ing_onion",
+        "name": "玉ねぎ",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "veg_onion",
+        "name": "玉ねぎ",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "veg_napa_cabbage",
+        "name": "白菜",
+        "category": "vegetables",
+        "default_unit": "枚"
+      },
+      {
+        "ingredient_id": "veg_eggplant",
+        "name": "茄子",
+        "category": "vegetables",
+        "default_unit": "本"
+      },
+      {
+        "ingredient_id": "veg_bean_sprout",
+        "name": "豆苗",
+        "category": "vegetables",
+        "default_unit": "袋"
+      },
+      {
+        "ingredient_id": "veg_taro",
+        "name": "里芋",
+        "category": "vegetables",
+        "default_unit": "個"
+      },
+      {
+        "ingredient_id": "ing_negi",
+        "name": "長ねぎ",
+        "category": "vegetables",
+        "default_unit": "本"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "ENAM",
+      "served_by_colo": "IAD",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 1.8419
+      },
+      "duration": 1.8419,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 1568768,
+      "rows_read": 308,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

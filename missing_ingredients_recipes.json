@@ -1,0 +1,1599 @@
+[
+  {
+    "results": [
+      {
+        "recipe_id": "main_019",
+        "title": "ハンバーグ",
+        "description": "ジューシーなハンバーグ",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_0191",
+        "title": "ハンバーグ（定番）",
+        "description": "ハンバーグ（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0192",
+        "title": "ビーフシチュー（アレンジ）",
+        "description": "ビーフシチュー（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_0198",
+        "title": "ミートボール（アレンジ）",
+        "description": "ミートボール（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_020",
+        "title": "ミートボール",
+        "description": "甘酢あんのミートボール",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_0200",
+        "title": "グラタン（定番）",
+        "description": "グラタン（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0206",
+        "title": "スパゲッティミートソース（定番）",
+        "description": "スパゲッティミートソース（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0207",
+        "title": "カルボナーラ（アレンジ）",
+        "description": "カルボナーラ（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0208",
+        "title": "ペペロンチーノ",
+        "description": "ペペロンチーノのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0209",
+        "title": "ナポリタン（定番）",
+        "description": "ナポリタン（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0213",
+        "title": "白身魚のムニエル（アレンジ）",
+        "description": "白身魚のムニエル（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "fish"
+      },
+      {
+        "recipe_id": "main_0216",
+        "title": "オムライス（アレンジ）",
+        "description": "オムライス（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0217",
+        "title": "ドリア",
+        "description": "ドリアのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0218",
+        "title": "ピザトースト（定番）",
+        "description": "ピザトースト（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0219",
+        "title": "チキンライス（アレンジ）",
+        "description": "チキンライス（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_022",
+        "title": "回鍋肉",
+        "description": "キャベツと豚肉の炒め物",
+        "role": "main",
+        "primary_protein": "pork"
+      },
+      {
+        "recipe_id": "main_0221",
+        "title": "ビーフストロガノフ（定番）",
+        "description": "ビーフストロガノフ（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_0222",
+        "title": "チキンフリカッセ（アレンジ）",
+        "description": "チキンフリカッセ（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_0223",
+        "title": "ポークチャップ",
+        "description": "ポークチャップのレシピです。",
+        "role": "main",
+        "primary_protein": "pork"
+      },
+      {
+        "recipe_id": "main_0224",
+        "title": "タンドリーチキン（定番）",
+        "description": "タンドリーチキン（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_0225",
+        "title": "フィッシュアンドチップス（アレンジ）",
+        "description": "フィッシュアンドチップス（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0226",
+        "title": "ハンバーグ",
+        "description": "ハンバーグのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0227",
+        "title": "ビーフシチュー（定番）",
+        "description": "ビーフシチュー（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_023",
+        "title": "青椒肉絲",
+        "description": "ピーマンと豚肉の炒め物",
+        "role": "main",
+        "primary_protein": "pork"
+      },
+      {
+        "recipe_id": "main_0233",
+        "title": "ミートボール（定番）",
+        "description": "ミートボール（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0235",
+        "title": "グラタン",
+        "description": "グラタンのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0241",
+        "title": "スパゲッティミートソース",
+        "description": "スパゲッティミートソースのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0242",
+        "title": "カルボナーラ（定番）",
+        "description": "カルボナーラ（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0243",
+        "title": "ペペロンチーノ（アレンジ）",
+        "description": "ペペロンチーノ（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0244",
+        "title": "ナポリタン",
+        "description": "ナポリタンのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0248",
+        "title": "白身魚のムニエル（定番）",
+        "description": "白身魚のムニエル（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "fish"
+      },
+      {
+        "recipe_id": "main_0251",
+        "title": "オムライス（定番）",
+        "description": "オムライス（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0252",
+        "title": "ドリア（アレンジ）",
+        "description": "ドリア（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0253",
+        "title": "ピザトースト",
+        "description": "ピザトーストのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0254",
+        "title": "チキンライス（定番）",
+        "description": "チキンライス（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_0256",
+        "title": "ビーフストロガノフ",
+        "description": "ビーフストロガノフのレシピです。",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_0257",
+        "title": "チキンフリカッセ（定番）",
+        "description": "チキンフリカッセ（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_0258",
+        "title": "ポークチャップ（アレンジ）",
+        "description": "ポークチャップ（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "pork"
+      },
+      {
+        "recipe_id": "main_0259",
+        "title": "タンドリーチキン",
+        "description": "タンドリーチキンのレシピです。",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_0260",
+        "title": "フィッシュアンドチップス（定番）",
+        "description": "フィッシュアンドチップス（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0261",
+        "title": "ハンバーグ（アレンジ）",
+        "description": "ハンバーグ（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0262",
+        "title": "ビーフシチュー",
+        "description": "ビーフシチューのレシピです。",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_0268",
+        "title": "ミートボール",
+        "description": "ミートボールのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0270",
+        "title": "グラタン（アレンジ）",
+        "description": "グラタン（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0276",
+        "title": "スパゲッティミートソース（アレンジ）",
+        "description": "スパゲッティミートソース（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0277",
+        "title": "カルボナーラ",
+        "description": "カルボナーラのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0278",
+        "title": "ペペロンチーノ（定番）",
+        "description": "ペペロンチーノ（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0279",
+        "title": "ナポリタン（アレンジ）",
+        "description": "ナポリタン（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_028",
+        "title": "オムライス",
+        "description": "ふわとろオムライス",
+        "role": "main",
+        "primary_protein": "egg"
+      },
+      {
+        "recipe_id": "main_0283",
+        "title": "白身魚のムニエル",
+        "description": "白身魚のムニエルのレシピです。",
+        "role": "main",
+        "primary_protein": "fish"
+      },
+      {
+        "recipe_id": "main_0286",
+        "title": "オムライス",
+        "description": "オムライスのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0287",
+        "title": "ドリア（定番）",
+        "description": "ドリア（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0288",
+        "title": "ピザトースト（アレンジ）",
+        "description": "ピザトースト（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0289",
+        "title": "チキンライス",
+        "description": "チキンライスのレシピです。",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_029",
+        "title": "グラタン",
+        "description": "クリーミーなグラタン",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_0291",
+        "title": "ビーフストロガノフ（アレンジ）",
+        "description": "ビーフストロガノフ（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_0292",
+        "title": "チキンフリカッセ",
+        "description": "チキンフリカッセのレシピです。",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_0293",
+        "title": "ポークチャップ（定番）",
+        "description": "ポークチャップ（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "pork"
+      },
+      {
+        "recipe_id": "main_0294",
+        "title": "タンドリーチキン（アレンジ）",
+        "description": "タンドリーチキン（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_0295",
+        "title": "フィッシュアンドチップス",
+        "description": "フィッシュアンドチップスのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0297",
+        "title": "回鍋肉（アレンジ）",
+        "description": "回鍋肉（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0298",
+        "title": "青椒肉絲",
+        "description": "青椒肉絲のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0299",
+        "title": "八宝菜（定番）",
+        "description": "八宝菜（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_030",
+        "title": "シチュー",
+        "description": "クリームシチュー",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_0305",
+        "title": "麻婆茄子（定番）",
+        "description": "麻婆茄子（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0306",
+        "title": "春巻き（アレンジ）",
+        "description": "春巻き（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0307",
+        "title": "餃子",
+        "description": "餃子のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0308",
+        "title": "焼売（定番）",
+        "description": "焼売（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0310",
+        "title": "天津飯",
+        "description": "天津飯のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0316",
+        "title": "担々麺風",
+        "description": "担々麺風のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0320",
+        "title": "白身魚の甘酢あんかけ（定番）",
+        "description": "白身魚の甘酢あんかけ（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "fish"
+      },
+      {
+        "recipe_id": "main_0322",
+        "title": "回鍋肉",
+        "description": "回鍋肉のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0323",
+        "title": "青椒肉絲（定番）",
+        "description": "青椒肉絲（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0324",
+        "title": "八宝菜（アレンジ）",
+        "description": "八宝菜（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_033",
+        "title": "ステーキ",
+        "description": "牛肉のステーキ",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_0330",
+        "title": "麻婆茄子（アレンジ）",
+        "description": "麻婆茄子（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0331",
+        "title": "春巻き",
+        "description": "春巻きのレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0332",
+        "title": "餃子（定番）",
+        "description": "餃子（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0333",
+        "title": "焼売（アレンジ）",
+        "description": "焼売（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0335",
+        "title": "天津飯（定番）",
+        "description": "天津飯（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_034",
+        "title": "チキン南蛮",
+        "description": "タルタルソースのチキン南蛮",
+        "role": "main",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "main_0341",
+        "title": "担々麺風（定番）",
+        "description": "担々麺風（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0345",
+        "title": "白身魚の甘酢あんかけ（アレンジ）",
+        "description": "白身魚の甘酢あんかけ（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "fish"
+      },
+      {
+        "recipe_id": "main_0347",
+        "title": "回鍋肉（定番）",
+        "description": "回鍋肉（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0348",
+        "title": "青椒肉絲（アレンジ）",
+        "description": "青椒肉絲（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0349",
+        "title": "八宝菜",
+        "description": "八宝菜のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0355",
+        "title": "麻婆茄子",
+        "description": "麻婆茄子のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0356",
+        "title": "春巻き（定番）",
+        "description": "春巻き（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0357",
+        "title": "餃子（アレンジ）",
+        "description": "餃子（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0358",
+        "title": "焼売",
+        "description": "焼売のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0360",
+        "title": "天津飯（アレンジ）",
+        "description": "天津飯（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0366",
+        "title": "担々麺風（アレンジ）",
+        "description": "担々麺風（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0370",
+        "title": "白身魚の甘酢あんかけ",
+        "description": "白身魚の甘酢あんかけのレシピです。",
+        "role": "main",
+        "primary_protein": "fish"
+      },
+      {
+        "recipe_id": "main_0372",
+        "title": "回鍋肉（アレンジ）",
+        "description": "回鍋肉（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0373",
+        "title": "青椒肉絲",
+        "description": "青椒肉絲のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0374",
+        "title": "八宝菜（定番）",
+        "description": "八宝菜（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0380",
+        "title": "麻婆茄子（定番）",
+        "description": "麻婆茄子（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0381",
+        "title": "春巻き（アレンジ）",
+        "description": "春巻き（アレンジ）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0382",
+        "title": "餃子",
+        "description": "餃子のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0383",
+        "title": "焼売（定番）",
+        "description": "焼売（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0385",
+        "title": "天津飯",
+        "description": "天津飯のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0391",
+        "title": "担々麺風",
+        "description": "担々麺風のレシピです。",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0395",
+        "title": "白身魚の甘酢あんかけ（定番）",
+        "description": "白身魚の甘酢あんかけ（定番）のレシピです。",
+        "role": "main",
+        "primary_protein": "fish"
+      },
+      {
+        "recipe_id": "main_046",
+        "title": "ビビンバ",
+        "description": "韓国の混ぜご飯",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_047",
+        "title": "プルコギ",
+        "description": "甘辛い韓国風焼肉",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_048",
+        "title": "チャプチェ",
+        "description": "春雨の炒め物",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_049",
+        "title": "タコス",
+        "description": "メキシコのタコス",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_054",
+        "title": "しゃぶしゃぶ",
+        "description": "さっぱりしゃぶしゃぶ",
+        "role": "main",
+        "primary_protein": "beef"
+      },
+      {
+        "recipe_id": "main_055",
+        "title": "キムチ鍋",
+        "description": "ピリ辛キムチ鍋",
+        "role": "main",
+        "primary_protein": "pork"
+      },
+      {
+        "recipe_id": "main_056",
+        "title": "餃子",
+        "description": "パリパリの焼き餃子",
+        "role": "main",
+        "primary_protein": "pork"
+      },
+      {
+        "recipe_id": "main_058",
+        "title": "天津飯",
+        "description": "あんかけ卵の天津飯",
+        "role": "main",
+        "primary_protein": "egg"
+      },
+      {
+        "recipe_id": "side_0106",
+        "title": "ポテトサラダ（アレンジ）",
+        "description": "ポテトサラダ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0107",
+        "title": "マカロニサラダ",
+        "description": "マカロニサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_011",
+        "title": "ポテトサラダ",
+        "description": "クリーミーなポテトサラダ",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0116",
+        "title": "人参のきんぴら",
+        "description": "人参のきんぴらのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_012",
+        "title": "マカロニサラダ",
+        "description": "マヨネーズのマカロニサラダ",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0120",
+        "title": "カリフラワーのサラダ",
+        "description": "カリフラワーのサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0124",
+        "title": "冷奴",
+        "description": "冷奴のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0125",
+        "title": "温奴（定番）",
+        "description": "温奴（定番）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0128",
+        "title": "茶碗蒸し",
+        "description": "茶碗蒸しのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_013",
+        "title": "コールスロー",
+        "description": "さっぱりコールスロー",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0130",
+        "title": "スクランブルエッグ（アレンジ）",
+        "description": "スクランブルエッグ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "egg"
+      },
+      {
+        "recipe_id": "side_0131",
+        "title": "ひじきの煮物",
+        "description": "ひじきの煮物のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0134",
+        "title": "煮豆（アレンジ）",
+        "description": "煮豆（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0135",
+        "title": "おからの煮物",
+        "description": "おからの煮物のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0136",
+        "title": "コールスローサラダ",
+        "description": "コールスローサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0137",
+        "title": "海藻サラダ（定番）",
+        "description": "海藻サラダ（定番）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0138",
+        "title": "春雨サラダ（アレンジ）",
+        "description": "春雨サラダ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0139",
+        "title": "中華風サラダ",
+        "description": "中華風サラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_014",
+        "title": "ひじきの煮物",
+        "description": "栄養満点ひじき",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0146",
+        "title": "ポテトサラダ（アレンジ）",
+        "description": "ポテトサラダ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0147",
+        "title": "マカロニサラダ",
+        "description": "マカロニサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0156",
+        "title": "人参のきんぴら",
+        "description": "人参のきんぴらのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0160",
+        "title": "カリフラワーのサラダ",
+        "description": "カリフラワーのサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0164",
+        "title": "冷奴",
+        "description": "冷奴のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0165",
+        "title": "温奴（定番）",
+        "description": "温奴（定番）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0168",
+        "title": "茶碗蒸し",
+        "description": "茶碗蒸しのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_017",
+        "title": "里芋の煮物",
+        "description": "ねっとり里芋",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0170",
+        "title": "スクランブルエッグ（アレンジ）",
+        "description": "スクランブルエッグ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "egg"
+      },
+      {
+        "recipe_id": "side_0171",
+        "title": "ひじきの煮物",
+        "description": "ひじきの煮物のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0174",
+        "title": "煮豆（アレンジ）",
+        "description": "煮豆（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0175",
+        "title": "おからの煮物",
+        "description": "おからの煮物のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0176",
+        "title": "コールスローサラダ",
+        "description": "コールスローサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0177",
+        "title": "海藻サラダ（定番）",
+        "description": "海藻サラダ（定番）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0178",
+        "title": "春雨サラダ（アレンジ）",
+        "description": "春雨サラダ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0179",
+        "title": "中華風サラダ",
+        "description": "中華風サラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_018",
+        "title": "大学芋",
+        "description": "甘いカリカリ大学芋",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0186",
+        "title": "ポテトサラダ（アレンジ）",
+        "description": "ポテトサラダ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0187",
+        "title": "マカロニサラダ",
+        "description": "マカロニサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_019",
+        "title": "筑前煮",
+        "description": "根菜たっぷりの煮物",
+        "role": "side",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "side_0196",
+        "title": "人参のきんぴら",
+        "description": "人参のきんぴらのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0200",
+        "title": "カリフラワーのサラダ",
+        "description": "カリフラワーのサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0204",
+        "title": "冷奴",
+        "description": "冷奴のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0205",
+        "title": "温奴（定番）",
+        "description": "温奴（定番）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0208",
+        "title": "茶碗蒸し",
+        "description": "茶碗蒸しのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0210",
+        "title": "スクランブルエッグ（アレンジ）",
+        "description": "スクランブルエッグ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "egg"
+      },
+      {
+        "recipe_id": "side_0211",
+        "title": "ひじきの煮物",
+        "description": "ひじきの煮物のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0214",
+        "title": "煮豆（アレンジ）",
+        "description": "煮豆（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0215",
+        "title": "おからの煮物",
+        "description": "おからの煮物のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0216",
+        "title": "コールスローサラダ",
+        "description": "コールスローサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0217",
+        "title": "海藻サラダ（定番）",
+        "description": "海藻サラダ（定番）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0218",
+        "title": "春雨サラダ（アレンジ）",
+        "description": "春雨サラダ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0219",
+        "title": "中華風サラダ",
+        "description": "中華風サラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0226",
+        "title": "ポテトサラダ（アレンジ）",
+        "description": "ポテトサラダ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0227",
+        "title": "マカロニサラダ",
+        "description": "マカロニサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0236",
+        "title": "人参のきんぴら",
+        "description": "人参のきんぴらのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0240",
+        "title": "カリフラワーのサラダ",
+        "description": "カリフラワーのサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0244",
+        "title": "冷奴",
+        "description": "冷奴のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0245",
+        "title": "温奴（定番）",
+        "description": "温奴（定番）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0248",
+        "title": "茶碗蒸し",
+        "description": "茶碗蒸しのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0250",
+        "title": "スクランブルエッグ（アレンジ）",
+        "description": "スクランブルエッグ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "egg"
+      },
+      {
+        "recipe_id": "side_0251",
+        "title": "ひじきの煮物",
+        "description": "ひじきの煮物のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0254",
+        "title": "煮豆（アレンジ）",
+        "description": "煮豆（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0255",
+        "title": "おからの煮物",
+        "description": "おからの煮物のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0256",
+        "title": "コールスローサラダ",
+        "description": "コールスローサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0257",
+        "title": "海藻サラダ（定番）",
+        "description": "海藻サラダ（定番）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0258",
+        "title": "春雨サラダ（アレンジ）",
+        "description": "春雨サラダ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0259",
+        "title": "中華風サラダ",
+        "description": "中華風サラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_026",
+        "title": "わかめの酢の物",
+        "description": "さっぱりわかめ",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0266",
+        "title": "ポテトサラダ（アレンジ）",
+        "description": "ポテトサラダ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0267",
+        "title": "マカロニサラダ",
+        "description": "マカロニサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_027",
+        "title": "冷奴",
+        "description": "さっぱり冷奴",
+        "role": "side",
+        "primary_protein": "soy"
+      },
+      {
+        "recipe_id": "side_0276",
+        "title": "人参のきんぴら",
+        "description": "人参のきんぴらのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0280",
+        "title": "カリフラワーのサラダ",
+        "description": "カリフラワーのサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0284",
+        "title": "冷奴",
+        "description": "冷奴のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0285",
+        "title": "温奴（定番）",
+        "description": "温奴（定番）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0288",
+        "title": "茶碗蒸し",
+        "description": "茶碗蒸しのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0290",
+        "title": "スクランブルエッグ（アレンジ）",
+        "description": "スクランブルエッグ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "egg"
+      },
+      {
+        "recipe_id": "side_0291",
+        "title": "ひじきの煮物",
+        "description": "ひじきの煮物のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0294",
+        "title": "煮豆（アレンジ）",
+        "description": "煮豆（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0295",
+        "title": "おからの煮物",
+        "description": "おからの煮物のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0296",
+        "title": "コールスローサラダ",
+        "description": "コールスローサラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0297",
+        "title": "海藻サラダ（定番）",
+        "description": "海藻サラダ（定番）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0298",
+        "title": "春雨サラダ（アレンジ）",
+        "description": "春雨サラダ（アレンジ）のレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_0299",
+        "title": "中華風サラダ",
+        "description": "中華風サラダのレシピです。",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_030",
+        "title": "ナムル",
+        "description": "韓国風ナムル",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_032",
+        "title": "卯の花",
+        "description": "おからの煮物",
+        "role": "side",
+        "primary_protein": "soy"
+      },
+      {
+        "recipe_id": "side_036",
+        "title": "茄子の揚げ浸し",
+        "description": "ジューシー茄子",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_038",
+        "title": "レンコンきんぴら",
+        "description": "シャキシャキレンコン",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_040",
+        "title": "温野菜",
+        "description": "ヘルシー温野菜",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0106",
+        "title": "けんちん汁",
+        "description": "けんちん汁のレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0107",
+        "title": "かき玉汁（定番）",
+        "description": "かき玉汁（定番）のレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0113",
+        "title": "ミネストローネ（定番）",
+        "description": "ミネストローネ（定番）のレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0114",
+        "title": "クラムチャウダー",
+        "description": "クラムチャウダーのレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_012",
+        "title": "けんちん汁",
+        "description": "精進料理の汁",
+        "role": "soup",
+        "primary_protein": "soy"
+      },
+      {
+        "recipe_id": "soup_013",
+        "title": "かき玉汁",
+        "description": "ふわふわ卵の汁",
+        "role": "soup",
+        "primary_protein": "egg"
+      },
+      {
+        "recipe_id": "soup_0131",
+        "title": "けんちん汁（定番）",
+        "description": "けんちん汁（定番）のレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0132",
+        "title": "かき玉汁",
+        "description": "かき玉汁のレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0138",
+        "title": "ミネストローネ",
+        "description": "ミネストローネのレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0139",
+        "title": "クラムチャウダー",
+        "description": "クラムチャウダーのレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0156",
+        "title": "けんちん汁",
+        "description": "けんちん汁のレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0157",
+        "title": "かき玉汁",
+        "description": "かき玉汁のレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0163",
+        "title": "ミネストローネ",
+        "description": "ミネストローネのレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0164",
+        "title": "クラムチャウダー（定番）",
+        "description": "クラムチャウダー（定番）のレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0181",
+        "title": "けんちん汁",
+        "description": "けんちん汁のレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0182",
+        "title": "かき玉汁（定番）",
+        "description": "かき玉汁（定番）のレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0188",
+        "title": "ミネストローネ（定番）",
+        "description": "ミネストローネ（定番）のレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0189",
+        "title": "クラムチャウダー",
+        "description": "クラムチャウダーのレシピです。",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_020",
+        "title": "ミネストローネ",
+        "description": "イタリアの野菜スープ",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_021",
+        "title": "クラムチャウダー",
+        "description": "クリーミーなクラムチャウダー",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_024",
+        "title": "トムヤムクン",
+        "description": "タイのエビスープ",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_025",
+        "title": "ポトフ",
+        "description": "フランスの野菜煮込み",
+        "role": "soup",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "soup_026",
+        "title": "ガスパチョ",
+        "description": "冷製トマトスープ",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_027",
+        "title": "ビシソワーズ",
+        "description": "冷製じゃがいもスープ",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_029",
+        "title": "酸辣湯",
+        "description": "酸っぱ辛いスープ",
+        "role": "soup",
+        "primary_protein": "egg"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "ENAM",
+      "served_by_colo": "IAD",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 5.8671
+      },
+      "duration": 5.8671,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 1568768,
+      "rows_read": 2449,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

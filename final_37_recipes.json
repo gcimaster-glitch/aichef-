@@ -1,0 +1,246 @@
+[
+  {
+    "results": [
+      {
+        "recipe_id": "main_0357",
+        "title": "餃子（アレンジ）",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0358",
+        "title": "焼売",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0360",
+        "title": "天津飯（アレンジ）",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0366",
+        "title": "担々麺風（アレンジ）",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0370",
+        "title": "白身魚の甘酢あんかけ",
+        "role": "main",
+        "primary_protein": "fish"
+      },
+      {
+        "recipe_id": "main_0372",
+        "title": "回鍋肉（アレンジ）",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0373",
+        "title": "青椒肉絲",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0374",
+        "title": "八宝菜（定番）",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0380",
+        "title": "麻婆茄子（定番）",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0382",
+        "title": "餃子",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "main_0383",
+        "title": "焼売（定番）",
+        "role": "main",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "side_040",
+        "title": "温野菜",
+        "role": "side",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0106",
+        "title": "けんちん汁",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0107",
+        "title": "かき玉汁（定番）",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0113",
+        "title": "ミネストローネ（定番）",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0114",
+        "title": "クラムチャウダー",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_012",
+        "title": "けんちん汁",
+        "role": "soup",
+        "primary_protein": "soy"
+      },
+      {
+        "recipe_id": "soup_013",
+        "title": "かき玉汁",
+        "role": "soup",
+        "primary_protein": "egg"
+      },
+      {
+        "recipe_id": "soup_0131",
+        "title": "けんちん汁（定番）",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0132",
+        "title": "かき玉汁",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0138",
+        "title": "ミネストローネ",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0139",
+        "title": "クラムチャウダー",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0156",
+        "title": "けんちん汁",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0157",
+        "title": "かき玉汁",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0163",
+        "title": "ミネストローネ",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0164",
+        "title": "クラムチャウダー（定番）",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0181",
+        "title": "けんちん汁",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0182",
+        "title": "かき玉汁（定番）",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0188",
+        "title": "ミネストローネ（定番）",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_0189",
+        "title": "クラムチャウダー",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_020",
+        "title": "ミネストローネ",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_021",
+        "title": "クラムチャウダー",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_024",
+        "title": "トムヤムクン",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_025",
+        "title": "ポトフ",
+        "role": "soup",
+        "primary_protein": "chicken"
+      },
+      {
+        "recipe_id": "soup_026",
+        "title": "ガスパチョ",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_027",
+        "title": "ビシソワーズ",
+        "role": "soup",
+        "primary_protein": "other"
+      },
+      {
+        "recipe_id": "soup_029",
+        "title": "酸辣湯",
+        "role": "soup",
+        "primary_protein": "egg"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "ENAM",
+      "served_by_colo": "IAD",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 1.6267
+      },
+      "duration": 1.6267,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 1654784,
+      "rows_read": 3312,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

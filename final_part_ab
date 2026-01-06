@@ -1,0 +1,100 @@
+
+-- 焼売（定番） (main_0308)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0308', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0308', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0308', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0308', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 天津飯 (main_0310)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0310', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0310', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0310', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0310', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 担々麺風 (main_0316)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0316', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0316', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0316', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0316', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 白身魚の甘酢あんかけ（定番） (main_0320)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0320', 'fish_white', '4', '切れ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0320', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0320', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0320', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 回鍋肉 (main_0322)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0322', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0322', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0322', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0322', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 青椒肉絲（定番） (main_0323)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0323', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0323', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0323', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0323', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 八宝菜（アレンジ） (main_0324)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0324', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0324', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0324', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0324', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- ステーキ (main_033)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_033', 'meat_beef', '300', 'g', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_033', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_033', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_033', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_033', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 麻婆茄子（アレンジ） (main_0330)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0330', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0330', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0330', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0330', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 餃子（定番） (main_0332)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0332', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0332', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0332', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0332', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 焼売（アレンジ） (main_0333)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0333', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0333', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0333', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0333', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 天津飯（定番） (main_0335)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0335', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0335', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0335', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0335', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- チキン南蛮 (main_034)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_034', 'meat_chicken', '300', 'g', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_034', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_034', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_034', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_034', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 担々麺風（定番） (main_0341)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0341', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0341', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0341', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0341', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 白身魚の甘酢あんかけ（アレンジ） (main_0345)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0345', 'fish_white', '4', '切れ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0345', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0345', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0345', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 回鍋肉（定番） (main_0347)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0347', 'veg_onion', '1', '個', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0347', 'seasoning_salt', '少々', '適量', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0347', 'seasoning_soy_sauce', '大さじ1', '大さじ', 0);
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, is_optional) VALUES ('main_0347', 'oil_vegetable', '大さじ1', '大さじ', 0);
+
+-- 青椒肉絲（アレンジ） (main_0348)

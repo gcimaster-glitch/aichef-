@@ -4510,7 +4510,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     
     // 除外する食材IDのマッピング（食材名 → ingredient_id）
     const dislikeMapping: { [key: string]: string[] } = {
-      'fish': ['fish_salmon', 'fish_mackerel', 'fish_tuna', 'fish_sardine', 'fish_cod', 'fish_yellowtail', 'fish_sea_bream', 'fish_horse_mackerel', 'fish_saury'],
+      'fish': ['fish_salmon', 'fish_mackerel', 'fish_tuna', 'fish_sardine', 'fish_cod', 'fish_yellowtail', 'fish_sea_bream', 'fish_horse_mackerel', 'fish_saury', 'fish_white', 'ing_fish'],
       'shrimp': ['seafood_shrimp', 'shrimp'],
       'crab': ['seafood_crab', 'crab'],
       'octopus': ['seafood_octopus', 'octopus'],
