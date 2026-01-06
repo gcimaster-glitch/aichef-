@@ -2390,10 +2390,10 @@ const appHtml = `<!DOCTYPE html>
                                 <i class="far fa-clock"></i> 約\${day.estimated_time_min}分
                             </div>
                             <div class="mt-3 flex gap-2 no-print">
-                                <button onclick="explainMenu('\${day.plan_day_id || ''}', '\${day.date}')" class="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-xs font-medium transition-colors">
+                                <button class="explain-menu-btn flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-xs font-medium transition-colors" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
                                     <i class="fas fa-comment-dots"></i> なぜこの献立？
                                 </button>
-                                <button onclick="suggestChange('\${day.plan_day_id || ''}', '\${day.date}')" class="flex-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-xs font-medium transition-colors">
+                                <button class="suggest-change-btn flex-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-xs font-medium transition-colors" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
                                     <i class="fas fa-sync-alt"></i> 変更する
                                 </button>
                             </div>
@@ -2962,10 +2962,10 @@ const appHtml = `<!DOCTYPE html>
                                 <i class="far fa-clock"></i> 約\${day.estimated_time_min}分
                             </div>
                             <div class="mt-3 flex gap-2 no-print">
-                                <button onclick="explainMenu('\${day.plan_day_id || ''}', '\${day.date}')" class="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-xs font-medium transition-colors">
+                                <button class="explain-menu-btn flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-xs font-medium transition-colors" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
                                     <i class="fas fa-comment-dots"></i> なぜこの献立？
                                 </button>
-                                <button onclick="suggestChange('\${day.plan_day_id || ''}', '\${day.date}')" class="flex-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-xs font-medium transition-colors">
+                                <button class="suggest-change-btn flex-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-xs font-medium transition-colors" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
                                     <i class="fas fa-sync-alt"></i> 変更する
                                 </button>
                             </div>
@@ -3963,6 +3963,28 @@ const appHtml = `<!DOCTYPE html>
                 const historyId = historyDeleteBtn.getAttribute('data-history-id');
                 if (historyId) {
                     deleteHistory(historyId);
+                }
+            }
+            
+            // 献立説明ボタン
+            const explainBtn = target.closest('.explain-menu-btn');
+            if (explainBtn) {
+                e.preventDefault();
+                const planDayId = explainBtn.getAttribute('data-plan-day-id');
+                const date = explainBtn.getAttribute('data-date');
+                if (date) {
+                    explainMenu(planDayId || '', date);
+                }
+            }
+            
+            // 献立変更ボタン
+            const suggestBtn = target.closest('.suggest-change-btn');
+            if (suggestBtn) {
+                e.preventDefault();
+                const planDayId = suggestBtn.getAttribute('data-plan-day-id');
+                const date = suggestBtn.getAttribute('data-date');
+                if (date) {
+                    suggestChange(planDayId || '', date);
                 }
             }
         });
