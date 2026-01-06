@@ -422,29 +422,27 @@ const USER_DASHBOARD_HTML = `
                 
                 const listEl = document.getElementById('history-list');
                 if (data.histories && data.histories.length > 0) {
-                    listEl.innerHTML = data.histories.map(h => \`
-                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h3 class="font-bold text-lg text-gray-800">\${h.title}</h3>
-                                    <p class="text-sm text-gray-600 mt-1">
-                                        <i class="far fa-calendar mr-1"></i>\${h.start_date} ~ \${h.end_date}
-                                    </p>
-                                    <p class="text-sm text-gray-600">
-                                        <i class="fas fa-users mr-1"></i>\${h.members_count}人分 | \${h.total_days}日間
-                                    </p>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button onclick="viewHistory('${h.history_id}')" class="text-blue-600 hover:text-blue-800">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button onclick="deleteHistory('${h.history_id}')" class="text-red-600 hover:text-red-800">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    \`).join('');
+                    listEl.innerHTML = data.histories.map(h => '<div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">' +
+                        '<div class="flex justify-between items-start">' +
+                            '<div>' +
+                                '<h3 class="font-bold text-lg text-gray-800">' + h.title + '</h3>' +
+                                '<p class="text-sm text-gray-600 mt-1">' +
+                                    '<i class="far fa-calendar mr-1"></i>' + h.start_date + ' ~ ' + h.end_date +
+                                '</p>' +
+                                '<p class="text-sm text-gray-600">' +
+                                    '<i class="fas fa-users mr-1"></i>' + h.members_count + '人分 | ' + h.total_days + '日間' +
+                                '</p>' +
+                            '</div>' +
+                            '<div class="flex gap-2">' +
+                                '<button class="history-view-btn text-blue-600 hover:text-blue-800" data-history-id="' + h.history_id + '">' +
+                                    '<i class="fas fa-eye"></i>' +
+                                '</button>' +
+                                '<button class="history-delete-btn text-red-600 hover:text-red-800" data-history-id="' + h.history_id + '">' +
+                                    '<i class="fas fa-trash"></i>' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>').join('');
                 } else {
                     listEl.innerHTML = '<p class="text-gray-500">まだ履歴がありません</p>';
                 }
@@ -463,16 +461,14 @@ const USER_DASHBOARD_HTML = `
                 
                 const listEl = document.getElementById('favorites-list');
                 if (data.favorites && data.favorites.length > 0) {
-                    listEl.innerHTML = data.favorites.map(f => \`
-                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
-                            <h3 class="font-bold text-gray-800 mb-2">\${f.title}</h3>
-                            <p class="text-sm text-gray-600 mb-2">\${f.description || ''}</p>
-                            <div class="flex justify-between items-center text-sm text-gray-500">
-                                <span><i class="fas fa-globe mr-1"></i>\${f.cuisine}</span>
-                                <span><i class="far fa-clock mr-1"></i>\${f.time_min}分</span>
-                            </div>
-                        </div>
-                    \`).join('');
+                    listEl.innerHTML = data.favorites.map(f => '<div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">' +
+                        '<h3 class="font-bold text-gray-800 mb-2">' + f.title + '</h3>' +
+                        '<p class="text-sm text-gray-600 mb-2">' + (f.description || '') + '</p>' +
+                        '<div class="flex justify-between items-center text-sm text-gray-500">' +
+                            '<span><i class="fas fa-globe mr-1"></i>' + f.cuisine + '</span>' +
+                            '<span><i class="far fa-clock mr-1"></i>' + f.time_min + '分</span>' +
+                        '</div>' +
+                    '</div>').join('');
                 } else {
                     listEl.innerHTML = '<p class="text-gray-500 col-span-full">まだお気に入りがありません</p>';
                 }
@@ -3938,6 +3934,25 @@ const appHtml = `<!DOCTYPE html>
                 const recipeTitle = recipeLink.getAttribute('data-recipe-title');
                 if (recipeId && recipeTitle) {
                     showRecipeDetail(recipeId, recipeTitle);
+                }
+            }
+            
+            // 履歴ボタンのイベントデリゲーション
+            const historyViewBtn = target.closest('.history-view-btn');
+            if (historyViewBtn) {
+                e.preventDefault();
+                const historyId = historyViewBtn.getAttribute('data-history-id');
+                if (historyId) {
+                    viewHistory(historyId);
+                }
+            }
+            
+            const historyDeleteBtn = target.closest('.history-delete-btn');
+            if (historyDeleteBtn) {
+                e.preventDefault();
+                const historyId = historyDeleteBtn.getAttribute('data-history-id');
+                if (historyId) {
+                    deleteHistory(historyId);
                 }
             }
         });
