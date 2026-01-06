@@ -1055,6 +1055,26 @@ const appHtml = `<!DOCTYPE html>
             }
         }
         
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -100%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+        
         .animate-gradient {
             background-size: 200% 200%;
             animation: gradient 4s ease infinite;
@@ -2216,6 +2236,30 @@ const appHtml = `<!DOCTYPE html>
         function showCalendar(days) {
             calendarData = days; // データを保存
             calendarContainerEl.classList.remove('hidden');
+            
+            // 📍 画面トップへスムーススクロール
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            
+            // 🎉 完成通知トーストを表示
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
+            toast.style.animation = 'slideDown 0.5s ease-out, fadeOut 0.5s ease-out 4.5s';
+            toast.innerHTML = \`
+                <i class="fas fa-check-circle text-3xl"></i>
+                <div>
+                    <div class="font-bold text-lg">🎉 献立が完成しました！</div>
+                    <div class="text-sm opacity-90">30日分の献立をお楽しみください</div>
+                </div>
+            \`;
+            document.body.appendChild(toast);
+            
+            // 5秒後にトーストを削除
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
             
             // 印刷用のタイトル設定
             if (days.length > 0) {
