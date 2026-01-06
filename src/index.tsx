@@ -2427,9 +2427,19 @@ const appHtml = `<!DOCTYPE html>
                     if (ad.html_code) {
                         container.innerHTML = ad.html_code;
                     } else if (ad.image_url) {
-                        container.innerHTML = \`<a href="\${ad.link_url}" target="_blank" onclick="trackAdClick('\${ad.ad_id}')">
-                            <img src="\${ad.image_url}" alt="\${ad.title}" style="max-width:\${ad.width}px;max-height:\${ad.height}px;">
-                        </a>\`;
+                        const adLink = document.createElement('a');
+                        adLink.href = ad.link_url;
+                        adLink.target = '_blank';
+                        adLink.onclick = () => trackAdClick(ad.ad_id);
+                        
+                        const adImg = document.createElement('img');
+                        adImg.src = ad.image_url;
+                        adImg.alt = ad.title;
+                        adImg.style.maxWidth = ad.width + 'px';
+                        adImg.style.maxHeight = ad.height + 'px';
+                        
+                        adLink.appendChild(adImg);
+                        container.appendChild(adLink);
                     }
                     
                     // インプレッション記録
