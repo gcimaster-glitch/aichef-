@@ -4620,37 +4620,57 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       const filteredRecipes = [];
       
       for (const recipe of recipes) {
-        // 🐟 primary_proteinベースのフィルタリング（魚嫌い・魚アレルギー対応）
-        if ((dislikes.includes('fish') || allergiesStandard.includes('fish')) && recipe.primary_protein === 'fish') {
-          console.log(`除外: ${recipe.title} (primary_protein=fish - 魚嫌い/アレルギー)`);
+        // 🐟 primary_proteinベースのフィルタリング（魚嫌い対応）
+        if (dislikes.includes('fish') && recipe.primary_protein === 'fish') {
+          console.log(`除外: ${recipe.title} (primary_protein=fish - 魚嫌い)`);
           continue;
         }
         
-        // エビ嫌い・エビアレルギー対応
+        // 🐟 タイトルベースの魚フィルタリング（primary_proteinが"other"の魚料理対応）
+        if (dislikes.includes('fish') && 
+            (recipe.title.includes('鮭') || recipe.title.includes('サバ') || 
+             recipe.title.includes('アジ') || recipe.title.includes('サンマ') || 
+             recipe.title.includes('ブリ') || recipe.title.includes('タラ') || 
+             recipe.title.includes('魚') || recipe.title.includes('白身魚'))) {
+          console.log(`除外: ${recipe.title} (タイトルに魚名 - 魚嫌い)`);
+          continue;
+        }
+        
+        // 🦐 エビ嫌い・エビアレルギー対応（primary_protein関係なくタイトルでチェック）
         if ((dislikes.includes('shrimp') || allergiesStandard.includes('shrimp')) && 
-            (recipe.primary_protein === 'fish' && recipe.title.includes('エビ'))) {
+            recipe.title.includes('エビ')) {
           console.log(`除外: ${recipe.title} (エビ料理)`);
           continue;
         }
         
-        // カニアレルギー・カニ嫌い対応
-        if ((dislikes.includes('crab') || allergiesStandard.includes('crab')) && recipe.title.includes('カニ')) {
+        // 🦀 カニアレルギー・カニ嫌い対応
+        if ((dislikes.includes('crab') || allergiesStandard.includes('crab')) && 
+            recipe.title.includes('カニ')) {
           console.log(`除外: ${recipe.title} (カニ料理)`);
           continue;
         }
         
-        // イカ・タコ嫌い対応
+        // 🐙 イカ・タコ嫌い対応
         if ((dislikes.includes('squid') || dislikes.includes('octopus')) && 
             (recipe.title.includes('イカ') || recipe.title.includes('タコ'))) {
           console.log(`除外: ${recipe.title} (イカ・タコ料理)`);
           continue;
         }
         
-        // 貝類嫌い・アレルギー対応
-        if ((dislikes.includes('shellfish') || allergiesStandard.includes('shellfish')) && 
+        // 🐚 貝類嫌い対応
+        if (dislikes.includes('shellfish') && 
             (recipe.title.includes('あさり') || recipe.title.includes('しじみ') || 
-             recipe.title.includes('牡蠣') || recipe.title.includes('ホタテ'))) {
+             recipe.title.includes('牡蠣') || recipe.title.includes('ホタテ') || 
+             recipe.title.includes('貝'))) {
           console.log(`除外: ${recipe.title} (貝類料理)`);
+          continue;
+        }
+        
+        // 🫘 内臓嫌い対応
+        if (dislikes.includes('offal') && 
+            (recipe.title.includes('レバー') || recipe.title.includes('ホルモン') || 
+             recipe.title.includes('ハツ') || recipe.title.includes('砂肝'))) {
+          console.log(`除外: ${recipe.title} (内臓料理)`);
           continue;
         }
         
