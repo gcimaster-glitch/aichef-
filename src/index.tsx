@@ -2704,18 +2704,15 @@ const appHtml = `<!DOCTYPE html>
                         <div class="mt-4 pt-4 border-t">
                             <p class="text-sm font-semibold text-gray-700 mb-3">💡 おすすめの代替レシピ（クリックで差し替え）</p>
                             <div class="space-y-2">
-                                \${res.data.alternatives.map((alt, index) => \`
-                                    <button onclick="replaceRecipe('\${planDayId}', '\${alt.role}', '\${alt.recipe_id}', '\${alt.title}')" 
-                                            class="w-full text-left px-4 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all">
-                                        <div class="flex items-center justify-between">
-                                            <div>
-                                                <span class="font-medium text-gray-800">\${index + 1}. \${alt.title}</span>
-                                                <span class="text-xs text-gray-500 ml-2">約\${alt.time_min}分</span>
-                                            </div>
-                                            <i class="fas fa-arrow-right text-green-600"></i>
-                                        </div>
-                                    </button>
-                                \`).join('')}
+                                \${res.data.alternatives.map((alt, index) => '<button class="replace-recipe-btn w-full text-left px-4 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all" data-plan-day-id="' + planDayId + '" data-role="' + alt.role + '" data-recipe-id="' + alt.recipe_id + '" data-title="' + alt.title + '">' +
+                                    '<div class="flex items-center justify-between">' +
+                                        '<div>' +
+                                            '<span class="font-medium text-gray-800">' + (index + 1) + '. ' + alt.title + '</span>' +
+                                            '<span class="text-xs text-gray-500 ml-2">約' + alt.time_min + '分</span>' +
+                                        '</div>' +
+                                        '<i class="fas fa-arrow-right text-green-600"></i>' +
+                                    '</div>' +
+                                '</button>').join('')}
                             </div>
                         </div>
                     \`;
@@ -2908,10 +2905,10 @@ const appHtml = `<!DOCTYPE html>
                                 \${soup ? \`<div class="text-xs truncate">🍲 \${soup.title}</div>\` : ''}
                             </div>
                             <div class="calendar-day-actions no-print">
-                                <button onclick="explainMenu('\${day.plan_day_id}', '\${day.date}')" class="calendar-btn">
+                                <button class="explain-menu-btn calendar-btn" data-plan-day-id="\${day.plan_day_id}" data-date="\${day.date}">
                                     <i class="fas fa-comment-dots"></i>
                                 </button>
-                                <button onclick="suggestChange('\${day.plan_day_id}', '\${day.date}')" class="calendar-btn">
+                                <button class="suggest-change-btn calendar-btn" data-plan-day-id="\${day.plan_day_id}" data-date="\${day.date}">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
                             </div>
@@ -3128,9 +3125,9 @@ const appHtml = `<!DOCTYPE html>
                             月全体
                         </button>
                         \${(data.weeklyLists || []).map((week, index) => \`
-                            <button onclick="switchShoppingTab('week-\${index}')" 
+                            <button class="shopping-tab-btn shopping-tab px-4 py-2 font-semibold border-b-2 border-transparent text-gray-600 hover:text-gray-800" 
                                     id="tab-week-\${index}"
-                                    class="shopping-tab px-4 py-2 font-semibold border-b-2 border-transparent text-gray-600 hover:text-gray-800">
+                                    data-week-id="week-\${index}">
                                 第\${week.weekNumber}週 (\${week.totalItems}品)
                             </button>
                         \`).join('')}
@@ -3444,12 +3441,14 @@ const appHtml = `<!DOCTYPE html>
                         
                         <!-- アクションボタン -->
                         <div class="flex gap-2 pt-4 border-t">
-                            <button onclick="addToFavorites('\${recipe.recipe_id}', '\${recipe.title}')" 
-                                    class="flex-1 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition">
+                            <button class="add-favorite-btn flex-1 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition" 
+                                    data-recipe-id="\${recipe.recipe_id}" 
+                                    data-recipe-title="\${recipe.title}">
                                 <i class="fas fa-heart"></i> お気に入りに追加
                             </button>
-                            <button onclick="shareRecipe('\${recipe.recipe_id}', '\${recipe.title}')" 
-                                    class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                            <button class="share-recipe-btn flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                                    data-recipe-id="\${recipe.recipe_id}" 
+                                    data-recipe-title="\${recipe.title}">
                                 <i class="fas fa-share-alt"></i> 共有
                             </button>
                         </div>
@@ -3530,12 +3529,12 @@ const appHtml = `<!DOCTYPE html>
                                     </p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button onclick="loadHistory('\${item.plan_id}')" 
-                                            class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                                    <button class="load-history-btn px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                                            data-plan-id="\${item.plan_id}">
                                         <i class="fas fa-eye"></i> 表示
                                     </button>
-                                    <button onclick="archiveHistory('\${item.history_id}')" 
-                                            class="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm">
+                                    <button class="archive-history-btn px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+                                            data-history-id="\${item.history_id}">
                                         <i class="fas fa-archive"></i>
                                     </button>
                                 </div>
@@ -3753,13 +3752,14 @@ const appHtml = `<!DOCTYPE html>
                     \${favorites.map((fav, index) => \`
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                             <div class="flex-1">
-                                <a href="javascript:void(0)" onclick="showRecipeDetail('\${fav.recipe_id}', '\${fav.title}')" 
-                                   class="text-blue-600 hover:underline font-medium">
+                                <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline font-medium"
+                                   data-recipe-id="\${fav.recipe_id}" 
+                                   data-recipe-title="\${fav.title}">
                                     \${fav.title}
                                 </a>
                                 <p class="text-xs text-gray-500 mt-1">追加日: \${new Date(fav.added_at).toLocaleDateString('ja-JP')}</p>
                             </div>
-                            <button onclick="removeFromFavorites(\${index})" class="ml-3 px-3 py-1 text-red-600 hover:bg-red-50 rounded">
+                            <button class="remove-favorite-btn ml-3 px-3 py-1 text-red-600 hover:bg-red-50 rounded" data-index="\${index}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -3838,8 +3838,8 @@ const appHtml = `<!DOCTYPE html>
                         <span class="font-medium">LINEで共有</span>
                     </a>
                     
-                    <button onclick="copyToClipboard('\${decodeURIComponent(url)}')" 
-                            class="w-full flex items-center gap-3 p-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                    <button class="copy-clipboard-btn w-full flex items-center gap-3 p-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+                            data-url="\${decodeURIComponent(url)}">
                         <i class="fas fa-copy text-2xl"></i>
                         <span class="font-medium">URLをコピー</span>
                     </button>
@@ -3985,6 +3985,89 @@ const appHtml = `<!DOCTYPE html>
                 const date = suggestBtn.getAttribute('data-date');
                 if (date) {
                     suggestChange(planDayId || '', date);
+                }
+            }
+            
+            // レシピ差し替えボタン
+            const replaceBtn = target.closest('.replace-recipe-btn');
+            if (replaceBtn) {
+                e.preventDefault();
+                const planDayId = replaceBtn.getAttribute('data-plan-day-id');
+                const role = replaceBtn.getAttribute('data-role');
+                const recipeId = replaceBtn.getAttribute('data-recipe-id');
+                const title = replaceBtn.getAttribute('data-title');
+                if (planDayId && role && recipeId && title) {
+                    replaceRecipe(planDayId, role, recipeId, title);
+                }
+            }
+            
+            // 買い物リストタブ切り替え
+            const shoppingTabBtn = target.closest('.shopping-tab-btn');
+            if (shoppingTabBtn) {
+                e.preventDefault();
+                const weekId = shoppingTabBtn.getAttribute('data-week-id');
+                if (weekId) {
+                    switchShoppingTab(weekId);
+                }
+            }
+            
+            // お気に入り追加ボタン
+            const addFavoriteBtn = target.closest('.add-favorite-btn');
+            if (addFavoriteBtn) {
+                e.preventDefault();
+                const recipeId = addFavoriteBtn.getAttribute('data-recipe-id');
+                const recipeTitle = addFavoriteBtn.getAttribute('data-recipe-title');
+                if (recipeId && recipeTitle) {
+                    addToFavorites(recipeId, recipeTitle);
+                }
+            }
+            
+            // レシピ共有ボタン
+            const shareRecipeBtn = target.closest('.share-recipe-btn');
+            if (shareRecipeBtn) {
+                e.preventDefault();
+                const recipeId = shareRecipeBtn.getAttribute('data-recipe-id');
+                const recipeTitle = shareRecipeBtn.getAttribute('data-recipe-title');
+                if (recipeId && recipeTitle) {
+                    shareRecipe(recipeId, recipeTitle);
+                }
+            }
+            
+            // 履歴読み込みボタン
+            const loadHistoryBtn = target.closest('.load-history-btn');
+            if (loadHistoryBtn) {
+                e.preventDefault();
+                const planId = loadHistoryBtn.getAttribute('data-plan-id');
+                if (planId) {
+                    loadHistory(planId);
+                }
+            }
+            
+            // 履歴アーカイブボタン
+            const archiveHistoryBtn = target.closest('.archive-history-btn');
+            if (archiveHistoryBtn) {
+                e.preventDefault();
+                const historyId = archiveHistoryBtn.getAttribute('data-history-id');
+                if (historyId) {
+                    archiveHistory(historyId);
+                }
+            }
+            
+            // お気に入り削除ボタン
+            const removeFavoriteBtn = target.closest('.remove-favorite-btn');
+            if (removeFavoriteBtn) {
+                e.preventDefault();
+                const index = parseInt(removeFavoriteBtn.getAttribute('data-index') || '0');
+                removeFromFavorites(index);
+            }
+            
+            // クリップボードコピーボタン
+            const copyClipboardBtn = target.closest('.copy-clipboard-btn');
+            if (copyClipboardBtn) {
+                e.preventDefault();
+                const url = copyClipboardBtn.getAttribute('data-url');
+                if (url) {
+                    copyToClipboard(url);
                 }
             }
         });
