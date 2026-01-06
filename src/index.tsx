@@ -1390,14 +1390,25 @@ const appHtml = `<!DOCTYPE html>
             {
                 id: 'welcome',
                 type: 'message',
-                text: 'こんにちは！Aメニューへようこそ。<br>いくつかの質問に答えるだけで、1ヶ月分の晩ごはん献立が完成します。<br><br>準備はいいですか？',
+                text: 'こんにちは！AIシェフへようこそ。<br>いくつかの質問に答えるだけで、あなたに最適な晩ごはん献立が完成します。<br><br>準備はいいですか？',
                 options: [{ label: 'はじめる', value: 'start' }]
+            },
+            {
+                id: 'consent',
+                type: 'choice',
+                text: '⚠️ 重要な注意事項 ⚠️<br><br>このサービスでは、アレルギーや嫌いな食材を考慮した献立を作成しますが、<strong>完全な除外を保証するものではありません</strong>。<br><br>• アレルギー情報は命に関わる重要な情報です<br>• データベースの食材情報には限界があります<br>• 調理時の交差汚染などは考慮されていません<br><br><strong>食物アレルギーをお持ちの方は、必ず献立内容を確認してからご利用ください。</strong><br><br>上記の注意事項に同意しますか？',
+                field: '_consent',
+                options: [
+                    { label: '✅ 同意して続ける', value: 'agree' },
+                    { label: '❌ 同意しない', value: 'disagree' }
+                ]
             },
             {
                 id: 'start_date',
                 type: 'date',
                 text: 'いつから始めますか？',
-                field: 'start_date'
+                field: 'start_date',
+                condition: (data: any) => data._consent === 'agree'
             },
             {
                 id: 'plan_days',
@@ -1785,6 +1796,15 @@ const appHtml = `<!DOCTYPE html>
                     btn.appendChild(flexDiv);
                     btn.onclick = () => {
                         appState.data[question.field] = opt.value;
+                        
+                        // 同意確認で「同意しない」を選んだ場合
+                        if (question.id === 'consent' && opt.value === 'disagree') {
+                            addMessage(opt.label, false);
+                            alert('ご利用いただくには注意事項への同意が必要です。トップページに戻ります。');
+                            window.location.href = '/';
+                            return;
+                        }
+                        
                         addMessage(opt.label, false);
                         nextStep();
                     };
@@ -4657,8 +4677,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
             (recipe.title.includes('鮭') || recipe.title.includes('サバ') || 
              recipe.title.includes('アジ') || recipe.title.includes('サンマ') || 
              recipe.title.includes('ブリ') || recipe.title.includes('タラ') || 
-             recipe.title.includes('魚') || recipe.title.includes('白身魚'))) {
-          console.log(`除外: ${recipe.title} (タイトルに魚名 - 魚嫌い)`);
+             recipe.title.includes('魚') || recipe.title.includes('白身魚') ||
+             recipe.title.includes('シーフード'))) {
+          console.log(`除外: ${recipe.title} (タイトルに魚名/シーフード - 魚嫌い)`);
           continue;
         }
         
@@ -4762,11 +4783,17 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return shuffled;
     };
     
-    // 直近N日間の重複をチェックして選択（厳格版）
+    // 直近N日間の重複をチェックして選択（厳格版 + タイトル重複チェック）
     const selectRecipeWithoutRecent = (recipes: any[], recentRecipes: any[], minDays: number = 7) => {
-      // 直近minDays日間に使われていないレシピを探す
+      // 直近minDays日間に使われていないレシピIDをチェック
       const recentIds = recentRecipes.slice(-minDays).map(r => r?.recipe_id);
-      const available = recipes.filter(r => !recentIds.includes(r.recipe_id));
+      // 直近minDays日間に使われていないタイトルもチェック（重複レシピ対策）
+      const recentTitles = recentRecipes.slice(-minDays).map(r => r?.title);
+      
+      const available = recipes.filter(r => 
+        !recentIds.includes(r.recipe_id) && 
+        !recentTitles.includes(r.title)  // タイトル重複もチェック
+      );
       
       // 利用可能なレシピがない場合はエラーログを出力
       if (available.length === 0) {
@@ -4785,12 +4812,16 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return curryKeywords.some(keyword => recipe.title?.includes(keyword));
     };
     
-    // 同じカテゴリの連続を避ける関数（7日間厳守 + カレー系の7日間隔厳守）
+    // 同じカテゴリの連続を避ける関数（7日間厳守 + カレー系の7日間隔厳守 + タイトル重複防止）
     const avoidSameCategory = (recipes: any[], lastRecipe: any, recentRecipes: any[], minDays: number) => {
       const recentIds = recentRecipes.slice(-minDays).map(r => r?.recipe_id);
+      const recentTitles = recentRecipes.slice(-minDays).map(r => r?.title);
       
-      // 直近7日間に使われていないレシピ
-      let available = recipes.filter(r => !recentIds.includes(r.recipe_id));
+      // 直近7日間に使われていないレシピ（IDとタイトル両方チェック）
+      let available = recipes.filter(r => 
+        !recentIds.includes(r.recipe_id) && 
+        !recentTitles.includes(r.title)  // タイトル重複もチェック
+      );
       
       // カレー系のレシピIDを直近7日間から抽出
       const recentCurryIds = recentRecipes.slice(-minDays)
