@@ -1094,7 +1094,7 @@ const appHtml = `<!DOCTYPE html>
         <div id="ad-top-header" class="ad-container no-print mb-6" style="display:flex;justify-content:center;"></div>
 
         <!-- チャットエリア -->
-        <div id="chat-container" class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div id="chat-container" class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-6">
             <div id="messages" class="space-y-4 mb-6"></div>
             <div id="input-area"></div>
         </div>
@@ -1724,7 +1724,7 @@ const appHtml = `<!DOCTYPE html>
                 const container = document.createElement('div');
                 
                 const btnContainer = document.createElement('div');
-                btnContainer.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4';
+                btnContainer.className = 'space-y-3 mb-4';
                 question.options.forEach(opt => {
                     const btn = document.createElement('button');
                     btn.className = 'group relative px-5 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl hover:from-blue-100 hover:to-indigo-100 hover:border-blue-400 hover:shadow-lg transition-all duration-200 transform hover:scale-105 text-left';
@@ -1767,7 +1767,7 @@ const appHtml = `<!DOCTYPE html>
             else if (question.type === 'multi-choice') {
                 const selected = new Set();
                 const btnContainer = document.createElement('div');
-                btnContainer.className = 'grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4';
+                btnContainer.className = 'space-y-3 mb-4';
                 
                 question.options.forEach(opt => {
                     const btn = document.createElement('button');
