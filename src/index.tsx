@@ -4620,9 +4620,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       const filteredRecipes = [];
       
       for (const recipe of recipes) {
-        // 🐟 primary_proteinベースのフィルタリング（魚嫌い対応）
-        if (dislikes.includes('fish') && recipe.primary_protein === 'fish') {
-          console.log(`除外: ${recipe.title} (primary_protein=fish)`);
+        // 🐟 primary_proteinベースのフィルタリング（魚嫌い・魚アレルギー対応）
+        if ((dislikes.includes('fish') || allergiesStandard.includes('fish')) && recipe.primary_protein === 'fish') {
+          console.log(`除外: ${recipe.title} (primary_protein=fish - 魚嫌い/アレルギー)`);
           continue;
         }
         
@@ -4633,15 +4633,24 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           continue;
         }
         
-        // カニアレルギー対応
-        if (allergiesStandard.includes('crab') && recipe.title.includes('カニ')) {
+        // カニアレルギー・カニ嫌い対応
+        if ((dislikes.includes('crab') || allergiesStandard.includes('crab')) && recipe.title.includes('カニ')) {
           console.log(`除外: ${recipe.title} (カニ料理)`);
           continue;
         }
         
         // イカ・タコ嫌い対応
-        if (dislikes.includes('squid') && (recipe.title.includes('イカ') || recipe.title.includes('タコ'))) {
+        if ((dislikes.includes('squid') || dislikes.includes('octopus')) && 
+            (recipe.title.includes('イカ') || recipe.title.includes('タコ'))) {
           console.log(`除外: ${recipe.title} (イカ・タコ料理)`);
+          continue;
+        }
+        
+        // 貝類嫌い・アレルギー対応
+        if ((dislikes.includes('shellfish') || allergiesStandard.includes('shellfish')) && 
+            (recipe.title.includes('あさり') || recipe.title.includes('しじみ') || 
+             recipe.title.includes('牡蠣') || recipe.title.includes('ホタテ'))) {
+          console.log(`除外: ${recipe.title} (貝類料理)`);
           continue;
         }
         
@@ -4680,34 +4689,12 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     console.log('=== フィルタリング完了 ===');
     console.log('フィルタリング後のレシピ数 - main:', mainRecipes.length, 'side:', sideRecipes.length, 'soup:', soupRecipes.length);
     
-    // レシピが不足している場合は全体から取得
-    // 30日間で7日間隔を守るには、最低でも50個のレシピが必要
-    const MINIMUM_RECIPES = 50;
-    
-    if (mainRecipes.length < MINIMUM_RECIPES) {
-      console.log('主菜レシピが不足。フィルタを解除して全体から取得します。');
-      const fallback = await env.DB.prepare(
-        `SELECT * FROM recipes WHERE role='main' ORDER BY popularity DESC, RANDOM()`
-      ).all();
-      mainRecipes = (fallback.results ?? []) as any[];
-    }
-    if (sideRecipes.length < MINIMUM_RECIPES) {
-      console.log('副菜レシピが不足。フィルタを解除して全体から取得します。');
-      const fallback = await env.DB.prepare(
-        `SELECT * FROM recipes WHERE role='side' ORDER BY popularity DESC, RANDOM()`
-      ).all();
-      sideRecipes = (fallback.results ?? []) as any[];
-    }
-    if (soupRecipes.length < MINIMUM_RECIPES) {
-      console.log('汁物レシピが不足。フィルタを解除して全体から取得します。');
-      const fallback = await env.DB.prepare(
-        `SELECT * FROM recipes WHERE role='soup' ORDER BY popularity DESC, RANDOM()`
-      ).all();
-      soupRecipes = (fallback.results ?? []) as any[];
-    }
+    // ❌ フィルタリング後のレシピが不足しても、フィルタを解除しない
+    // アレルギー・嫌いな食材の除外は絶対に守る
+    // レシピ数が少なくても、安全性を最優先
 
     if (mainRecipes.length === 0 || sideRecipes.length === 0 || soupRecipes.length === 0) {
-      return badRequest("Not enough recipes in database");
+      return badRequest("フィルタリング条件に合うレシピが不足しています。条件を緩和してください。");
     }
 
     // プラン作成
