@@ -1114,7 +1114,7 @@ const appHtml = `<!DOCTYPE html>
         <div id="ad-top-header" class="ad-container no-print mb-6" style="display:flex;justify-content:center;"></div>
 
         <!-- チャットエリア -->
-        <div id="chat-container" class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div id="chat-container" class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-6">
             <div id="messages" class="space-y-4 mb-6"></div>
             <div id="input-area"></div>
         </div>
@@ -1634,6 +1634,9 @@ const appHtml = `<!DOCTYPE html>
                 inputAreaEl.appendChild(btnContainer);
             }
             else if (question.type === 'text') {
+                const container = document.createElement('div');
+                container.className = 'max-w-lg mx-auto';
+                
                 const input = document.createElement('input');
                 input.type = question.field === 'email' ? 'email' : 'text';
                 input.className = 'w-full px-4 py-2 border rounded';
@@ -1683,10 +1686,15 @@ const appHtml = `<!DOCTYPE html>
                     btnGroup.appendChild(skipBtn);
                 }
                 
-                inputAreaEl.appendChild(input);
-                inputAreaEl.appendChild(btnGroup);
+                container.appendChild(input);
+                container.appendChild(btnGroup);
+                
+                inputAreaEl.appendChild(container);
             }
             else if (question.type === 'date') {
+                const container = document.createElement('div');
+                container.className = 'max-w-lg mx-auto';
+                
                 const input = document.createElement('input');
                 input.type = 'date';
                 input.className = 'w-full px-4 py-2 border rounded';
@@ -1714,10 +1722,15 @@ const appHtml = `<!DOCTYPE html>
                 };
                 btnGroup.appendChild(btn);
                 
-                inputAreaEl.appendChild(input);
-                inputAreaEl.appendChild(btnGroup);
+                container.appendChild(input);
+                container.appendChild(btnGroup);
+                
+                inputAreaEl.appendChild(container);
             }
             else if (question.type === 'number') {
+                const container = document.createElement('div');
+                container.className = 'max-w-lg mx-auto';
+                
                 const input = document.createElement('input');
                 input.type = 'number';
                 input.className = 'w-full px-4 py-2 border rounded';
@@ -1740,11 +1753,14 @@ const appHtml = `<!DOCTYPE html>
                     nextStep();
                 };
                 
-                inputAreaEl.appendChild(input);
-                inputAreaEl.appendChild(btn);
+                container.appendChild(input);
+                container.appendChild(btn);
+                
+                inputAreaEl.appendChild(container);
             }
             else if (question.type === 'choice') {
                 const container = document.createElement('div');
+                container.className = 'max-w-lg mx-auto';
                 
                 const btnContainer = document.createElement('div');
                 btnContainer.className = 'space-y-3 mb-4';
@@ -1788,6 +1804,9 @@ const appHtml = `<!DOCTYPE html>
                 inputAreaEl.appendChild(container);
             }
             else if (question.type === 'multi-choice') {
+                const container = document.createElement('div');
+                container.className = 'max-w-lg mx-auto';
+                
                 const selected = new Set();
                 const btnContainer = document.createElement('div');
                 btnContainer.className = 'space-y-3 mb-4';
@@ -1879,10 +1898,15 @@ const appHtml = `<!DOCTYPE html>
                 
                 btnGroup.appendChild(confirmBtn);
                 
-                inputAreaEl.appendChild(btnContainer);
-                inputAreaEl.appendChild(btnGroup);
+                container.appendChild(btnContainer);
+                container.appendChild(btnGroup);
+                
+                inputAreaEl.appendChild(container);
             }
             else if (question.type === 'confirm') {
+                const container = document.createElement('div');
+                container.className = 'max-w-lg mx-auto';
+                
                 const periodLabel = appState.data.plan_days === 30 ? '1ヶ月（30日）' : 
                                     appState.data.plan_days === 21 ? '3週間（21日）' :
                                     appState.data.plan_days === 14 ? '2週間（14日）' : 
@@ -1898,7 +1922,7 @@ const appHtml = `<!DOCTYPE html>
                         <p><strong>調理時間:</strong> \${appState.data.cooking_time_limit_min}分</p>
                     </div>
                 \`;
-                inputAreaEl.innerHTML = summary;
+                container.innerHTML = summary;
                 
                 const btnGroup = document.createElement('div');
                 btnGroup.className = 'flex gap-2';
@@ -1920,7 +1944,9 @@ const appHtml = `<!DOCTYPE html>
                 };
                 btnGroup.appendChild(btn);
                 
-                inputAreaEl.appendChild(btnGroup);
+                container.appendChild(btnGroup);
+                
+                inputAreaEl.appendChild(container);
             }
         }
 
