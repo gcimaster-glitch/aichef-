@@ -4559,10 +4559,33 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     console.log('除外する食材ID:', Array.from(excludedIngredientIds));
     
     // レシピをフィルタリング（除外食材を含むレシピを除外）
+    // 🚀 高速化: 一括クエリでN+1問題を解決
     const filterRecipesByIngredients = async (recipes: any[]) => {
       if (excludedIngredientIds.size === 0 && dislikes.length === 0 && allergiesStandard.length === 0) {
         console.log('除外食材なし。フィルタリングスキップ');
         return recipes;
+      }
+      
+      // 🚀 Step 1: 全レシピの食材を一括取得（N+1問題を解決）
+      const recipeIds = recipes.map(r => r.recipe_id);
+      const allIngredientsQuery = `
+        SELECT recipe_id, ingredient_id 
+        FROM recipe_ingredients 
+        WHERE recipe_id IN (${recipeIds.map(() => '?').join(',')})
+      `;
+      const allIngredients = await env.DB.prepare(allIngredientsQuery)
+        .bind(...recipeIds)
+        .all();
+      
+      // レシピIDごとの食材IDマップを作成
+      const recipeIngredientsMap = new Map<string, string[]>();
+      for (const ing of (allIngredients.results || [])) {
+        const recipeId = (ing as any).recipe_id;
+        const ingredientId = (ing as any).ingredient_id;
+        if (!recipeIngredientsMap.has(recipeId)) {
+          recipeIngredientsMap.set(recipeId, []);
+        }
+        recipeIngredientsMap.get(recipeId)!.push(ingredientId);
       }
       
       const filteredRecipes = [];
@@ -4593,12 +4616,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           continue;
         }
         
-        // このレシピの材料を取得
-        const ingredients = await env.DB.prepare(
-          `SELECT ingredient_id FROM recipe_ingredients WHERE recipe_id = ?`
-        ).bind(recipe.recipe_id).all();
-        
-        const recipeIngredientIds = (ingredients.results || []).map((ing: any) => ing.ingredient_id);
+        // 🚀 メモリ上の食材マップから取得（DBクエリなし）
+        const recipeIngredientIds = recipeIngredientsMap.get(recipe.recipe_id) || [];
         
         // 除外食材が含まれているかチェック
         const hasExcludedIngredient = recipeIngredientIds.some(id => 
