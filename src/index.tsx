@@ -1173,10 +1173,19 @@ const appHtml = `<!DOCTYPE html>
                         <i class="fab fa-google"></i>
                         カレンダー連携
                     </button>
-                    <button onclick="window.print()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center gap-2">
+                    <button onclick="handlePrint()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center gap-2">
                         <i class="fas fa-print"></i>
                         印刷する
                     </button>
+                    <button onclick="handleDownloadCalendar()" class="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-2">
+                        <i class="fas fa-download"></i>
+                        ダウンロード
+                    </button>
+                    <div id="user-info" class="hidden px-4 py-2 bg-gray-100 rounded-lg flex items-center gap-2">
+                        <i class="fas fa-user-circle text-gray-600"></i>
+                        <span id="user-name" class="text-sm font-medium text-gray-700"></span>
+                        <button onclick="logout()" class="text-xs text-red-600 hover:underline ml-2">ログアウト</button>
+                    </div>
                 </div>
             </div>
             
@@ -2339,6 +2348,15 @@ const appHtml = `<!DOCTYPE html>
                 const startDate = days[0].date;
                 const endDate = days[days.length - 1].date;
                 document.getElementById('print-period').textContent = \`期間: \${startDate} 〜 \${endDate}\`;
+            }
+            
+            // ユーザー情報を表示
+            const user = getCurrentUser();
+            if (user) {
+                const userInfo = document.getElementById('user-info');
+                const userName = document.getElementById('user-name');
+                userName.textContent = user.name;
+                userInfo.classList.remove('hidden');
             }
             
             let html = '';
@@ -3911,10 +3929,194 @@ const appHtml = `<!DOCTYPE html>
         window.closeModal = closeModal;
         window.closeRecipeModal = closeRecipeModal;
         window.closeShoppingModal = closeShoppingModal;
+        
+        // ========================================
+        // 会員登録・ログイン機能
+        // ========================================
+        
+        // 現在のユーザーをローカルストレージから取得
+        function getCurrentUser() {
+            const userJson = localStorage.getItem('aichef_user');
+            return userJson ? JSON.parse(userJson) : null;
+        }
+        
+        // ユーザーをローカルストレージに保存
+        function saveUser(user) {
+            localStorage.setItem('aichef_user', JSON.stringify(user));
+        }
+        
+        // ログアウト
+        function logout() {
+            localStorage.removeItem('aichef_user');
+            alert('ログアウトしました');
+            location.reload();
+        }
+        
+        // 会員登録モーダルを開く
+        function showAuthModal(action = 'register') {
+            const modal = document.getElementById('auth-modal');
+            const title = document.getElementById('auth-modal-title');
+            const form = document.getElementById('auth-form');
+            const nameField = document.getElementById('auth-name');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const switchLink = document.getElementById('auth-switch-link');
+            
+            if (action === 'login') {
+                title.textContent = 'ログイン';
+                nameField.parentElement.classList.add('hidden');
+                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>ログインして続ける';
+                switchLink.innerHTML = 'アカウントをお持ちでない方は<button onclick="switchToRegister()" class="text-blue-600 hover:underline font-medium">会員登録</button>';
+            } else {
+                title.textContent = '会員登録';
+                nameField.parentElement.classList.remove('hidden');
+                submitBtn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>会員登録して続ける';
+                switchLink.innerHTML = 'すでにアカウントをお持ちの方は<button onclick="switchToLogin()" class="text-blue-600 hover:underline font-medium">ログイン</button>';
+            }
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        
+        // 会員登録モーダルを閉じる
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            // フォームをリセット
+            document.getElementById('auth-form').reset();
+            document.getElementById('auth-error').classList.add('hidden');
+        }
+        
+        // ログインに切り替え
+        function switchToLogin() {
+            showAuthModal('login');
+        }
+        
+        // 会員登録に切り替え
+        function switchToRegister() {
+            showAuthModal('register');
+        }
+        
+        // 会員登録フォーム送信
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('auth-name').value;
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const errorDiv = document.getElementById('auth-error');
+            const errorText = errorDiv.querySelector('p');
+            const title = document.getElementById('auth-modal-title').textContent;
+            const isLogin = title === 'ログイン';
+            
+            // バリデーション
+            if (!isLogin && password.length < 8) {
+                errorDiv.classList.remove('hidden');
+                errorText.textContent = 'パスワードは8文字以上で設定してください';
+                return;
+            }
+            
+            try {
+                // 簡易的な実装：ローカルストレージに保存
+                // 本番環境では必ずサーバーサイドで認証を実装してください
+                const user = {
+                    name: name || email.split('@')[0],
+                    email: email,
+                    registered_at: new Date().toISOString()
+                };
+                
+                saveUser(user);
+                closeAuthModal();
+                
+                alert(isLogin ? 'ログインしました！' : '会員登録が完了しました！');
+                
+                // 印刷を実行（元の処理を続行）
+                window.print();
+                
+            } catch (error) {
+                console.error('認証エラー:', error);
+                errorDiv.classList.remove('hidden');
+                errorText.textContent = 'エラーが発生しました。もう一度お試しください。';
+            }
+        });
+        
+        // 印刷ボタンのハンドラー
+        function handlePrint() {
+            const user = getCurrentUser();
+            if (!user) {
+                showAuthModal('register');
+            } else {
+                window.print();
+            }
+        }
+        
+        // カレンダーダウンロードのハンドラー
+        function handleDownloadCalendar() {
+            const user = getCurrentUser();
+            if (!user) {
+                showAuthModal('register');
+            } else {
+                downloadCalendar();
+            }
+        }
+        
+        // カレンダーダウンロード機能
+        function downloadCalendar() {
+            if (!calendarData || calendarData.length === 0) {
+                alert('献立データがありません');
+                return;
+            }
+            
+            // iCalendar形式で出力
+            let icsContent = 'BEGIN:VCALENDAR\\nVERSION:2.0\\nPRODID:-//AIシェフ//献立カレンダー//JP\\nCALSCALE:GREGORIAN\\nMETHOD:PUBLISH\\n';
+            
+            calendarData.forEach(day => {
+                const date = day.date.replace(/-/g, '');
+                const dtstart = date + 'T180000'; // 18:00
+                const dtend = date + 'T190000';   // 19:00
+                
+                const mainTitle = (day.main && day.main.title) || '未定';
+                const sideTitle = (day.side && day.side.title) || '未定';
+                const soupTitle = (day.soup && day.soup.title) || '未定';
+                const summary = mainTitle + ' / ' + sideTitle + ' / ' + soupTitle;
+                
+                icsContent += 'BEGIN:VEVENT\\n';
+                icsContent += 'DTSTART:' + dtstart + '\\n';
+                icsContent += 'DTEND:' + dtend + '\\n';
+                icsContent += 'SUMMARY:' + summary + '\\n';
+                icsContent += 'DESCRIPTION:主菜: ' + mainTitle + '\\\\n副菜: ' + sideTitle + '\\\\n汁物: ' + soupTitle + '\\n';
+                icsContent += 'END:VEVENT\\n';
+            });
+            
+            icsContent += 'END:VCALENDAR';
+            
+            // ダウンロード
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const today = new Date().toISOString().split('T')[0];
+            a.href = url;
+            a.download = 'aichef_menu_' + today + '.ics';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert('カレンダーファイルをダウンロードしました！\\n\\nGoogleカレンダーやAppleカレンダーにインポートしてご利用ください。');
+        }
+        
         window.printShoppingList = printShoppingList;
         window.trackAdClick = trackAdClick;
         window.loadHistory = loadHistory;
         window.archiveHistory = archiveHistory;
+        
+        // 会員登録・ログイン関連
+        window.showAuthModal = showAuthModal;
+        window.closeAuthModal = closeAuthModal;
+        window.switchToLogin = switchToLogin;
+        window.switchToRegister = switchToRegister;
+        window.handlePrint = handlePrint;
+        window.handleDownloadCalendar = handleDownloadCalendar;
+        window.logout = logout;
         
         // ドラッグ&ドロップ用のグローバル変数
         window.handleDragStart = handleDragStart;
@@ -3964,6 +4166,67 @@ const appHtml = `<!DOCTYPE html>
             </div>
             <div id="plan-generation-modal-content" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
                 <!-- コンテンツはJavaScriptで動的に挿入 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 会員登録・ログインモーダル -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4" style="backdrop-filter: blur(4px);">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+            <div class="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">
+                    <i class="fas fa-user-circle mr-2"></i>
+                    <span id="auth-modal-title">会員登録</span>
+                </h3>
+                <button onclick="closeAuthModal()" class="text-white hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="auth-modal-content" class="p-6">
+                <p class="text-gray-600 mb-4">
+                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                    印刷・ダウンロード機能をご利用いただくには会員登録が必要です。
+                </p>
+                
+                <form id="auth-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">お名前</label>
+                        <input type="text" id="auth-name" required
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="山田太郎">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+                        <input type="email" id="auth-email" required
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="example@gmail.com">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
+                        <input type="password" id="auth-password" required
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="8文字以上">
+                        <p class="text-xs text-gray-500 mt-1">8文字以上で設定してください</p>
+                    </div>
+                    
+                    <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition font-semibold">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        会員登録して続ける
+                    </button>
+                </form>
+                
+                <div id="auth-error" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm text-red-600"></p>
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <p id="auth-switch-link" class="text-sm text-gray-600">
+                        すでにアカウントをお持ちの方は
+                        <button onclick="switchToLogin()" class="text-blue-600 hover:underline font-medium">ログイン</button>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
