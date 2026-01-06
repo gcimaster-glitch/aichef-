@@ -1103,7 +1103,7 @@ const appHtml = `<!DOCTYPE html>
                         AIシェフ
                     </h2>
                     <p class="text-base md:text-lg lg:text-xl opacity-95" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
-                        考えなくていい、悩まなくていい。今日から1ヶ月分の晩ごはんが決まります。
+                        考えなくていい。<br>悩まなくていい。<br>今日から1ヶ月分の晩ごはんが決まります。
                     </p>
                 </div>
             </div>
