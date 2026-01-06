@@ -4560,7 +4560,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     
     // レシピをフィルタリング（除外食材を含むレシピを除外）
     const filterRecipesByIngredients = async (recipes: any[]) => {
-      if (excludedIngredientIds.size === 0) {
+      if (excludedIngredientIds.size === 0 && dislikes.length === 0 && allergiesStandard.length === 0) {
         console.log('除外食材なし。フィルタリングスキップ');
         return recipes;
       }
@@ -4568,6 +4568,31 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       const filteredRecipes = [];
       
       for (const recipe of recipes) {
+        // 🐟 primary_proteinベースのフィルタリング（魚嫌い対応）
+        if (dislikes.includes('fish') && recipe.primary_protein === 'fish') {
+          console.log(`除外: ${recipe.title} (primary_protein=fish)`);
+          continue;
+        }
+        
+        // エビ嫌い・エビアレルギー対応
+        if ((dislikes.includes('shrimp') || allergiesStandard.includes('shrimp')) && 
+            (recipe.primary_protein === 'fish' && recipe.title.includes('エビ'))) {
+          console.log(`除外: ${recipe.title} (エビ料理)`);
+          continue;
+        }
+        
+        // カニアレルギー対応
+        if (allergiesStandard.includes('crab') && recipe.title.includes('カニ')) {
+          console.log(`除外: ${recipe.title} (カニ料理)`);
+          continue;
+        }
+        
+        // イカ・タコ嫌い対応
+        if (dislikes.includes('squid') && (recipe.title.includes('イカ') || recipe.title.includes('タコ'))) {
+          console.log(`除外: ${recipe.title} (イカ・タコ料理)`);
+          continue;
+        }
+        
         // このレシピの材料を取得
         const ingredients = await env.DB.prepare(
           `SELECT ingredient_id FROM recipe_ingredients WHERE recipe_id = ?`
@@ -4578,8 +4603,11 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         // 除外食材が含まれているかチェック
         const hasExcludedIngredient = recipeIngredientIds.some(id => 
           excludedIngredientIds.has(id) || 
-          // 部分一致もチェック（例: 'fish_salmon' に 'fish' が含まれる）
-          Array.from(excludedIngredientIds).some(excludedId => id.includes(excludedId))
+          // 双方向の部分一致チェック
+          // 1. 食材IDが除外IDを含む（例: 'fish_salmon' に 'fish' が含まれる）
+          Array.from(excludedIngredientIds).some(excludedId => id.includes(excludedId)) ||
+          // 2. 除外IDが食材IDを含む（例: 'fish_salmon' が 'fish' を含む）
+          Array.from(excludedIngredientIds).some(excludedId => excludedId.includes(id))
         );
         
         if (!hasExcludedIngredient) {
