@@ -1400,15 +1400,15 @@ const appHtml = `<!DOCTYPE html>
                 field: 'start_date'
             },
             {
-                id: 'months',
+                id: 'plan_days',
                 type: 'choice',
-                text: '何週間分作りますか？',
-                field: 'months',
+                text: '何日分作りますか？',
+                field: 'plan_days',
                 options: [
-                    { label: '1週間', value: 0.25, icon: '📅' },
-                    { label: '2週間', value: 0.5, icon: '📆' },
-                    { label: '3週間', value: 0.75, icon: '🗓️' },
-                    { label: '4週間（1ヶ月）', value: 1, icon: '📋' }
+                    { label: '1ヶ月（30日）', value: 30, icon: '📋' },
+                    { label: '3週間（21日）', value: 21, icon: '🗓️' },
+                    { label: '2週間（14日）', value: 14, icon: '📆' },
+                    { label: '1週間（7日）', value: 7, icon: '📅' }
                 ]
             },
             {
@@ -1883,9 +1883,11 @@ const appHtml = `<!DOCTYPE html>
                 inputAreaEl.appendChild(btnGroup);
             }
             else if (question.type === 'confirm') {
-                const periodLabel = appState.data.months === 1 ? '4週間（1ヶ月）' : 
-                                    appState.data.months === 0.75 ? '3週間' :
-                                    appState.data.months === 0.5 ? '2週間' : '1週間';
+                const periodLabel = appState.data.plan_days === 30 ? '1ヶ月（30日）' : 
+                                    appState.data.plan_days === 21 ? '3週間（21日）' :
+                                    appState.data.plan_days === 14 ? '2週間（14日）' : 
+                                    appState.data.plan_days === 7 ? '1週間（7日）' :
+                                    appState.data.plan_days + '日間';
                 const summary = \`
                     <div class="bg-gray-50 p-4 rounded mb-4">
                         <p><strong>タイトル:</strong> \${appState.data.title}</p>
@@ -1938,6 +1940,9 @@ const appHtml = `<!DOCTYPE html>
             if (nextIndex < questions.length) {
                 appState.step = nextIndex;
                 const question = questions[appState.step];
+                
+                // 🔝 画面を上部にスクロール
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 
                 // メッセージエリアをクリア（ページ分割式）
                 messagesEl.innerHTML = '';
@@ -4247,6 +4252,12 @@ function buildPeriod(start_date: string, months: number) {
   return { period_start: start_date, period_end, dates };
 }
 
+function buildPeriodByDays(start_date: string, days: number) {
+  const period_end = addDays(start_date, days - 1);
+  const dates = rangeDates(start_date, period_end);
+  return { period_start: start_date, period_end, dates };
+}
+
 // ========================================
 // ルーティング
 // ========================================
@@ -4312,7 +4323,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       body.title,
       body.members_count,
       body.start_date,
-      body.months,
+      1, // months固定値（実際の期間はplan_daysで制御）
       season,
       body.budget_tier_per_person,
       budgetDistribution,
@@ -4387,9 +4398,10 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     console.log('menu_variety:', menu_variety);
     console.log('supervisor_mode:', supervisor_mode);
     
-    // 期間計算
-    console.log('期間計算開始 - start_date:', household.start_date, 'months:', household.months);
-    const period = buildPeriod(household.start_date, household.months);
+    // 期間計算（plan_daysを使用、なければmonthsから計算）
+    const planDays = body.plan_days || (household.months * 30);
+    console.log('期間計算開始 - start_date:', household.start_date, 'plan_days:', planDays);
+    const period = buildPeriodByDays(household.start_date, planDays);
     console.log('期間計算完了 - 日数:', period.dates.length);
     
     // 監修者モードに応じたレシピフィルタ
