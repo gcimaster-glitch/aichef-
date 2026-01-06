@@ -435,10 +435,10 @@ const USER_DASHBOARD_HTML = `
                                     </p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button onclick="viewHistory('\${h.history_id}')" class="text-blue-600 hover:text-blue-800">
+                                    <button onclick="viewHistory('${h.history_id}')" class="text-blue-600 hover:text-blue-800">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button onclick="deleteHistory('\${h.history_id}')" class="text-red-600 hover:text-red-800">
+                                    <button onclick="deleteHistory('${h.history_id}')" class="text-red-600 hover:text-red-800">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
