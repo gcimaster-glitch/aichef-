@@ -75,43 +75,64 @@
    - お気に入りレシピ管理
    - 統計情報表示
 
-### 🚧 **実装予定（Phase D以降）**
+13. **献立評価・フィードバック機能（✅ Phase D完了）**
+   - 生成された献立に対する7項目の5段階評価
+   - フリーコメント機能（良かった点・改善要望）
+   - スライダーUIによる直感的な評価入力
+   - 評価データの保存・取得API
 
-13. **プロフィール編集機能**
+14. **子ども食堂寄付システム（✅ Phase E完了）** 🆕
+   - 感動的な寄付LP「一杯300円の温かさが、子どもたちの笑顔を守る」
+   - 一口300円（1〜10口選択可能）
+   - 表示名はニックネーム可
+   - 寄付証明書自動発行（DC-2026-001形式）
+   - リアルタイム統計表示
+   - 寄付者一覧表示
+   - 献立システムと完全独立（/donation/*）
+
+### 🚧 **実装予定（Phase F以降）**
+
+15. **プロフィール編集機能**
    - 名前・メールアドレス変更
    - パスワード変更
    - 家族情報編集
 
-14. **管理者管理画面の拡充**
+16. **管理者管理画面の拡充**
    - ユーザー管理
    - レシピ管理
    - 統計ダッシュボード
+   - 寄付管理ダッシュボード
 
 ---
 
 ## 🌐 公開URL
 
 - **本番環境**: https://aichefs.net
-- **最新デプロイ**: https://eea4e329.aichef-595.pages.dev
-- **ユーザーログイン**: https://eea4e329.aichef-595.pages.dev/login
-- **会員登録**: https://eea4e329.aichef-595.pages.dev/register
-- **ユーザーダッシュボード**: https://eea4e329.aichef-595.pages.dev/dashboard
-- **管理者ログイン**: https://eea4e329.aichef-595.pages.dev/admin/login
+- **最新デプロイ**: https://d9bd758f.aichef-595.pages.dev
+- **ユーザーログイン**: https://d9bd758f.aichef-595.pages.dev/login
+- **会員登録**: https://d9bd758f.aichef-595.pages.dev/register
+- **ユーザーダッシュボード**: https://d9bd758f.aichef-595.pages.dev/dashboard
+- **管理者ログイン**: https://d9bd758f.aichef-595.pages.dev/admin/login
+- **子ども食堂寄付ページ**: https://d9bd758f.aichef-595.pages.dev/donation 🆕
 - **GitHub**: https://github.com/[username]/webapp
 
 ---
 
 ## 📊 データベース状態
 
-### **完全整備済み（2026年1月5日）**
+### **完全整備済み（2026年1月7日更新）**
 
 | テーブル | レコード数 | 状態 |
 |---------|-----------|------|
-| recipes | 703件 | ✅ 完全 |
+| recipes | 739件 | ✅ 完全（+36件追加） |
 | ingredients | 154件 | ✅ 完全 |
 | recipe_ingredients | **1,044件** | ✅ **完全整備** |
 | households | - | ✅ **email/password_hash カラム追加** |
 | meal_plan_history | - | ✅ **Phase C: 履歴テーブル作成** |
+| favorite_recipes | - | ✅ **Phase C: お気に入りテーブル作成** |
+| plan_feedbacks | - | ✅ **Phase D: 評価テーブル作成** |
+| donations | - | ✅ **Phase E: 寄付テーブル作成** 🆕 |
+| donation_certificates | - | ✅ **Phase E: 寄付証明書テーブル作成** 🆕 |
 | favorite_recipes | - | ✅ **Phase C: お気に入りテーブル作成** |
 
 **データ投入履歴**:
@@ -363,6 +384,50 @@ pm2 logs --nostream
 ---
 
 ## 📜 更新履歴
+
+### 2026-01-07 (Phase E完了) 🆕
+- ✅ **Phase E: 子ども食堂寄付システム実装**
+  - 寄付LP作成（感動的なストーリーテリング）
+    - ヒーローセクション「一杯300円の温かさが、子どもたちの笑顔を守る」
+    - リアルタイム統計表示（累計寄付金額・寄付者数・支援食数）
+    - 問題提起セクション（資金不足・増え続ける子どもたち）
+    - 寄付の使い道（食材購入・運営費・活動拡大）
+    - 寄付者一覧表示
+  - 寄付機能実装
+    - 一口300円（1〜10口選択可能）
+    - 表示名はニックネーム可
+    - メッセージ機能（応援メッセージ）
+    - 公開/非公開設定
+  - 寄付証明書自動発行
+    - 証明書番号（DC-2026-001形式）
+    - 発行日・寄付者情報・金額・口数
+  - 完了ページ実装
+    - 寄付内容確認
+    - 証明書番号表示
+  - API実装
+    - `POST /api/donations/create` - 寄付登録
+    - `GET /api/donations/list` - 公開寄付一覧
+    - `GET /api/donations/stats` - 統計情報
+    - `GET /api/donations/certificate/:id` - 証明書取得
+    - `GET /api/admin/donations` - 管理者用一覧
+  - データベーステーブル作成
+    - `donations` テーブル
+    - `donation_certificates` テーブル
+  - 献立システムと完全独立設計
+    - 別ルーティング（/donation/*）
+    - エラーが献立機能に影響しない
+  - E2Eテスト完了
+
+### 2026-01-07 (Phase D完了)
+- ✅ **献立評価・フィードバック機能実装**
+  - 7項目の5段階評価システム
+  - フリーコメント機能（良かった点・改善要望）
+  - スライダーUIによる直感的な評価入力
+  - 評価データの保存・取得API実装
+  - `plan_feedbacks` テーブル作成
+  - カレンダー画面に「献立を評価する」ボタン追加
+  - 美しいモーダルUIの実装
+  - E2Eテスト完了
 
 ### 2026-01-05 (Phase A・B・C完了)
 - ✅ Phase A: 緊急修正完了
