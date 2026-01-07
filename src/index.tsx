@@ -4896,9 +4896,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       
       if (!body.household_id) return badRequest("household_id is required");
 
-    console.log('[Step 1] household_id:', body.household_id);
-    
-    try {
+      console.log('[Step 1] household_id:', body.household_id);
+      
       const household = await env.DB.prepare(
         `SELECT * FROM households WHERE household_id = ?`
       ).bind(body.household_id).first() as any;
@@ -4920,12 +4919,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       
       const period = buildPeriodByDays(household.start_date, planDays);
       console.log('[Step 5] 期間計算完了 - 日数:', period.dates.length);
-    } catch (stepError) {
-      console.error('初期化エラー:', stepError);
-      throw stepError;
-    }
-    
-    // 監修者モードに応じたレシピフィルタ
+      
+      // 監修者モードに応じたレシピフィルタ
     let supervisorFilter = '';
     let timeFilter = '';
     
