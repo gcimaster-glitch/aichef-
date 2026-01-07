@@ -2267,7 +2267,8 @@ const appHtml = `<!DOCTYPE html>
                 const planRes = await axios.post('/api/plans/generate', { 
                     household_id,
                     menu_variety: appState.data.menu_variety || 'balanced',
-                    supervisor_mode: appState.data.supervisor_mode || 'general'
+                    supervisor_mode: appState.data.supervisor_mode || 'general',
+                    plan_days: appState.data.plan_days || 30
                 });
                 appState.planId = planRes.data.plan_id;
                 // planIdをlocalStorageに保存（ページリロード後も使用可能に）
@@ -5033,16 +5034,16 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         supervisorFilter = 'AND popularity BETWEEN 4 AND 7';
         break;
       case 'japanese_traditional':
-        // 和食中心：和食レシピ優先（タイトルに「煮」「焼」「蒸」を含む）
-        supervisorFilter = '';
+        // 和食中心：和食レシピ優先
+        supervisorFilter = "AND cuisine = 'japanese'";
         break;
       case 'western':
-        // 洋食中心：パスタ・グラタン系
-        supervisorFilter = '';
+        // 洋食中心：洋食レシピ優先
+        supervisorFilter = "AND cuisine = 'western'";
         break;
       case 'chinese':
-        // 中華好き
-        supervisorFilter = '';
+        // 中華好き：中華レシピ優先
+        supervisorFilter = "AND cuisine = 'chinese'";
         break;
       case 'ethnic':
         // エスニック
