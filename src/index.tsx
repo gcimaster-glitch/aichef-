@@ -5110,6 +5110,12 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         return recipes;
       }
       
+      // レシピが空の場合は早期リターン
+      if (recipes.length === 0) {
+        console.log('レシピが0件のためフィルタリングスキップ');
+        return recipes;
+      }
+      
       // 🚀 Step 1: 全レシピの食材を一括取得（N+1問題を解決）
       const recipeIds = recipes.map(r => r.recipe_id);
       const allIngredientsQuery = `
