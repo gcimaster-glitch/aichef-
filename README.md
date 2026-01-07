@@ -503,6 +503,22 @@ pm2 logs --nostream
   - ルーティング: `/profile`
   - E2Eテスト完了（100%検出率）
 
+### 2026-01-07 (バグ修正 #3, #4完了)
+- 🔧 **Bug Fix #3: 献立生成APIのスコープエラー修正**
+  - 問題: `supervisor_mode is not defined` エラー
+  - 原因: try-catchブロックのスコープ問題で変数が参照できない
+  - 修正: try-catchを最小限にし、変数定義をスコープ外に移動
+  - コミット: `c95f42a`
+
+- 🔧 **Bug Fix #4: SQL変数制限エラー修正**
+  - 問題: `D1_ERROR: too many SQL variables` (SQLite上限999個超過)
+  - 原因: 739件のレシピIDをIN句に一括指定
+  - 修正: レシピIDを100件ずつチャンク分割して処理
+  - 影響: 献立生成API (`POST /api/plans/generate`)
+  - テスト結果: 30日分の献立生成成功（Status 201）
+  - コミット: `0e378c1`
+  - デプロイURL: `https://0ef47c8f.aichef-595.pages.dev`
+
 ### 2026-01-07 (Phase F完了)
 - ✅ **Phase F: 管理者寄付ダッシュボード実装**
   - リアルタイム統計表示
