@@ -418,13 +418,21 @@ const USER_DASHBOARD_HTML = `
         // 履歴読み込み
         async function loadHistory() {
             try {
-                const response = await fetch(\`/api/history/list/\${household_id}\`);
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const response = await fetch('/api/plans/history?page=1&limit=10', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
                 const data = await response.json();
                 
-                document.getElementById('history-count').textContent = data.count || 0;
+                document.getElementById('history-count').textContent = data.pagination?.total || 0;
                 
                 const listEl = document.getElementById('history-list');
-                if (data.histories && data.histories.length > 0) {
+                if (data.plans && data.plans.length > 0) {
                     listEl.innerHTML = data.histories.map(h => '<div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">' +
                         '<div class="flex justify-between items-start">' +
                             '<div>' +
@@ -5725,6 +5733,177 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       console.error('プロフィール更新エラー:', error);
       return json({ error: 'プロフィールの更新に失敗しました' }, 500);
     }
+  }
+
+  // ========================================
+  // 献立履歴・お気に入りAPI
+  // ========================================
+
+  // GET /api/plans/history - 献立履歴一覧取得
+  if (pathname === "/api/plans/history" && req.method === "GET") {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const household_id = token;
+
+    // ページネーション
+    const url = new URL(req.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '10');
+    const offset = (page - 1) * limit;
+
+    // 献立履歴を取得（新しい順）
+    const plans = await env.DB.prepare(`
+      SELECT 
+        plan_id,
+        household_id,
+        start_date,
+        months,
+        created_at
+      FROM meal_plan_history
+      WHERE household_id = ?
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
+    `).bind(household_id, limit, offset).all();
+
+    // 総数を取得
+    const countResult = await env.DB.prepare(`
+      SELECT COUNT(*) as total
+      FROM meal_plan_history
+      WHERE household_id = ?
+    `).bind(household_id).first();
+
+    const total = countResult?.total || 0;
+
+    return json({
+      plans: plans.results || [],
+      pagination: {
+        page,
+        limit,
+        total,
+        total_pages: Math.ceil(total / limit)
+      }
+    });
+  }
+
+  // GET /api/plans/:plan_id/details - 献立詳細取得
+  if (pathname.startsWith("/api/plans/") && pathname.endsWith("/details") && req.method === "GET") {
+    const plan_id = pathname.split('/')[3];
+
+    // 献立の基本情報を取得
+    const plan = await env.DB.prepare(`
+      SELECT 
+        plan_id,
+        household_id,
+        start_date,
+        months,
+        created_at
+      FROM meal_plan_history
+      WHERE plan_id = ?
+    `).bind(plan_id).first();
+
+    if (!plan) {
+      return json({ error: 'Plan not found' }, 404);
+    }
+
+    // 献立の日別詳細を取得
+    const days = await env.DB.prepare(`
+      SELECT 
+        pd.plan_day_id,
+        pd.date,
+        pd.estimated_time_min,
+        pd.estimated_cost_tier,
+        r.recipe_id,
+        r.title,
+        r.role,
+        r.cuisine,
+        r.difficulty,
+        r.time_min,
+        r.primary_protein,
+        r.cost_tier
+      FROM plan_days pd
+      LEFT JOIN recipes r ON pd.main_recipe_id = r.recipe_id 
+        OR pd.side_recipe_id = r.recipe_id 
+        OR pd.soup_recipe_id = r.recipe_id
+      WHERE pd.plan_id = ?
+      ORDER BY pd.date ASC
+    `).bind(plan_id).all();
+
+    return json({
+      plan,
+      days: days.results || []
+    });
+  }
+
+  // GET /api/favorites/list - お気に入りレシピ一覧
+  if (pathname === "/api/favorites/list" && req.method === "GET") {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const household_id = token;
+
+    // カテゴリーフィルター
+    const url = new URL(req.url);
+    const role = url.searchParams.get('role'); // 'main', 'side', 'soup' or null (all)
+
+    let query = `
+      SELECT 
+        f.favorite_id,
+        f.recipe_id,
+        f.created_at,
+        r.title,
+        r.role,
+        r.cuisine,
+        r.difficulty,
+        r.time_min,
+        r.primary_protein,
+        r.cost_tier,
+        r.child_friendly_score
+      FROM favorite_recipes f
+      INNER JOIN recipes r ON f.recipe_id = r.recipe_id
+      WHERE f.household_id = ?
+    `;
+
+    const bindings: any[] = [household_id];
+
+    if (role) {
+      query += ` AND r.role = ?`;
+      bindings.push(role);
+    }
+
+    query += ` ORDER BY f.created_at DESC`;
+
+    const favorites = await env.DB.prepare(query).bind(...bindings).all();
+
+    return json({
+      favorites: favorites.results || [],
+      total: favorites.results?.length || 0
+    });
+  }
+
+  // DELETE /api/favorites/:recipe_id - お気に入り削除
+  if (pathname.startsWith("/api/favorites/") && req.method === "DELETE") {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const household_id = token;
+    const recipe_id = pathname.split('/')[3];
+
+    await env.DB.prepare(`
+      DELETE FROM favorite_recipes
+      WHERE household_id = ? AND recipe_id = ?
+    `).bind(household_id, recipe_id).run();
+
+    return json({ success: true, message: 'お気に入りを削除しました' });
   }
 
   // ========================================
