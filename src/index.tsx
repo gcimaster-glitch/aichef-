@@ -4190,23 +4190,73 @@ const appHtml = `<!DOCTYPE html>
                         return;
                     }
                     
-                    // ユーザー情報を保存（現在はローカルストレージのみ）
-                    const user = {
-                        name: name || 'ゲスト',
-                        email: email,
-                        household_id: 'household-' + Date.now()
-                    };
+                    if (!email || !password || (!isLogin && !name)) {
+                        errorDiv.classList.remove('hidden');
+                        errorText.textContent = '必須項目を入力してください';
+                        return;
+                    }
                     
-                    saveUser(user);
-                    
-                    // エラーをクリア
-                    errorDiv.classList.add('hidden');
-                    
-                    // モーダルを閉じる
-                    closeAuthModal();
-                    
-                    // 印刷機能を実行
-                    handlePrint();
+                    try {
+                        // API呼び出し
+                        const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+                        const payload = isLogin ? 
+                            { email, password } : 
+                            { name, email, password };
+                        
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success || response.ok) {
+                            // トークンまたはセッションIDを保存
+                            if (data.session_id) {
+                                localStorage.setItem('auth_token', data.session_id);
+                            }
+                            
+                            // ユーザー情報を保存
+                            if (data.user) {
+                                saveUser(data.user);
+                            } else if (data.household_id) {
+                                // 会員登録の場合
+                                const user = {
+                                    household_id: data.household_id,
+                                    name: name,
+                                    email: email
+                                };
+                                saveUser(user);
+                                localStorage.setItem('auth_token', data.household_id); // 仮トークン
+                            }
+                            
+                            // エラーをクリア
+                            errorDiv.classList.add('hidden');
+                            
+                            // モーダルを閉じる
+                            closeAuthModal();
+                            
+                            // 成功メッセージ
+                            if (isLogin) {
+                                console.log('ログイン成功');
+                            } else {
+                                alert('会員登録が完了しました！');
+                            }
+                            
+                            // 印刷機能を実行（印刷ボタンから呼ばれた場合）
+                            setTimeout(() => {
+                                handlePrint();
+                            }, 500);
+                        } else {
+                            errorDiv.classList.remove('hidden');
+                            errorText.textContent = data.error || '処理に失敗しました';
+                        }
+                    } catch (error) {
+                        console.error('認証エラー:', error);
+                        errorDiv.classList.remove('hidden');
+                        errorText.textContent = 'ネットワークエラーが発生しました';
+                    }
                 });
             }
             
@@ -5256,6 +5306,39 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         ];
         if (dislikes.includes('spicy') && spicyKeywords.some(keyword => recipe.title.includes(keyword))) {
           console.log(`除外: ${recipe.title} (辛い料理)`);
+          continue;
+        }
+        
+        // 🍖 肉嫌い対応（primary_proteinベース + タイトルベース）
+        // 全肉嫌い
+        if (dislikes.includes('meat')) {
+          if (['chicken', 'pork', 'beef'].includes(recipe.primary_protein)) {
+            console.log(`除外: ${recipe.title} (肉嫌い - primary_protein=${recipe.primary_protein})`);
+            continue;
+          }
+          // タイトルベースで肉を除外
+          const meatKeywords = ['肉', '豚', '牛', '鶏', 'チキン', 'ポーク', 'ビーフ', '焼肉', 'ステーキ', 'ハンバーグ', '唐揚げ', 'から揚げ', '生姜焼き', 'しょうが焼き', '照り焼き'];
+          if (meatKeywords.some(keyword => recipe.title.includes(keyword))) {
+            console.log(`除外: ${recipe.title} (肉嫌い - タイトルに肉関連キーワード)`);
+            continue;
+          }
+        }
+        
+        // 豚肉嫌い
+        if (dislikes.includes('pork') && (recipe.primary_protein === 'pork' || recipe.title.includes('豚'))) {
+          console.log(`除外: ${recipe.title} (豚肉嫌い)`);
+          continue;
+        }
+        
+        // 牛肉嫌い
+        if (dislikes.includes('beef') && (recipe.primary_protein === 'beef' || recipe.title.includes('牛'))) {
+          console.log(`除外: ${recipe.title} (牛肉嫌い)`);
+          continue;
+        }
+        
+        // 鶏肉嫌い
+        if (dislikes.includes('chicken') && (recipe.primary_protein === 'chicken' || recipe.title.includes('鶏') || recipe.title.includes('チキン'))) {
+          console.log(`除外: ${recipe.title} (鶏肉嫌い)`);
           continue;
         }
         
@@ -7715,6 +7798,10 @@ const PROFILE_HTML = `
                     'squid': 'イカ',
                     'octopus': 'タコ',
                     'fish': '魚',
+                    'meat': '肉',
+                    'pork': '豚肉',
+                    'beef': '牛肉',
+                    'chicken': '鶏肉',
                     'offal': 'レバー'
                 };
                 dislikesOptions.forEach(item => {
@@ -7801,6 +7888,10 @@ const PROFILE_HTML = `
                     'イカ': 'squid',
                     'タコ': 'octopus',
                     '魚': 'fish',
+                    '肉': 'meat',
+                    '豚肉': 'pork',
+                    '牛肉': 'beef',
+                    '鶏肉': 'chicken',
                     'レバー': 'offal'
                 };
                 const dislikes = [];
