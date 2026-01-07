@@ -5161,9 +5161,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       const filteredRecipes = [];
       
       for (const recipe of recipes) {
-        // 🐟 primary_proteinベースのフィルタリング（魚嫌い対応）
-        if (dislikes.includes('fish') && recipe.primary_protein === 'fish') {
-          console.log(`除外: ${recipe.title} (primary_protein=fish - 魚嫌い)`);
+        // 🐟 primary_proteinベースのフィルタリング（魚嫌い・魚アレルギー対応）
+        if ((dislikes.includes('fish') || allergiesStandard.includes('fish')) && recipe.primary_protein === 'fish') {
+          console.log(`除外: ${recipe.title} (primary_protein=fish - 魚嫌い/アレルギー)`);
           continue;
         }
         
@@ -5178,8 +5178,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           '海老', 'エビ', 'カニ', '蟹', 'イカ', 'タコ',
           '貝', 'ホタテ', 'アサリ', 'シジミ', '牡蠣'
         ];
-        if (dislikes.includes('fish') && fishKeywords.some(keyword => recipe.title.includes(keyword))) {
-          console.log(`除外: ${recipe.title} (タイトルに魚名/シーフード - 魚嫌い)`);
+        if ((dislikes.includes('fish') || allergiesStandard.includes('fish')) && fishKeywords.some(keyword => recipe.title.includes(keyword))) {
+          console.log(`除外: ${recipe.title} (タイトルに魚名/シーフード - 魚嫌い/アレルギー)`);
           continue;
         }
         
@@ -5197,8 +5197,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           continue;
         }
         
-        // 🐙 イカ・タコ嫌い対応
-        if ((dislikes.includes('squid') || dislikes.includes('octopus')) && 
+        // 🐙 イカ・タコ嫌い・アレルギー対応
+        if ((dislikes.includes('squid') || dislikes.includes('octopus') || 
+             allergiesStandard.includes('squid') || allergiesStandard.includes('octopus')) && 
             (recipe.title.includes('イカ') || recipe.title.includes('タコ'))) {
           console.log(`除外: ${recipe.title} (イカ・タコ料理)`);
           continue;
@@ -5212,8 +5213,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           continue;
         }
         
-        // 🫘 内臓嫌い対応
-        if (dislikes.includes('offal') && 
+        // 🫘 内臓嫌い・アレルギー対応
+        if ((dislikes.includes('offal') || allergiesStandard.includes('offal')) && 
             (recipe.title.includes('レバー') || recipe.title.includes('ホルモン') || 
              recipe.title.includes('ハツ') || recipe.title.includes('砂肝'))) {
           console.log(`除外: ${recipe.title} (内臓料理)`);
