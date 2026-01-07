@@ -1413,7 +1413,7 @@ const appHtml = `<!DOCTYPE html>
                 type: 'date',
                 text: 'いつから始めますか？',
                 field: 'start_date',
-                condition: (data: any) => data._consent === 'agree'
+                condition: (data) => data._consent === 'agree'
             },
             {
                 id: 'plan_days',
