@@ -5140,7 +5140,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       SELECT dislikes_json, allergies_json
       FROM children_profiles
       WHERE household_id = ?
-    `).bind(household_id).all();
+    `).bind(body.household_id).all();
     
     // 子供の嫌いなものとアレルギーを家族全体に統合
     if (children.results && children.results.length > 0) {
