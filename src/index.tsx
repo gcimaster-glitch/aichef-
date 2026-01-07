@@ -5135,8 +5135,36 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     const dislikes = JSON.parse(dislikesJson);
     const allergiesStandard = JSON.parse(allergiesStandardJson);
     
-    console.log('[Step 10] 嫌いな食材:', dislikes);
-    console.log('[Step 10] アレルギー:', allergiesStandard);
+    // 子供のdislikes/allergiesを統合
+    const children = await env.DB.prepare(`
+      SELECT dislikes_json, allergies_json
+      FROM children_profiles
+      WHERE household_id = ?
+    `).bind(household_id).all();
+    
+    // 子供の嫌いなものとアレルギーを家族全体に統合
+    if (children.results && children.results.length > 0) {
+      for (const child of children.results) {
+        const childDislikes = JSON.parse((child as any).dislikes_json || '[]');
+        const childAllergies = JSON.parse((child as any).allergies_json || '[]');
+        
+        // 重複を避けて追加
+        childDislikes.forEach((dislike: string) => {
+          if (!dislikes.includes(dislike)) {
+            dislikes.push(dislike);
+          }
+        });
+        
+        childAllergies.forEach((allergy: string) => {
+          if (!allergiesStandard.includes(allergy)) {
+            allergiesStandard.push(allergy);
+          }
+        });
+      }
+    }
+    
+    console.log('[Step 10] 嫌いな食材（家族全体+子供）:', dislikes);
+    console.log('[Step 10] アレルギー（家族全体+子供）:', allergiesStandard);
     
     // 除外する食材IDのマッピング（食材名 → ingredient_id）
     const dislikeMapping: { [key: string]: string[] } = {
@@ -5928,6 +5956,142 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       console.error('プロフィール更新エラー:', error);
       return json({ error: 'プロフィールの更新に失敗しました' }, 500);
     }
+  }
+
+  // ========================================
+  // 子供プロフィールAPI
+  // ========================================
+
+  // GET /api/children - 子供プロフィール一覧取得
+  if (pathname === "/api/children" && req.method === "GET") {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const household_id = token;
+
+    const children = await env.DB.prepare(`
+      SELECT child_id, household_id, name, age, dislikes_json, allergies_json, notes, created_at, updated_at
+      FROM children_profiles
+      WHERE household_id = ?
+      ORDER BY age ASC
+    `).bind(household_id).all();
+
+    return json({ children: children.results || [] });
+  }
+
+  // POST /api/children - 子供プロフィール作成
+  if (pathname === "/api/children" && req.method === "POST") {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const household_id = token;
+
+    const body = await readJson(req);
+    const { name, age, dislikes_json, allergies_json, notes } = body;
+
+    if (!name || age === undefined) {
+      return badRequest('名前と年齢は必須です');
+    }
+
+    const child_id = uuid();
+
+    await env.DB.prepare(`
+      INSERT INTO children_profiles (
+        child_id, household_id, name, age, dislikes_json, allergies_json, notes, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `).bind(
+      child_id,
+      household_id,
+      name,
+      age,
+      dislikes_json || '[]',
+      allergies_json || '[]',
+      notes || ''
+    ).run();
+
+    return json({ 
+      success: true, 
+      child_id,
+      message: '子供のプロフィールを作成しました'
+    });
+  }
+
+  // PUT /api/children/:child_id - 子供プロフィール更新
+  if (pathname.startsWith("/api/children/") && req.method === "PUT") {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const household_id = token;
+    const child_id = pathname.split('/')[3];
+
+    const body = await readJson(req);
+    const { name, age, dislikes_json, allergies_json, notes } = body;
+
+    // 権限チェック（自分の家族の子供のみ編集可能）
+    const child = await env.DB.prepare(`
+      SELECT child_id FROM children_profiles WHERE child_id = ? AND household_id = ?
+    `).bind(child_id, household_id).first();
+
+    if (!child) {
+      return json({ error: 'Child not found or unauthorized' }, 404);
+    }
+
+    await env.DB.prepare(`
+      UPDATE children_profiles
+      SET name = ?, age = ?, dislikes_json = ?, allergies_json = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE child_id = ?
+    `).bind(
+      name,
+      age,
+      dislikes_json || '[]',
+      allergies_json || '[]',
+      notes || '',
+      child_id
+    ).run();
+
+    return json({ 
+      success: true, 
+      message: '子供のプロフィールを更新しました'
+    });
+  }
+
+  // DELETE /api/children/:child_id - 子供プロフィール削除
+  if (pathname.startsWith("/api/children/") && req.method === "DELETE") {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const household_id = token;
+    const child_id = pathname.split('/')[3];
+
+    // 権限チェック
+    const child = await env.DB.prepare(`
+      SELECT child_id FROM children_profiles WHERE child_id = ? AND household_id = ?
+    `).bind(child_id, household_id).first();
+
+    if (!child) {
+      return json({ error: 'Child not found or unauthorized' }, 404);
+    }
+
+    await env.DB.prepare(`
+      DELETE FROM children_profiles WHERE child_id = ?
+    `).bind(child_id).run();
+
+    return json({ 
+      success: true, 
+      message: '子供のプロフィールを削除しました'
+    });
   }
 
   // ========================================
