@@ -53,7 +53,7 @@ export const LANDING_HTML = `<!DOCTYPE html>
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.6);
             z-index: 1;
         }
         
@@ -86,6 +86,11 @@ export const LANDING_HTML = `<!DOCTYPE html>
             margin-bottom: 1rem;
             line-height: 1.1;
             letter-spacing: -0.02em;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
         }
         
         .hero-subtitle {
@@ -93,6 +98,7 @@ export const LANDING_HTML = `<!DOCTYPE html>
             font-weight: 300;
             margin-bottom: 2rem;
             opacity: 0.95;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 0, 0, 0.5);
         }
         
         .cta-button {
