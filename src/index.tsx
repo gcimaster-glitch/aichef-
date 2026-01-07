@@ -5125,20 +5125,31 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         return recipes;
       }
       
-      // 🚀 Step 1: 全レシピの食材を一括取得（N+1問題を解決）
+      // 🚀 Step 1: 全レシピの食材を一括取得（N+1問題を解決 + SQLite変数制限対応）
       const recipeIds = recipes.map(r => r.recipe_id);
-      const allIngredientsQuery = `
-        SELECT recipe_id, ingredient_id 
-        FROM recipe_ingredients 
-        WHERE recipe_id IN (${recipeIds.map(() => '?').join(',')})
-      `;
-      const allIngredients = await env.DB.prepare(allIngredientsQuery)
-        .bind(...recipeIds)
-        .all();
+      
+      // SQLiteの変数制限（999個）を考慮して100件ずつ分割
+      const chunkSize = 100;
+      const chunks = [];
+      for (let i = 0; i < recipeIds.length; i += chunkSize) {
+        chunks.push(recipeIds.slice(i, i + chunkSize));
+      }
+      
+      // 全チャンクの食材を取得
+      const allIngredientsResults: any[] = [];
+      for (const chunk of chunks) {
+        const query = `
+          SELECT recipe_id, ingredient_id 
+          FROM recipe_ingredients 
+          WHERE recipe_id IN (${chunk.map(() => '?').join(',')})
+        `;
+        const result = await env.DB.prepare(query).bind(...chunk).all();
+        allIngredientsResults.push(...(result.results || []));
+      }
       
       // レシピIDごとの食材IDマップを作成
       const recipeIngredientsMap = new Map<string, string[]>();
-      for (const ing of (allIngredients.results || [])) {
+      for (const ing of allIngredientsResults) {
         const recipeId = (ing as any).recipe_id;
         const ingredientId = (ing as any).ingredient_id;
         if (!recipeIngredientsMap.has(recipeId)) {
