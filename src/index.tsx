@@ -2003,11 +2003,11 @@ const appHtml = `<!DOCTYPE html>
                 const progressHtml = \`
                     <div class="mb-6">
                         <div class="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>質問 \${appState.step + 1} / \${questions.length}</span>
-                            <span>\${progress}% 完了</span>
+                            <span>質問 ${appState.step + 1} / ${questions.length}</span>
+                            <span>${progress}% 完了</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div id="progress-bar-\${appState.step}" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            <div id="progress-bar-${appState.step}" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
                         </div>
                     </div>
                 \`;
@@ -2055,11 +2055,11 @@ const appHtml = `<!DOCTYPE html>
                 const progressHtml = \`
                     <div class="mb-6">
                         <div class="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>質問 \${appState.step + 1} / \${questions.length}</span>
-                            <span>\${progress}% 完了</span>
+                            <span>質問 ${appState.step + 1} / ${questions.length}</span>
+                            <span>${progress}% 完了</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div id="progress-bar-\${appState.step}" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            <div id="progress-bar-${appState.step}" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
                         </div>
                     </div>
                 \`;
