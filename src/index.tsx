@@ -1615,7 +1615,9 @@ const appHtml = `<!DOCTYPE html>
                 text: '献立をメールで受け取りますか？<br>メールアドレスを入力してください（任意）',
                 field: 'email',
                 placeholder: 'example@gmail.com',
-                optional: true
+                optional: true,
+                // ログイン済みユーザーはスキップ
+                condition: (data) => !localStorage.getItem('auth_token')
             },
             {
                 id: 'confirm',
@@ -3731,42 +3733,46 @@ const appHtml = `<!DOCTYPE html>
                 
                 // サーバーに献立の入れ替えをリクエスト
                 try {
-                    // 🚀 楽観的更新：先にDOM要素を入れ替えて即座に反映
-                    const draggedContent = draggedElement.innerHTML;
-                    const dropContent = dropTarget.innerHTML;
-                    draggedElement.innerHTML = dropContent;
-                    dropTarget.innerHTML = draggedContent;
-                    
-                    // calendarDataも更新
-                    const draggedDay = calendarData.find(d => d.plan_day_id === draggedData.planDayId);
-                    const targetDay = calendarData.find(d => d.plan_day_id === targetData.planDayId);
-                    if (draggedDay && targetDay) {
-                        const tempDate = draggedDay.date;
-                        draggedDay.date = targetDay.date;
-                        targetDay.date = tempDate;
-                    }
-                    
                     // ローディングを削除（即座に完了したように見せる）
                     loadingToast.remove();
                     
-                    // 成功メッセージ
-                    const toast = document.createElement('div');
-                    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce';
-                    toast.innerHTML = '<i class="fas fa-check-circle mr-2"></i>✓ 献立を入れ替えました';
-                    document.body.appendChild(toast);
-                    setTimeout(() => toast.remove(), 2000);
-                    
-                    // バックグラウンドでサーバーに送信（失敗時のみ元に戻す）
+                    // バックグラウンドでサーバーに送信
                     const res = await axios.post('/api/plans/swap-days', {
                         plan_id: appState.planId || localStorage.getItem('current_plan_id'),
                         day1_id: draggedData.planDayId,
                         day2_id: targetData.planDayId
                     });
                     
-                    if (!res.data.success) {
-                        // サーバー側で失敗した場合は元に戻す
-                        draggedElement.innerHTML = draggedContent;
-                        dropTarget.innerHTML = dropContent;
+                    if (res.data.success) {
+                        // 成功したら全体を再読み込みして表示を更新
+                        const currentPlanId = appState.planId || localStorage.getItem('current_plan_id');
+                        const planRes = await axios.get('/api/plans/' + currentPlanId);
+                        calendarData = planRes.data.days;
+                        
+                        // デバッグ: 入れ替え後の日付を確認
+                        console.log('🔄 献立入れ替え完了', {
+                            draggedDayId: draggedData.planDayId,
+                            targetDayId: targetData.planDayId,
+                            updatedDays: calendarData.slice(0, 5).map(function(d) { 
+                                return { 
+                                    date: d.date, 
+                                    recipes: d.recipes.map(function(r) { return r.title; }) 
+                                }; 
+                            })
+                        });
+                        if (currentViewMode === 'calendar') {
+                            renderCalendarView(calendarData);
+                        } else {
+                            renderGridView(calendarData);
+                        }
+                        
+                        // 成功メッセージ
+                        const toast = document.createElement('div');
+                        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce';
+                        toast.innerHTML = '<i class="fas fa-check-circle mr-2"></i>✓ 献立を入れ替えました';
+                        document.body.appendChild(toast);
+                        setTimeout(() => toast.remove(), 2000);
+                    } else {
                         alert('献立の入れ替えに失敗しました。もう一度お試しください。');
                     }
                 } catch (error) {
@@ -4165,6 +4171,14 @@ const appHtml = `<!DOCTYPE html>
         window.renderShoppingList = renderShoppingList;
 
         window.addEventListener('DOMContentLoaded', () => {
+            // ログイン状態を確認
+            const authToken = localStorage.getItem('auth_token');
+            if (authToken) {
+                // ログイン済みの場合、メールアドレスはDB登録済みなのでスキップ
+                console.log('✅ ログイン済みユーザー - メール質問をスキップ');
+                appState.email = 'logged_in_user';  // メール質問をスキップするフラグ
+            }
+            
             const question = questions[0];
             addMessage(question.text);
             showInput(question);
@@ -4264,10 +4278,22 @@ const appHtml = `<!DOCTYPE html>
             }
             
             // イベントデリゲーション設定
+            // レシピリンクのクリックイベント（モバイル対応）
             document.addEventListener('click', (e) => {
                 const target = e.target;
                 const recipeLink = target.closest('.recipe-link');
                 if (recipeLink) {
+                    e.preventDefault();
+                    e.stopPropagation();  // イベント伝播を停止
+                    const recipeId = recipeLink.getAttribute('data-recipe-id');
+                    const recipeTitle = recipeLink.getAttribute('data-recipe-title');
+                    if (recipeId && recipeTitle) {
+                        showRecipeDetail(recipeId, recipeTitle);
+                    }
+                }
+                
+                // タッチイベントでも同様に処理（モバイル対応）
+                if (e.type === 'touchend' && recipeLink) {
                     e.preventDefault();
                     const recipeId = recipeLink.getAttribute('data-recipe-id');
                     const recipeTitle = recipeLink.getAttribute('data-recipe-title');
@@ -4292,6 +4318,24 @@ const appHtml = `<!DOCTYPE html>
                     const historyId = historyDeleteBtn.getAttribute('data-history-id');
                     if (historyId) {
                         deleteHistory(historyId);
+                    }
+                }
+            });
+            
+            // モバイル専用: タッチイベントリスナー
+            document.addEventListener('touchend', (e) => {
+                const target = e.target;
+                const recipeLink = target.closest('.recipe-link');
+                if (recipeLink) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const recipeId = recipeLink.getAttribute('data-recipe-id');
+                    const recipeTitle = recipeLink.getAttribute('data-recipe-title');
+                    if (recipeId && recipeTitle) {
+                        console.log('📱 モバイルタッチ: レシピ表示', recipeId, recipeTitle);
+                        showRecipeDetail(recipeId, recipeTitle);
+                    }
+                }
                     }
                 }
                 
