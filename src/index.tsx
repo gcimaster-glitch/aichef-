@@ -7,6 +7,8 @@ import { explainMenuChoice, suggestMenuAdjustment } from './openai-helper'
 type Bindings = {
   DB?: D1Database;
   OPENAI_API_KEY?: string;
+  STRIPE_SECRET_KEY?: string;
+  RESEND_API_KEY?: string;
 }
 
 type Json = Record<string, unknown>;
@@ -6305,8 +6307,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       await env.DB.prepare(`
         INSERT INTO donations (
           donation_id, household_id, donor_name, donor_email, donor_phone,
-          amount, unit_count, message, status, payment_method, is_public
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          amount, unit_count, message, status, payment_method, payment_intent_id, is_public
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
         donation_id,
         body.household_id || null,
@@ -6318,6 +6320,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         body.message || null,
         'completed',
         body.payment_method || 'bank_transfer',
+        body.payment_intent_id || null,
         body.is_public !== undefined ? body.is_public : 1
       ).run();
       
@@ -6339,6 +6342,189 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       console.error('寄付登録エラー:', error);
       return new Response(JSON.stringify({
         error: '寄付の登録に失敗しました',
+        details: error.message
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+  
+  // POST /api/donations/create-payment-intent - Stripe決済インテント作成
+  if (pathname === "/api/donations/create-payment-intent" && req.method === "POST") {
+    const body = await readJson(req);
+    
+    if (!body.unit_count || body.unit_count < 1 || body.unit_count > 10) {
+      return badRequest("unit_count must be between 1 and 10");
+    }
+    
+    const amount = body.unit_count * 300; // 1口300円
+    
+    try {
+      // Stripe Payment Intentを作成
+      const stripeResponse = await fetch('https://api.stripe.com/v1/payment_intents', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          amount: (amount * 100).toString(), // 円→セント（Stripeは最小通貨単位）
+          currency: 'jpy',
+          'metadata[donor_name]': body.donor_name || '',
+          'metadata[donor_email]': body.donor_email || '',
+          'metadata[unit_count]': body.unit_count.toString(),
+          'metadata[message]': body.message || '',
+        }).toString(),
+      });
+      
+      if (!stripeResponse.ok) {
+        const errorData = await stripeResponse.json();
+        console.error('Stripe API エラー:', errorData);
+        return new Response(JSON.stringify({
+          error: 'Stripe決済の作成に失敗しました',
+          details: errorData
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      const paymentIntent = await stripeResponse.json();
+      
+      return json({
+        clientSecret: paymentIntent.client_secret,
+        amount: amount
+      });
+    } catch (error: any) {
+      console.error('Payment Intent作成エラー:', error);
+      return new Response(JSON.stringify({
+        error: '決済の作成に失敗しました',
+        details: error.message
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+  
+  // POST /api/donations/send-thank-you-email - 寄付完了メール送信
+  if (pathname === "/api/donations/send-thank-you-email" && req.method === "POST") {
+    const body = await readJson(req);
+    
+    if (!body.donor_email || !body.donor_name || !body.certificate_number || !body.amount) {
+      return badRequest("donor_email, donor_name, certificate_number, and amount are required");
+    }
+    
+    try {
+      // Resendでメール送信
+      const resendResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'AICHEFS <noreply@aichefs.net>',
+          to: [body.donor_email],
+          subject: '【AICHEFS】ご寄付ありがとうございます',
+          html: `
+            <!DOCTYPE html>
+            <html lang="ja">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>ご寄付ありがとうございます</title>
+            </head>
+            <body style="font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+              <div style="background-color: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="color: #667eea; font-size: 32px; margin: 0;">🍽️ AICHEFS</h1>
+                  <p style="color: #6b7280; font-size: 16px; margin-top: 8px;">AI献立システム</p>
+                </div>
+                
+                <h2 style="color: #1f2937; font-size: 24px; margin-bottom: 20px;">ご寄付ありがとうございます</h2>
+                
+                <p style="margin-bottom: 16px;">${body.donor_name} 様</p>
+                
+                <p style="margin-bottom: 20px;">
+                  この度は、AICHEFSへのご寄付をいただき、誠にありがとうございます。<br>
+                  皆様のご支援が、より良いサービスの提供につながります。
+                </p>
+                
+                <div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin: 30px 0;">
+                  <h3 style="color: #374151; font-size: 18px; margin-top: 0; margin-bottom: 16px;">📋 寄付詳細</h3>
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td style="padding: 8px 0; color: #6b7280;">証明書番号</td>
+                      <td style="padding: 8px 0; font-weight: bold;">${body.certificate_number}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #6b7280;">寄付金額</td>
+                      <td style="padding: 8px 0; font-weight: bold; color: #667eea;">¥${body.amount.toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #6b7280;">寄付日</td>
+                      <td style="padding: 8px 0;">${new Date().toLocaleDateString('ja-JP')}</td>
+                    </tr>
+                  </table>
+                </div>
+                
+                ${body.message ? `
+                <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 4px;">
+                  <p style="margin: 0; color: #92400e;"><strong>応援メッセージ:</strong></p>
+                  <p style="margin: 8px 0 0 0; color: #78350f;">${body.message}</p>
+                </div>
+                ` : ''}
+                
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+                  <p style="margin-bottom: 12px; color: #6b7280; font-size: 14px;">
+                    今後とも、AICHEFSをよろしくお願いいたします。
+                  </p>
+                  
+                  <div style="text-align: center; margin-top: 30px;">
+                    <a href="https://aichefs.net" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: bold;">
+                      AICHEFSにアクセス
+                    </a>
+                  </div>
+                </div>
+                
+                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #9ca3af; font-size: 12px;">
+                  <p style="margin: 0;">© 2026 AICHEFS. All rights reserved.</p>
+                  <p style="margin: 8px 0 0 0;">
+                    <a href="https://aichefs.net" style="color: #667eea; text-decoration: none;">https://aichefs.net</a>
+                  </p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+        }),
+      });
+      
+      if (!resendResponse.ok) {
+        const errorData = await resendResponse.json();
+        console.error('Resend API エラー:', errorData);
+        return new Response(JSON.stringify({
+          error: 'メール送信に失敗しました',
+          details: errorData
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      const emailResult = await resendResponse.json();
+      
+      return json({
+        success: true,
+        email_id: emailResult.id,
+        message: 'お礼メールを送信しました'
+      });
+    } catch (error: any) {
+      console.error('メール送信エラー:', error);
+      return new Response(JSON.stringify({
+        error: 'メール送信に失敗しました',
         details: error.message
       }), {
         status: 500,
@@ -8352,6 +8538,7 @@ const DONATION_LP_HTML = `
     <title>子ども食堂を支援する - あなたの300円が子どもたちの笑顔を守る</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
     <style>
         .hero-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -8580,12 +8767,32 @@ const DONATION_LP_HTML = `
                     </label>
                 </div>
                 
+                <!-- Stripeカード決済フォーム -->
+                <div id="card-element-container" class="border-2 border-gray-300 rounded-lg p-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">
+                        <i class="fas fa-credit-card text-purple-600 mr-2"></i>
+                        カード情報
+                    </label>
+                    <div id="card-element" class="p-3 border border-gray-200 rounded-lg bg-white">
+                        <!-- Stripe Elements will insert the Card Element here -->
+                    </div>
+                    <div id="card-errors" class="text-red-600 text-sm mt-2" role="alert"></div>
+                </div>
+                
                 <!-- 送信ボタン -->
-                <button type="submit" 
-                        class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-lg text-xl font-bold hover:from-purple-700 hover:to-pink-700 transition shadow-lg">
-                    <i class="fas fa-paper-plane mr-2"></i>
-                    寄付を送信する
+                <button type="submit" id="submit-button"
+                        class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-lg text-xl font-bold hover:from-purple-700 hover:to-pink-700 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-lock mr-2"></i>
+                    <span id="button-text">クレジットカードで寄付する</span>
+                    <span id="button-spinner" class="hidden">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>処理中...
+                    </span>
                 </button>
+                
+                <p class="text-center text-sm text-gray-500 mt-4">
+                    <i class="fas fa-shield-alt mr-1"></i>
+                    Stripeの安全な決済システムを使用しています
+                </p>
             </form>
         </div>
     </div>
@@ -8667,8 +8874,49 @@ const DONATION_LP_HTML = `
         document.querySelector('.unit-btn').click();
         
         // フォーム送信
+        // Stripe初期化（公開可能キーは環境変数から設定、ここではプレースホルダー）
+        // 本番環境では STRIPE_PUBLISHABLE_KEY を設定してください
+        const stripe = Stripe('pk_test_YOUR_PUBLISHABLE_KEY'); // TODO: 本番用に変更
+        const elements = stripe.elements();
+        const cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#32325d',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    '::placeholder': {
+                        color: '#aab7c4'
+                    }
+                },
+                invalid: {
+                    color: '#fa755a',
+                    iconColor: '#fa755a'
+                }
+            }
+        });
+        cardElement.mount('#card-element');
+        
+        // カードエラー表示
+        cardElement.on('change', (event) => {
+            const displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+        
         document.getElementById('donation-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const submitButton = document.getElementById('submit-button');
+            const buttonText = document.getElementById('button-text');
+            const buttonSpinner = document.getElementById('button-spinner');
+            
+            // ボタンを無効化
+            submitButton.disabled = true;
+            buttonText.classList.add('hidden');
+            buttonSpinner.classList.remove('hidden');
             
             const formData = {
                 donor_name: document.getElementById('donor_name').value,
@@ -8680,23 +8928,78 @@ const DONATION_LP_HTML = `
             };
             
             try {
-                const response = await fetch('/api/donations/create', {
+                // Step 1: Payment Intentを作成
+                const piResponse = await fetch('/api/donations/create-payment-intent', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
                 
-                const result = await response.json();
-                
-                if (response.ok) {
-                    // 完了ページに遷移
-                    window.location.href = '/donation/thanks?donation_id=' + result.donation_id;
-                } else {
-                    alert('エラー: ' + (result.error || '寄付の送信に失敗しました'));
+                if (!piResponse.ok) {
+                    throw new Error('Payment Intent作成に失敗しました');
                 }
+                
+                const { clientSecret, amount } = await piResponse.json();
+                
+                // Step 2: Stripeで決済確認
+                const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: formData.donor_name,
+                            email: formData.donor_email,
+                            phone: formData.donor_phone
+                        }
+                    }
+                });
+                
+                if (stripeError) {
+                    throw new Error(stripeError.message);
+                }
+                
+                // Step 3: 決済成功後、寄付をDBに登録
+                const donationResponse = await fetch('/api/donations/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...formData,
+                        payment_method: 'credit_card',
+                        payment_intent_id: paymentIntent.id
+                    })
+                });
+                
+                const donationResult = await donationResponse.json();
+                
+                if (!donationResponse.ok) {
+                    throw new Error(donationResult.error || '寄付の登録に失敗しました');
+                }
+                
+                // Step 4: お礼メール送信
+                await fetch('/api/donations/send-thank-you-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        donor_email: formData.donor_email,
+                        donor_name: formData.donor_name,
+                        certificate_number: donationResult.certificate_number,
+                        amount: donationResult.amount,
+                        message: formData.message
+                    })
+                });
+                
+                // Step 5: 完了ページに遷移
+                window.location.href = '/donation/thanks?donation_id=' + donationResult.donation_id + 
+                                       '&certificate_number=' + donationResult.certificate_number +
+                                       '&amount=' + donationResult.amount;
+                
             } catch (error) {
                 console.error('寄付送信エラー:', error);
-                alert('寄付の送信中にエラーが発生しました');
+                alert('寄付の送信中にエラーが発生しました: ' + error.message);
+                
+                // ボタンを再度有効化
+                submitButton.disabled = false;
+                buttonText.classList.remove('hidden');
+                buttonSpinner.classList.add('hidden');
             }
         });
         
