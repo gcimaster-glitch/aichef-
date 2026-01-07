@@ -7593,6 +7593,82 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     }
   }
   
+  // POST /api/admin/ads - 広告作成
+  if (pathname === "/api/admin/ads" && req.method === "POST") {
+    try {
+      const body = await readJson(req);
+      const { slot_id, title, description, image_url, link_url, is_active } = body;
+
+      if (!slot_id || !title) {
+        return badRequest('slot_idとtitleは必須です');
+      }
+
+      const ad_id = uuid();
+
+      await env.DB.prepare(`
+        INSERT INTO ad_contents (
+          ad_id, slot_id, title, description, image_url, link_url, is_active, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `).bind(
+        ad_id,
+        slot_id,
+        title,
+        description || '',
+        image_url || '',
+        link_url || '',
+        is_active !== undefined ? (is_active ? 1 : 0) : 1
+      ).run();
+
+      return json({ success: true, ad_id, message: '広告を作成しました' });
+    } catch (error: any) {
+      console.error('Admin ads create error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+
+  // PUT /api/admin/ads/:ad_id - 広告更新
+  if (pathname.startsWith("/api/admin/ads/") && req.method === "PUT") {
+    try {
+      const ad_id = pathname.split('/')[4];
+      const body = await readJson(req);
+      const { title, description, image_url, link_url, is_active } = body;
+
+      await env.DB.prepare(`
+        UPDATE ad_contents
+        SET title = ?, description = ?, image_url = ?, link_url = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE ad_id = ?
+      `).bind(
+        title,
+        description || '',
+        image_url || '',
+        link_url || '',
+        is_active !== undefined ? (is_active ? 1 : 0) : 1,
+        ad_id
+      ).run();
+
+      return json({ success: true, message: '広告を更新しました' });
+    } catch (error: any) {
+      console.error('Admin ads update error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+
+  // DELETE /api/admin/ads/:ad_id - 広告削除
+  if (pathname.startsWith("/api/admin/ads/") && req.method === "DELETE") {
+    try {
+      const ad_id = pathname.split('/')[4];
+
+      await env.DB.prepare(`
+        DELETE FROM ad_contents WHERE ad_id = ?
+      `).bind(ad_id).run();
+
+      return json({ success: true, message: '広告を削除しました' });
+    } catch (error: any) {
+      console.error('Admin ads delete error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
   // ========================================
   // ルートパス：ランディングページを返す
   // ========================================
@@ -7804,12 +7880,24 @@ const PROFILE_HTML = `
                             <label class="block text-sm font-medium text-gray-700 mb-2">家族人数</label>
                             <input type="number" id="members_count" min="1" max="10" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">子どもの年齢（複数可・カンマ区切り）</label>
-                            <input type="text" id="children_ages" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="例: 5, 8, 12">
-                            <p class="mt-1 text-sm text-gray-500">子どもがいない場合は空欄</p>
-                        </div>
                     </div>
+                </div>
+
+                <!-- 子供のプロフィール -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center justify-between">
+                        <span>
+                            <i class="fas fa-child text-purple-600 mr-2"></i>
+                            子供のプロフィール
+                        </span>
+                        <button type="button" onclick="addChild()" class="text-sm bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                            <i class="fas fa-plus mr-1"></i>子供を追加
+                        </button>
+                    </h2>
+                    <div id="children-list" class="space-y-4">
+                        <!-- 子供のプロフィールがここに動的に追加されます -->
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">※ 子供がいない場合は空欄のままで構いません</p>
                 </div>
 
                 <!-- 予算・調理時間 -->
@@ -7995,6 +8083,9 @@ const PROFILE_HTML = `
                     allergiesContainer.appendChild(div);
                 });
 
+                // 子供のプロフィールを読み込み
+                await loadChildren();
+
                 // ローディング非表示、フォーム表示
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('profile-form').classList.remove('hidden');
@@ -8007,6 +8098,114 @@ const PROFILE_HTML = `
                 }, 2000);
             }
         });
+
+        // 子供のプロフィール管理
+        let childrenData = [];
+
+        async function loadChildren() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await axios.get('/api/children', {
+                    headers: { 'Authorization': \`Bearer \${token}\` }
+                });
+                childrenData = response.data.children || [];
+                renderChildren();
+            } catch (error) {
+                console.error('子供プロフィール取得エラー:', error);
+            }
+        }
+
+        function renderChildren() {
+            const container = document.getElementById('children-list');
+            container.innerHTML = '';
+            
+            if (childrenData.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-sm">まだ子供のプロフィールが登録されていません</p>';
+                return;
+            }
+
+            childrenData.forEach((child, index) => {
+                const dislikes = JSON.parse(child.dislikes_json || '[]');
+                const allergies = JSON.parse(child.allergies_json || '[]');
+                
+                const childCard = document.createElement('div');
+                childCard.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4';
+                childCard.innerHTML = \`
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="font-bold text-lg text-gray-800">\${child.name} （\${child.age}歳）</h3>
+                        </div>
+                        <button type="button" onclick="deleteChild('\${child.child_id}')" class="text-red-600 hover:text-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div>
+                            <span class="font-medium text-gray-700">嫌いなもの:</span>
+                            <span class="text-gray-600">\${dislikes.length > 0 ? dislikes.join(', ') : 'なし'}</span>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700">アレルギー:</span>
+                            <span class="text-gray-600">\${allergies.length > 0 ? allergies.join(', ') : 'なし'}</span>
+                        </div>
+                    </div>
+                \`;
+                container.appendChild(childCard);
+            });
+        }
+
+        async function addChild() {
+            const name = prompt('子供の名前を入力してください:');
+            if (!name) return;
+
+            const age = parseInt(prompt('年齢を入力してください:', '5'));
+            if (!age || age < 0 || age > 20) {
+                alert('有効な年齢を入力してください（0-20歳）');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                await axios.post('/api/children', {
+                    name,
+                    age,
+                    dislikes_json: '[]',
+                    allergies_json: '[]'
+                }, {
+                    headers: { 
+                        'Authorization': \`Bearer \${token}\`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                alert('子供のプロフィールを追加しました！');
+                await loadChildren();
+            } catch (error) {
+                console.error('子供追加エラー:', error);
+                alert('追加に失敗しました');
+            }
+        }
+
+        async function deleteChild(childId) {
+            if (!confirm('この子供のプロフィールを削除しますか？')) return;
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                await axios.delete(\`/api/children/\${childId}\`, {
+                    headers: { 'Authorization': \`Bearer \${token}\` }
+                });
+
+                alert('削除しました');
+                await loadChildren();
+            } catch (error) {
+                console.error('子供削除エラー:', error);
+                alert('削除に失敗しました');
+            }
+        }
+
+        // グローバルに公開
+        window.addChild = addChild;
+        window.deleteChild = deleteChild;
 
         // プロフィール保存
         async function saveProfile() {
