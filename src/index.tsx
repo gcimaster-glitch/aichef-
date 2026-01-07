@@ -299,7 +299,9 @@ const USER_DASHBOARD_HTML = `
                 <h1 class="text-2xl font-bold text-gray-800">AICHEFS</h1>
             </div>
             <div class="flex items-center gap-4">
-                <span id="user-name" class="text-gray-700"></span>
+                <a href="/dashboard" class="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
+                    <span id="user-name"></span>
+                </a>
                 <a href="/profile" class="text-sm text-purple-600 hover:underline">
                     <i class="fas fa-user-edit mr-1"></i>プロフィール編集
                 </a>
@@ -1159,7 +1161,7 @@ const appHtml = `<!DOCTYPE html>
             <div class="flex justify-between items-center mb-6 no-print">
                 <h2 class="text-3xl font-bold">
                     <i class="fas fa-calendar-alt mr-2"></i>
-                    1ヶ月分の献立
+                    <span id="plan-title">1ヶ月分の献立</span>
                 </h2>
                 <div class="flex gap-2 flex-wrap">
                     <button onclick="showHistory()" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition flex items-center gap-2 text-sm">
@@ -1192,7 +1194,9 @@ const appHtml = `<!DOCTYPE html>
                     </button>
                     <div id="user-info" class="hidden px-4 py-2 bg-gray-100 rounded-lg flex items-center gap-2">
                         <i class="fas fa-user-circle text-gray-600"></i>
-                        <span id="user-name" class="text-sm font-medium text-gray-700"></span>
+                        <a href="/dashboard" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
+                            <span id="user-name"></span>
+                        </a>
                         <button onclick="logout()" class="text-xs text-red-600 hover:underline ml-2">ログアウト</button>
                     </div>
                 </div>
@@ -1622,7 +1626,14 @@ const appHtml = `<!DOCTYPE html>
             {
                 id: 'confirm',
                 type: 'confirm',
-                text: '設定完了です！<br>これで1ヶ月分の献立を作成します。よろしいですか？',
+                text: function(data) {
+                    const planDays = data.plan_days || 30;
+                    const periodText = planDays === 7 ? '1週間' :
+                                       planDays === 14 ? '2週間' :
+                                       planDays === 21 ? '3週間' :
+                                       planDays === 30 ? '1ヶ月' : planDays + '日間';
+                    return '設定完了です！<br>これで' + periodText + '分の献立を作成します。よろしいですか？';
+                },
                 summary: true
             }
         ];
@@ -2037,7 +2048,8 @@ const appHtml = `<!DOCTYPE html>
                     }
                 }, 10);
                 
-                addMessage(question.text);
+                const messageText = typeof question.text === 'function' ? question.text(appState.data) : question.text;
+                addMessage(messageText);
                 showInput(question);
             }
         }
@@ -2087,7 +2099,8 @@ const appHtml = `<!DOCTYPE html>
                     }
                 }, 10);
                 
-                addMessage(question.text);
+                const messageText = typeof question.text === 'function' ? question.text(appState.data) : question.text;
+                addMessage(messageText);
                 showInput(question);
             }
         }
@@ -2370,6 +2383,13 @@ const appHtml = `<!DOCTYPE html>
                                daysCount === 14 ? '2週間' :
                                daysCount === 21 ? '3週間' :
                                daysCount === 30 ? '4週間（1ヶ月）' : daysCount + '日間';
+            
+            // 🎯 ヘッダータイトルを動的に更新
+            const planTitleEl = document.getElementById('plan-title');
+            if (planTitleEl) {
+                planTitleEl.textContent = periodText + '分の献立';
+            }
+            
             const toast = document.createElement('div');
             toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
             toast.style.animation = 'slideDown 0.5s ease-out, fadeOut 0.5s ease-out 4.5s';
@@ -4180,7 +4200,8 @@ const appHtml = `<!DOCTYPE html>
             }
             
             const question = questions[0];
-            addMessage(question.text);
+            const messageText = typeof question.text === 'function' ? question.text(appState.data) : question.text;
+            addMessage(messageText);
             showInput(question);
             
             // TOPページの広告を読み込み
