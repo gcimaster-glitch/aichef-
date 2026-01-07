@@ -503,6 +503,27 @@ pm2 logs --nostream
   - ルーティング: `/profile`
   - E2Eテスト完了（100%検出率）
 
+### 2026-01-07 (バグ修正 #5, #6完了)
+- 🔧 **Bug Fix #5: アレルギーフィルタリング強化**
+  - 問題: 魚アレルギーなのに魚料理が含まれる（ぶり大根、鯖の竜田揚げ、鮭のムニエル等）
+  - 原因: `dislikes_json`のみチェックし、`allergies_standard_json`をチェックしていない
+  - 修正: アレルギー設定（fish, squid, octopus, shellfish, offal）もdislikesと同様に扱う
+  - テスト結果: 魚アレルギー設定で魚料理0件 ✅
+  - コミット: `0bfc1c7`
+  - デプロイURL: `https://4720e8dd.aichef-595.pages.dev`
+
+- 🔧 **Bug Fix #6: 辛い料理除外 & 献立変更機能修正**
+  - 問題1: 辛い物が苦手なのに辛い料理が含まれる
+  - 修正1: `dislikes_json`に'spicy'を追加可能にし、辛い料理（麻婆、キムチ、カレー、担々等）を除外
+  - 問題2: 献立変更時に「献立情報がない」エラー
+  - 原因2: `appState.planId`がページリロード後に消える
+  - 修正2: planIdをlocalStorageに保存し、refreshCalendar関数で復元
+  - テスト項目:
+    1. 辛い物が苦手設定で辛い料理除外
+    2. 献立生成後に献立変更が正常動作
+  - コミット: `660d00e`
+  - デプロイURL: `https://b0c2820d.aichef-595.pages.dev`
+
 ### 2026-01-07 (バグ修正 #3, #4完了)
 - 🔧 **Bug Fix #3: 献立生成APIのスコープエラー修正**
   - 問題: `supervisor_mode is not defined` エラー
