@@ -261,6 +261,36 @@ npm run build
 npx wrangler pages deploy dist --project-name aichef
 ```
 
+### **環境変数の設定**
+
+本番環境では以下の環境変数を設定する必要があります：
+
+```bash
+# Stripe決済（寄付機能）
+npx wrangler pages secret put STRIPE_SECRET_KEY --project-name aichef
+# 入力: sk_live_YOUR_STRIPE_SECRET_KEY
+
+# Resendメール配信（お礼メール）
+npx wrangler pages secret put RESEND_API_KEY --project-name aichef
+# 入力: re_YOUR_RESEND_API_KEY
+
+# OpenAI API（献立説明機能）
+npx wrangler pages secret put OPENAI_API_KEY --project-name aichef
+# 入力: sk-YOUR_OPENAI_API_KEY
+```
+
+**Stripe公開可能キーの設定:**
+寄付ページ（`/donation`）のStripe公開可能キーを更新してください：
+- ファイル: `src/index.tsx`
+- 行: 約8792行目
+- 変更前: `const stripe = Stripe('pk_test_YOUR_PUBLISHABLE_KEY');`
+- 変更後: `const stripe = Stripe('pk_live_YOUR_PUBLISHABLE_KEY');`
+
+**環境変数の確認:**
+```bash
+npx wrangler pages secret list --project-name aichef
+```
+
 ---
 
 ## 📈 完成度
@@ -682,6 +712,42 @@ pm2 logs --nostream
   - テスト方法: 献立生成30日分を3回実施し、マカロニサラダが2回以下であることを確認
   - コミット: `f18054d`
   - デプロイURL: `https://0653eba8.aichef-595.pages.dev`
+
+### 2026-01-07 (機能実装 #11: Stripe決済 & Resendメール配信)
+- 💳 **Feature #11: Stripe決済統合（寄付機能）**
+  - 実装内容: 寄付ページにStripe決済フォームを追加
+  - API実装:
+    - POST `/api/donations/create-payment-intent` - Stripe Payment Intent作成
+    - Stripe Elements統合 - カード情報入力フォーム（セキュアな決済）
+  - 決済フロー:
+    1. ユーザーがカード情報を入力
+    2. Stripe Payment Intentを作成（サーバー側）
+    3. Stripeで決済を確認（クライアント側）
+    4. 決済成功後、寄付をDBに登録（payment_intent_id保存）
+    5. お礼メール送信（Resend API）
+  - セキュリティ: Stripe公開可能キーはフロントエンド、シークレットキーはサーバー側で管理
+  - UI改善: カード入力フィールド、決済処理中のスピナー表示、エラーメッセージ表示
+  - コミット: `7865339`
+  - デプロイURL: `https://3ab3ef22.aichef-595.pages.dev`
+
+- 📧 **Feature #11: Resendメール配信統合（お礼メール）**
+  - 実装内容: 寄付完了後にお礼メールを自動送信
+  - API実装:
+    - POST `/api/donations/send-thank-you-email` - Resend APIでメール送信
+  - メールテンプレート:
+    - HTMLメール（レスポンシブデザイン）
+    - 寄付詳細表示（証明書番号、寄付金額、寄付日）
+    - 応援メッセージの引用
+    - AICHEFSブランディング（ロゴ、カラー、リンク）
+  - 送信タイミング: Stripe決済成功直後、寄付登録完了後
+  - From: `AICHEFS <noreply@aichefs.net>`
+  - コミット: `7865339`
+  - デプロイURL: `https://3ab3ef22.aichef-595.pages.dev`
+
+- 🗄️ **Feature #11: データベース拡張**
+  - donationsテーブルに `payment_intent_id` カラム追加
+  - Stripe Payment IntentのIDを保存して、決済の追跡と照合を可能に
+  - 既存データへの影響: NULL許容、既存レコードへの影響なし
 
 ### 2026-01-07 (バグ修正 #10, #11, #12完了)
 - 🔧 **Bug Fix #10: household_id未定義エラー修正（献立生成API）**
