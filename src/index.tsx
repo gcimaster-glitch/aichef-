@@ -2396,7 +2396,7 @@ const appHtml = `<!DOCTYPE html>
             toast.style.animation = 'slideDown 0.5s ease-out, fadeOut 0.5s ease-out 4.5s';
             toast.innerHTML = '<i class="fas fa-check-circle text-3xl"></i>' +
                 '<div>' +
-                    '<div class="font-bold text-lg">🎉 献立が完成しました！</div>' +
+                    '<div class="font-bold text-lg">\uD83C\uDF89 献立が完成しました！</div>' +
                     '<div class="text-sm opacity-90">' + periodText + '分の献立をお楽しみください</div>' +
                 '</div>';
             document.body.appendChild(toast);
