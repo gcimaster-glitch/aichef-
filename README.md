@@ -523,6 +523,84 @@ pm2 logs --nostream
   - コミット: `9984150`
   - デプロイURL: `https://c273ee22.aichef-595.pages.dev`
 
+### 2026-01-07 (新機能 #10: 子供個別プロフィール機能 - Phase 1完了)
+- 🎯 **子供個別の嫌いなもの・アレルギー管理機能（バックエンド完了）**
+  - 背景: 従来は家族全体の嫌いなもの・アレルギーのみ対応
+  - 問題: 子供1はピーマン嫌い、子供2は魚嫌いといった個別設定ができない
+  - 解決策: 子供個別のプロフィール機能を実装
+  
+  **Phase 1完了内容（バックエンド）**:
+  
+  1. **データベース設計**
+     - `children_profiles` テーブル作成
+     - フィールド: `child_id`, `household_id`, `name`, `age`, `dislikes_json`, `allergies_json`, `notes`
+     - インデックス: `household_id` で高速検索
+  
+  2. **子供プロフィールAPI実装**
+     - `GET /api/children` - 子供プロフィール一覧取得
+     - `POST /api/children` - 新規作成
+     - `PUT /api/children/:child_id` - 更新
+     - `DELETE /api/children/:child_id` - 削除
+     - 認証: Bearer token（household_id）
+     - 権限: 自分の家族の子供のみ編集可能
+  
+  3. **献立生成時のフィルタリング統合**
+     - 従来: 家族全体の嫌いなもの・アレルギーのみ考慮
+     - 改善: **全ての子供の嫌いなもの・アレルギーを自動統合**
+     - 統合ロジック:
+       ```typescript
+       // 家族全体の嫌いなもの
+       dislikes = ['spicy'] // 辛い物
+       
+       // 子供1の嫌いなもの
+       child1.dislikes = ['green_pepper'] // ピーマン
+       
+       // 子供2の嫌いなもの
+       child2.dislikes = ['fish'] // 魚
+       
+       // 統合結果
+       allDislikes = ['spicy', 'green_pepper', 'fish']
+       // → 献立生成時に全て除外される！
+       ```
+  
+  **使用例（APIでの直接操作）**:
+  ```bash
+  # 子供プロフィール作成
+  curl -X POST https://aichefs.net/api/children \
+    -H "Authorization: Bearer YOUR_HOUSEHOLD_ID" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "name": "太郎",
+      "age": 5,
+      "dislikes_json": "[\"green_pepper\", \"eggplant\"]",
+      "allergies_json": "[\"egg\"]"
+    }'
+  
+  # 献立生成（子供の嫌いなものも自動除外）
+  curl -X POST https://aichefs.net/api/plans/generate \
+    -H "Content-Type: application/json" \
+    -d '{
+      "household_id": "YOUR_HOUSEHOLD_ID",
+      "menu_variety": "balanced",
+      "supervisor_mode": "general"
+    }'
+  ```
+  
+  **期待効果**:
+  - 子供1（5歳）: ピーマン・ナス嫌い、卵アレルギー
+  - 子供2（8歳）: 魚嫌い
+  - 親: 辛い物嫌い
+  
+  → **献立に「ピーマン」「ナス」「卵」「魚」「辛い料理」が一切含まれない！**
+  
+  **Phase 2予定（未実装）**:
+  - プロフィール編集画面のUI実装（ブラウザから子供を追加・編集・削除）
+  - 子供一覧表示
+  - 嫌いなもの・アレルギーのチェックボックスUI
+  
+  - コミット: `3cd4229`
+  - デプロイURL: `https://099144dc.aichef-595.pages.dev`
+
 ### 2026-01-07 (バグ修正 #8, #9完了)
 - 🔧 **Bug Fix #8: 肉フィルタリング機能の実装**
   - 問題: 肉・魚嫌いを設定してもベジタリアン献立にならない
