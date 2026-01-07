@@ -3728,36 +3728,54 @@ const appHtml = `<!DOCTYPE html>
                 
                 // サーバーに献立の入れ替えをリクエスト
                 try {
+                    // 🚀 楽観的更新：先にDOM要素を入れ替えて即座に反映
+                    const draggedContent = draggedElement.innerHTML;
+                    const dropContent = dropTarget.innerHTML;
+                    draggedElement.innerHTML = dropContent;
+                    dropTarget.innerHTML = draggedContent;
+                    
+                    // calendarDataも更新
+                    const draggedDay = calendarData.find(d => d.plan_day_id === draggedData.planDayId);
+                    const targetDay = calendarData.find(d => d.plan_day_id === targetData.planDayId);
+                    if (draggedDay && targetDay) {
+                        const tempDate = draggedDay.date;
+                        draggedDay.date = targetDay.date;
+                        targetDay.date = tempDate;
+                    }
+                    
+                    // ローディングを削除（即座に完了したように見せる）
+                    loadingToast.remove();
+                    
+                    // 成功メッセージ
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce';
+                    toast.innerHTML = '<i class="fas fa-check-circle mr-2"></i>✓ 献立を入れ替えました';
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 2000);
+                    
+                    // バックグラウンドでサーバーに送信（失敗時のみ元に戻す）
                     const res = await axios.post('/api/plans/swap-days', {
-                        plan_id: appState.planId,
+                        plan_id: appState.planId || localStorage.getItem('current_plan_id'),
                         day1_id: draggedData.planDayId,
                         day2_id: targetData.planDayId
                     });
                     
-                    if (res.data.success) {
-                        // 献立データを再取得して更新
-                        const planRes = await axios.get(\`/api/plans/\${appState.planId}\`);
-                        calendarData = planRes.data.days;
-                        
-                        // 現在のビューモードで再描画
-                        if (currentViewMode === 'calendar') {
-                            renderCalendarView(calendarData);
-                        } else {
-                            renderGridView(calendarData);
-                        }
-                        
-                        // ローディングを削除
-                        loadingToast.remove();
-                        
-                        // 成功メッセージ
-                        const toast = document.createElement('div');
-                        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce';
-                        toast.innerHTML = '<i class="fas fa-check-circle mr-2"></i>✓ 献立を入れ替えました';
-                        document.body.appendChild(toast);
-                        setTimeout(() => toast.remove(), 2000);
+                    if (!res.data.success) {
+                        // サーバー側で失敗した場合は元に戻す
+                        draggedElement.innerHTML = draggedContent;
+                        dropTarget.innerHTML = dropContent;
+                        alert('献立の入れ替えに失敗しました。もう一度お試しください。');
                     }
                 } catch (error) {
                     console.error('献立の入れ替えエラー:', error);
+                    // エラー時は全体を再読み込み
+                    const planRes = await axios.get(\`/api/plans/\${appState.planId || localStorage.getItem('current_plan_id')}\`);
+                    calendarData = planRes.data.days;
+                    if (currentViewMode === 'calendar') {
+                        renderCalendarView(calendarData);
+                    } else {
+                        renderGridView(calendarData);
+                    }
                     // ローディングを削除
                     if (document.getElementById('drag-loading-toast')) {
                         document.getElementById('drag-loading-toast').remove();
