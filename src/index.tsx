@@ -2394,11 +2394,7 @@ const appHtml = `<!DOCTYPE html>
             const toast = document.createElement('div');
             toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
             toast.style.animation = 'slideDown 0.5s ease-out, fadeOut 0.5s ease-out 4.5s';
-            toast.innerHTML = '<i class="fas fa-check-circle text-3xl"></i>' +
-                '<div>' +
-                    '<div class="font-bold text-lg">\uD83C\uDF89 献立が完成しました！</div>' +
-                    '<div class="text-sm opacity-90">' + periodText + '分の献立をお楽しみください</div>' +
-                '</div>';
+            toast.innerHTML = '<i class="fas fa-check-circle text-3xl"></i><div><div class="font-bold text-lg">\uD83C\uDF89 献立が完成しました！</div><div class="text-sm opacity-90">' + periodText + '分の献立をお楽しみください</div></div>';
             document.body.appendChild(toast);
             
             // 5秒後にトーストを削除
