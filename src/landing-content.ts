@@ -23,7 +23,6 @@ export const LANDING_HTML = `<!DOCTYPE html>
         /* ヒーローセクション */
         .hero-section {
             height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -33,14 +32,40 @@ export const LANDING_HTML = `<!DOCTYPE html>
             overflow: hidden;
         }
         
+        /* 動画背景 */
+        .hero-video-background {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            object-fit: cover;
+        }
+        
+        /* 動画オーバーレイ（暗く） */
+        .hero-video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+        
         .hero-section::before {
             content: '';
             position: absolute;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
             background-size: 50px 50px;
             animation: float 20s linear infinite;
+            z-index: 2;
         }
         
         @keyframes float {
@@ -252,6 +277,13 @@ export const LANDING_HTML = `<!DOCTYPE html>
 
     <!-- ヒーローセクション -->
     <section class="hero-section">
+        <!-- 動画背景 -->
+        <video class="hero-video-background" autoplay muted loop playsinline>
+            <source src="/hero-video.mp4" type="video/mp4">
+        </video>
+        <!-- オーバーレイ -->
+        <div class="hero-video-overlay"></div>
+        
         <div class="hero-content">
             <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
                 <i class="fas fa-utensils" style="font-size: 4rem; color: #fff;"></i>
