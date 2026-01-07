@@ -5110,7 +5110,16 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         }
         
         // 🐟 タイトルベースの魚フィルタリング（primary_proteinが"other"の魚料理対応）
-        const fishKeywords = ['鮭', 'サバ', 'アジ', 'サンマ', 'ブリ', 'タラ', '魚', '白身魚', 'シーフード', '海鮮', 'まぐろ', 'マグロ', 'いわし', 'イワシ', 'かつお', 'カツオ', 'さんま', 'ぶり', 'たら'];
+        // ✅ 改善委員会決定：シーフード系の完全除外キーワードリスト
+        const fishKeywords = [
+          '鮭', 'サバ', 'アジ', 'サンマ', 'ブリ', 'タラ', '魚', '白身魚', 
+          'シーフード', '海鮮', 'まぐろ', 'マグロ', 'いわし', 'イワシ', 
+          'かつお', 'カツオ', 'さんま', 'ぶり', 'たら', 'サーモン',
+          '魚介', '魚卵', 'イクラ', 'タラコ', '明太子', 
+          'かつお節', 'だし', '魚醤', 'ナンプラー',
+          '海老', 'エビ', 'カニ', '蟹', 'イカ', 'タコ',
+          '貝', 'ホタテ', 'アサリ', 'シジミ', '牡蠣'
+        ];
         if (dislikes.includes('fish') && fishKeywords.some(keyword => recipe.title.includes(keyword))) {
           console.log(`除外: ${recipe.title} (タイトルに魚名/シーフード - 魚嫌い)`);
           continue;
@@ -5215,27 +5224,57 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return shuffled;
     };
     
-    // 直近N日間の重複をチェックして選択（厳格版 + タイトル重複チェック）
+    // 直近N日間の重複をチェックして選択（厳格版 + タイトル重複チェック + 全期間重複最小化）
+    // ✅ 改善委員会決定：重複を最小化するため、全期間でのレシピ使用状況を管理
     const selectRecipeWithoutRecent = (recipes: any[], recentRecipes: any[], minDays: number = 7) => {
       // 直近minDays日間に使われていないレシピIDをチェック
       const recentIds = recentRecipes.slice(-minDays).map(r => r?.recipe_id);
       // 直近minDays日間に使われていないタイトルもチェック（重複レシピ対策）
       const recentTitles = recentRecipes.slice(-minDays).map(r => r?.title);
       
-      const available = recipes.filter(r => 
+      // 全期間での使用回数をカウント（重複最小化）
+      const usageCount = new Map<string, number>();
+      for (const r of recentRecipes) {
+        if (r && r.recipe_id) {
+          usageCount.set(r.recipe_id, (usageCount.get(r.recipe_id) || 0) + 1);
+        }
+      }
+      
+      let available = recipes.filter(r => 
         !recentIds.includes(r.recipe_id) && 
         !recentTitles.includes(r.title)  // タイトル重複もチェック
       );
       
-      // 利用可能なレシピがない場合はエラーログを出力
+      // 利用可能なレシピがない場合
       if (available.length === 0) {
         console.error('警告: 利用可能なレシピが不足しています。レシピ総数:', recipes.length, '直近使用数:', recentIds.length);
-        // それでも選択が必要な場合は、最も古いものから選択
-        const oldestRecipe = recipes.find(r => !recentIds.slice(-Math.floor(minDays / 2)).includes(r.recipe_id));
-        return oldestRecipe || recipes[Math.floor(Math.random() * recipes.length)];
+        // 使用回数が最も少ないレシピを選択（公平に分散）
+        let minUsage = Infinity;
+        let leastUsedRecipes = [];
+        for (const r of recipes) {
+          const count = usageCount.get(r.recipe_id) || 0;
+          if (count < minUsage) {
+            minUsage = count;
+            leastUsedRecipes = [r];
+          } else if (count === minUsage) {
+            leastUsedRecipes.push(r);
+          }
+        }
+        return leastUsedRecipes[Math.floor(Math.random() * leastUsedRecipes.length)];
       }
       
-      return available[Math.floor(Math.random() * available.length)];
+      // 使用回数が少ないレシピを優先（同じ重複回数なら最近使われていないものを優先）
+      available.sort((a, b) => {
+        const countA = usageCount.get(a.recipe_id) || 0;
+        const countB = usageCount.get(b.recipe_id) || 0;
+        return countA - countB;
+      });
+      
+      // 使用回数が最も少ないグループからランダム選択（多様性確保）
+      const minUsageInAvailable = usageCount.get(available[0].recipe_id) || 0;
+      const leastUsed = available.filter(r => (usageCount.get(r.recipe_id) || 0) === minUsageInAvailable);
+      
+      return leastUsed[Math.floor(Math.random() * leastUsed.length)];
     };
     
     // カレー系のレシピ判定（より厳密に）
@@ -5244,10 +5283,19 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return curryKeywords.some(keyword => recipe.title?.includes(keyword));
     };
     
-    // 同じカテゴリの連続を避ける関数（7日間厳守 + カレー系の7日間隔厳守 + タイトル重複防止）
+    // 同じカテゴリの連続を避ける関数（7日間厳守 + カレー系の7日間隔厳守 + タイトル重複防止 + 全期間重複最小化）
+    // ✅ 改善委員会決定：カテゴリ多様性を最大化
     const avoidSameCategory = (recipes: any[], lastRecipe: any, recentRecipes: any[], minDays: number) => {
       const recentIds = recentRecipes.slice(-minDays).map(r => r?.recipe_id);
       const recentTitles = recentRecipes.slice(-minDays).map(r => r?.title);
+      
+      // 全期間での使用回数をカウント
+      const usageCount = new Map<string, number>();
+      for (const r of recentRecipes) {
+        if (r && r.recipe_id) {
+          usageCount.set(r.recipe_id, (usageCount.get(r.recipe_id) || 0) + 1);
+        }
+      }
       
       // 直近7日間に使われていないレシピ（IDとタイトル両方チェック）
       let available = recipes.filter(r => 
@@ -5277,16 +5325,43 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       // 利用可能なレシピがない場合
       if (available.length === 0) {
         console.error('警告: カテゴリフィルタ後のレシピが不足しています');
-        // 7日間ルールを緩和せず、カレー系だけ除外
-        available = recipes.filter(r => !recentIds.includes(r.recipe_id) && !isCurryOrStew(r));
-        if (available.length === 0) {
-          // 最終手段：最も古いレシピを選択（ただしカレー系は避ける）
-          const nonCurry = recipes.filter(r => !isCurryOrStew(r));
-          available = nonCurry.length > 0 ? nonCurry : recipes;
+        // 使用回数が最も少ないレシピを選択（カレー系除外）
+        const nonCurry = recipes.filter(r => !recentIds.includes(r.recipe_id) && !isCurryOrStew(r));
+        if (nonCurry.length > 0) {
+          available = nonCurry;
+        } else {
+          // 最終手段：使用回数が最も少ないレシピを選択
+          let minUsage = Infinity;
+          let leastUsedRecipes = [];
+          for (const r of recipes) {
+            if (isCurryOrStew(r)) continue; // カレー系は避ける
+            const count = usageCount.get(r.recipe_id) || 0;
+            if (count < minUsage) {
+              minUsage = count;
+              leastUsedRecipes = [r];
+            } else if (count === minUsage) {
+              leastUsedRecipes.push(r);
+            }
+          }
+          if (leastUsedRecipes.length === 0) {
+            leastUsedRecipes = recipes.filter(r => !isCurryOrStew(r));
+          }
+          return leastUsedRecipes[Math.floor(Math.random() * leastUsedRecipes.length)];
         }
       }
       
-      return available[Math.floor(Math.random() * available.length)];
+      // 使用回数が少ないレシピを優先
+      available.sort((a, b) => {
+        const countA = usageCount.get(a.recipe_id) || 0;
+        const countB = usageCount.get(b.recipe_id) || 0;
+        return countA - countB;
+      });
+      
+      // 使用回数が最も少ないグループからランダム選択
+      const minUsageInAvailable = usageCount.get(available[0].recipe_id) || 0;
+      const leastUsed = available.filter(r => (usageCount.get(r.recipe_id) || 0) === minUsageInAvailable);
+      
+      return leastUsed[Math.floor(Math.random() * leastUsed.length)];
     };
     
     // レシピをシャッフル
