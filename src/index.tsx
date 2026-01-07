@@ -4988,18 +4988,19 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     const combinedFilter = popularityFilter + ' ' + supervisorFilter + ' ' + timeFilter;
     console.log('combinedFilter:', combinedFilter);
     
-    // 全レシピを人気度順に取得
-    console.log('レシピ取得開始');
+    // 全レシピをランダム順に取得（人気度を無視）
+    // ✅ 改善委員会決定：人気度順ではなく完全ランダム化で多様性を確保
+    console.log('レシピ取得開始（完全ランダム順）');
     const allMainRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='main' ${combinedFilter} ORDER BY popularity DESC, RANDOM()`
+      `SELECT * FROM recipes WHERE role='main' ${combinedFilter} ORDER BY RANDOM()`
     ).all();
     
     const allSideRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='side' ${combinedFilter} ORDER BY popularity DESC, RANDOM()`
+      `SELECT * FROM recipes WHERE role='side' ${combinedFilter} ORDER BY RANDOM()`
     ).all();
     
     const allSoupRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='soup' ${combinedFilter} ORDER BY popularity DESC, RANDOM()`
+      `SELECT * FROM recipes WHERE role='soup' ${combinedFilter} ORDER BY RANDOM()`
     ).all();
 
     let mainRecipes = (allMainRecipes.results ?? []) as any[];
@@ -5225,8 +5226,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     };
     
     // 直近N日間の重複をチェックして選択（厳格版 + タイトル重複チェック + 全期間重複最小化）
-    // ✅ 改善委員会決定：重複を最小化するため、全期間でのレシピ使用状況を管理
-    const selectRecipeWithoutRecent = (recipes: any[], recentRecipes: any[], minDays: number = 7) => {
+    // ✅ 改善委員会決定：重複を最小化するため、全期間でのレシピ使用状況を管理（デフォルト14日間）
+    const selectRecipeWithoutRecent = (recipes: any[], recentRecipes: any[], minDays: number = 14) => {
       // 直近minDays日間に使われていないレシピIDをチェック
       const recentIds = recentRecipes.slice(-minDays).map(r => r?.recipe_id);
       // 直近minDays日間に使われていないタイトルもチェック（重複レシピ対策）
@@ -5283,8 +5284,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return curryKeywords.some(keyword => recipe.title?.includes(keyword));
     };
     
-    // 同じカテゴリの連続を避ける関数（7日間厳守 + カレー系の7日間隔厳守 + タイトル重複防止 + 全期間重複最小化）
-    // ✅ 改善委員会決定：カテゴリ多様性を最大化
+    // 同じカテゴリの連続を避ける関数（14日間厳守 + カレー系の14日間隔厳守 + タイトル重複防止 + 全期間重複最小化）
+    // ✅ 改善委員会決定：カテゴリ多様性を最大化（デフォルト14日間）
     const avoidSameCategory = (recipes: any[], lastRecipe: any, recentRecipes: any[], minDays: number) => {
       const recentIds = recentRecipes.slice(-minDays).map(r => r?.recipe_id);
       const recentTitles = recentRecipes.slice(-minDays).map(r => r?.title);
@@ -5297,21 +5298,21 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         }
       }
       
-      // 直近7日間に使われていないレシピ（IDとタイトル両方チェック）
+      // 直近14日間に使われていないレシピ（IDとタイトル両方チェック）
       let available = recipes.filter(r => 
         !recentIds.includes(r.recipe_id) && 
         !recentTitles.includes(r.title)  // タイトル重複もチェック
       );
       
-      // カレー系のレシピIDを直近7日間から抽出
+      // カレー系のレシピIDを直近14日間から抽出
       const recentCurryIds = recentRecipes.slice(-minDays)
         .filter(r => r && isCurryOrStew(r))
         .map(r => r.recipe_id);
       
-      // カレー系を選択する場合は、直近7日間にカレー系がないかチェック
+      // カレー系を選択する場合は、直近14日間にカレー系がないかチェック
       available = available.filter(r => {
         if (isCurryOrStew(r)) {
-          // このレシピがカレー系の場合、直近7日間にカレー系がないことを確認
+          // このレシピがカレー系の場合、直近14日間にカレー系がないことを確認
           return recentCurryIds.length === 0;
         }
         return true;
@@ -5377,10 +5378,14 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     for (let i = 0; i < period.dates.length; i++) {
       const date = period.dates[i];
       
+      // ✅ 改善委員会決定：重複間隔を14日間に延長（2週間）
       // 重複を避けてレシピを選択（カレー系の連続も避ける）
       const lastMain = usedMainRecipes.length > 0 ? usedMainRecipes[usedMainRecipes.length - 1] : null;
-      const main = avoidSameCategory(shuffledMainRecipes, lastMain, usedMainRecipes, 7);
-      const side = selectRecipeWithoutRecent(shuffledSideRecipes, usedSideRecipes, 7);
+      const main = avoidSameCategory(shuffledMainRecipes, lastMain, usedMainRecipes, 14);
+      const side = selectRecipeWithoutRecent(shuffledSideRecipes, usedSideRecipes, 14);
+      
+      // デバッグログ
+      console.log(`Day ${i+1} (${date}): Main=${main.title}, Side=${side.title}`);
       
       // カレー系の場合は汁物をサラダ系に変更
       let soup;
@@ -5390,11 +5395,13 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           r.title?.includes('サラダ') || r.title?.includes('和え')
         );
         soup = saladRecipes.length > 0 
-          ? selectRecipeWithoutRecent(saladRecipes, usedSoupRecipes, 7)
-          : selectRecipeWithoutRecent(shuffledSoupRecipes, usedSoupRecipes, 7);
+          ? selectRecipeWithoutRecent(saladRecipes, usedSoupRecipes, 14)
+          : selectRecipeWithoutRecent(shuffledSoupRecipes, usedSoupRecipes, 14);
       } else {
-        soup = selectRecipeWithoutRecent(shuffledSoupRecipes, usedSoupRecipes, 7);
+        soup = selectRecipeWithoutRecent(shuffledSoupRecipes, usedSoupRecipes, 14);
       }
+      
+      console.log(`   Soup=${soup.title}`);
       
       // 履歴に追加
       usedMainRecipes.push(main);
