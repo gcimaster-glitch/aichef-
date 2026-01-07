@@ -1399,6 +1399,7 @@ const appHtml = `<!DOCTYPE html>
                 title: '',
                 start_date: '',
                 months: 1,
+                plan_days: 30,  // デフォルト値を追加
                 members_count: 0,
                 members: [],
                 budget_tier_per_person: 500,
