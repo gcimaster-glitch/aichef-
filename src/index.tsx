@@ -437,23 +437,20 @@ const USER_DASHBOARD_HTML = `
                 
                 const listEl = document.getElementById('history-list');
                 if (data.plans && data.plans.length > 0) {
-                    listEl.innerHTML = data.histories.map(h => '<div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">' +
+                    listEl.innerHTML = data.plans.map(h => '<div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">' +
                         '<div class="flex justify-between items-start">' +
                             '<div>' +
-                                '<h3 class="font-bold text-lg text-gray-800">' + h.title + '</h3>' +
+                                '<h3 class="font-bold text-lg text-gray-800">献立 (' + h.start_date + ')</h3>' +
                                 '<p class="text-sm text-gray-600 mt-1">' +
-                                    '<i class="far fa-calendar mr-1"></i>' + h.start_date + ' ~ ' + h.end_date +
+                                    '<i class="far fa-calendar mr-1"></i>' + h.start_date + ' から' + (h.months || 1) + 'ヶ月分' +
                                 '</p>' +
                                 '<p class="text-sm text-gray-600">' +
-                                    '<i class="fas fa-users mr-1"></i>' + h.members_count + '人分 | ' + h.total_days + '日間' +
+                                    '<i class="far fa-clock mr-1"></i>作成日: ' + new Date(h.created_at).toLocaleDateString('ja-JP') +
                                 '</p>' +
                             '</div>' +
                             '<div class="flex gap-2">' +
-                                '<button class="history-view-btn text-blue-600 hover:text-blue-800" data-history-id="' + h.history_id + '">' +
-                                    '<i class="fas fa-eye"></i>' +
-                                '</button>' +
-                                '<button class="history-delete-btn text-red-600 hover:text-red-800" data-history-id="' + h.history_id + '">' +
-                                    '<i class="fas fa-trash"></i>' +
+                                '<button class="load-history-btn text-blue-600 hover:text-blue-800 px-3 py-1 bg-blue-50 rounded" data-plan-id="' + h.plan_id + '">' +
+                                    '<i class="fas fa-eye mr-1"></i>表示' +
                                 '</button>' +
                             '</div>' +
                         '</div>' +
@@ -4273,17 +4270,20 @@ const appHtml = `<!DOCTYPE html>
                             // モーダルを閉じる
                             closeAuthModal();
                             
-                            // 成功メッセージ
+                            // 成功メッセージとリダイレクト
                             if (isLogin) {
                                 console.log('ログイン成功');
+                                // ログイン成功後はダッシュボードへリダイレクト
+                                setTimeout(() => {
+                                    window.location.href = '/dashboard';
+                                }, 500);
                             } else {
                                 alert('会員登録が完了しました！');
+                                // 会員登録後もダッシュボードへリダイレクト
+                                setTimeout(() => {
+                                    window.location.href = '/dashboard';
+                                }, 1000);
                             }
-                            
-                            // 印刷機能を実行（印刷ボタンから呼ばれた場合）
-                            setTimeout(() => {
-                                handlePrint();
-                            }, 500);
                         } else {
                             errorDiv.classList.remove('hidden');
                             errorText.textContent = data.error || '処理に失敗しました';
