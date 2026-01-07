@@ -3948,8 +3948,8 @@ const appHtml = `<!DOCTYPE html>
         window.copyToClipboard = copyToClipboard;
         window.closeModal = closeModal;
 
-        // レシピリンクのイベントデリゲーション
-        document.addEventListener('click', (e) => {
+        // レシピリンクのイベントデリゲーション（DOMContentLoadedで登録）
+        // document.addEventListener('click', (e) => {
             const target = e.target;
             const recipeLink = target.closest('.recipe-link');
             if (recipeLink) {
@@ -4084,7 +4084,7 @@ const appHtml = `<!DOCTYPE html>
                     copyToClipboard(url);
                 }
             }
-        });
+        // });
         window.closeRecipeModal = closeRecipeModal;
         window.closeShoppingModal = closeShoppingModal;
         
@@ -4294,6 +4294,144 @@ const appHtml = `<!DOCTYPE html>
             
             // TOPページの広告を読み込み
             loadAds('top_page');
+            
+            // イベントデリゲーション設定
+            document.addEventListener('click', (e) => {
+                const target = e.target;
+                const recipeLink = target.closest('.recipe-link');
+                if (recipeLink) {
+                    e.preventDefault();
+                    const recipeId = recipeLink.getAttribute('data-recipe-id');
+                    const recipeTitle = recipeLink.getAttribute('data-recipe-title');
+                    if (recipeId && recipeTitle) {
+                        showRecipeDetail(recipeId, recipeTitle);
+                    }
+                }
+                
+                // 履歴ボタンのイベントデリゲーション
+                const historyViewBtn = target.closest('.history-view-btn');
+                if (historyViewBtn) {
+                    e.preventDefault();
+                    const historyId = historyViewBtn.getAttribute('data-history-id');
+                    if (historyId) {
+                        viewHistory(historyId);
+                    }
+                }
+                
+                const historyDeleteBtn = target.closest('.history-delete-btn');
+                if (historyDeleteBtn) {
+                    e.preventDefault();
+                    const historyId = historyDeleteBtn.getAttribute('data-history-id');
+                    if (historyId) {
+                        deleteHistory(historyId);
+                    }
+                }
+                
+                // 献立説明ボタン
+                const explainBtn = target.closest('.explain-menu-btn');
+                if (explainBtn) {
+                    e.preventDefault();
+                    const planDayId = explainBtn.getAttribute('data-plan-day-id');
+                    const date = explainBtn.getAttribute('data-date');
+                    if (date) {
+                        explainMenu(planDayId || '', date);
+                    }
+                }
+                
+                // 献立変更ボタン
+                const suggestBtn = target.closest('.suggest-change-btn');
+                if (suggestBtn) {
+                    e.preventDefault();
+                    const planDayId = suggestBtn.getAttribute('data-plan-day-id');
+                    const date = suggestBtn.getAttribute('data-date');
+                    if (date) {
+                        suggestChange(planDayId || '', date);
+                    }
+                }
+                
+                // レシピ差し替えボタン
+                const replaceBtn = target.closest('.replace-recipe-btn');
+                if (replaceBtn) {
+                    e.preventDefault();
+                    const planDayId = replaceBtn.getAttribute('data-plan-day-id');
+                    const role = replaceBtn.getAttribute('data-role');
+                    const recipeId = replaceBtn.getAttribute('data-recipe-id');
+                    const title = replaceBtn.getAttribute('data-title');
+                    if (planDayId && role && recipeId && title) {
+                        replaceRecipe(planDayId, role, recipeId, title);
+                    }
+                }
+                
+                // 買い物リストタブ切り替え
+                const shoppingTabBtn = target.closest('.shopping-tab-btn');
+                if (shoppingTabBtn) {
+                    e.preventDefault();
+                    const weekId = shoppingTabBtn.getAttribute('data-week-id');
+                    if (weekId) {
+                        switchShoppingTab(weekId);
+                    }
+                }
+                
+                // お気に入り追加ボタン
+                const addFavoriteBtn = target.closest('.add-favorite-btn');
+                if (addFavoriteBtn) {
+                    e.preventDefault();
+                    const recipeId = addFavoriteBtn.getAttribute('data-recipe-id');
+                    const recipeTitle = addFavoriteBtn.getAttribute('data-recipe-title');
+                    if (recipeId && recipeTitle) {
+                        addToFavorites(recipeId, recipeTitle);
+                    }
+                }
+                
+                // レシピ共有ボタン
+                const shareRecipeBtn = target.closest('.share-recipe-btn');
+                if (shareRecipeBtn) {
+                    e.preventDefault();
+                    const recipeId = shareRecipeBtn.getAttribute('data-recipe-id');
+                    const recipeTitle = shareRecipeBtn.getAttribute('data-recipe-title');
+                    if (recipeId && recipeTitle) {
+                        shareRecipe(recipeId, recipeTitle);
+                    }
+                }
+                
+                // 履歴読み込みボタン
+                const loadHistoryBtn = target.closest('.load-history-btn');
+                if (loadHistoryBtn) {
+                    e.preventDefault();
+                    const planId = loadHistoryBtn.getAttribute('data-plan-id');
+                    if (planId) {
+                        loadHistory(planId);
+                    }
+                }
+                
+                // 履歴アーカイブボタン
+                const archiveHistoryBtn = target.closest('.archive-history-btn');
+                if (archiveHistoryBtn) {
+                    e.preventDefault();
+                    const historyId = archiveHistoryBtn.getAttribute('data-history-id');
+                    if (historyId) {
+                        archiveHistory(historyId);
+                    }
+                }
+                
+                // お気に入り削除ボタン
+                const removeFavoriteBtn = target.closest('.remove-favorite-btn');
+                if (removeFavoriteBtn) {
+                    e.preventDefault();
+                    const index = parseInt(removeFavoriteBtn.getAttribute('data-index') || '0');
+                    removeFromFavorites(index);
+                }
+                
+                // クリップボードコピーボタン
+                const copyClipboardBtn = target.closest('.copy-clipboard-btn');
+                if (copyClipboardBtn) {
+                    e.preventDefault();
+                    const url = copyClipboardBtn.getAttribute('data-url');
+                    if (url) {
+                        copyToClipboard(url);
+                    }
+                }
+            });
         });
     </script>
     

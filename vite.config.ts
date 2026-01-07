@@ -16,8 +16,6 @@ export default defineConfig({
   publicDir: 'public',
   build: {
     outDir: 'dist',
-    emptyOutDir: false, // Don't delete public files
-    sourcemap: true, // Enable source maps for debugging
-    minify: false // Disable minification for easier debugging
+    emptyOutDir: false // Don't delete public files
   }
 })
