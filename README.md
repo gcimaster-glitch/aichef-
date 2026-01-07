@@ -109,10 +109,23 @@
    - API実装（GET /api/profile、PUT /api/profile/update）
    - ダッシュボードからのアクセス
 
-#### 🚧 **Phase G Step 2-3: 今後の実装予定**
-   - 献立履歴・お気に入り機能の強化
+#### ✅ **Phase G Step 2: 献立履歴・お気に入り機能の強化（完了）**
+   - 献立履歴API実装
+     - GET /api/plans/history - ページネーション付き履歴一覧
+     - GET /api/plans/:plan_id/details - 献立詳細取得
+   - お気に入りAPI実装
+     - GET /api/favorites/list - カテゴリーフィルター付き一覧
+     - DELETE /api/favorites/:recipe_id - お気に入り削除
+   - ダッシュボード機能強化
+     - 献立履歴のカード表示（作成日・期間）
+     - お気に入りレシピのカード表示（カテゴリー・調理時間・難易度）
+     - お気に入り削除機能（ハートボタン）
+     - 認証トークンベースのAPI呼び出し
+
+#### 🚧 **Phase G Step 3: 今後の実装予定**
    - 通知・アラート機能（トースト通知）
    - ローディング状態の改善
+   - 献立詳細モーダル
 
 ### 🚧 **実装予定（Phase H以降）**
 
@@ -127,7 +140,7 @@
 
 - **🌟 本番環境（正式）**: https://aichefs.net/
 - **Cloudflare Pages デフォルト**: https://aichef-595.pages.dev/
-- **最新デプロイURL**: https://d41fbc87.aichef-595.pages.dev/
+- **最新デプロイURL**: https://52ef53e0.aichef-595.pages.dev/
 
 ### 主要ページ
 - **ユーザーログイン**: https://aichefs.net/login
@@ -408,7 +421,35 @@ pm2 logs --nostream
 
 ## 📜 更新履歴
 
-### 2026-01-07 (Phase G Step 1完了) 🆕
+### 2026-01-07 (Phase G Step 2完了) 🆕
+- ✅ **Phase G Step 2: 献立履歴・お気に入り機能の強化**
+  - 献立履歴API実装
+    - `GET /api/plans/history` - ページネーション付き献立履歴一覧
+    - `GET /api/plans/:plan_id/details` - 献立詳細取得
+    - クエリパラメータ: page, limit
+    - レスポンス: plans配列、pagination情報
+  - お気に入りAPI実装
+    - `GET /api/favorites/list` - お気に入りレシピ一覧
+    - カテゴリーフィルター（main/side/soup）対応
+    - `DELETE /api/favorites/:recipe_id` - お気に入り削除
+  - ダッシュボード機能強化
+    - 献立履歴のカード表示
+      - 作成日・開始日・期間（○ヶ月分）
+      - 詳細ボタン（viewPlanDetails関数）
+    - お気に入りレシピのカード表示
+      - カテゴリーバッジ（主菜・副菜・汁物）
+      - 料理名・調理時間・難易度
+      - お気に入り削除ボタン（ハートアイコン）
+    - 認証トークンベースのAPI呼び出し
+      - localStorage.getItem('auth_token')
+      - Authorization: Bearer トークン
+  - UI/UX改善
+    - ホバーエフェクト（shadow-md）
+    - カラーコーディング（カテゴリー別色分け）
+    - エラーハンドリング強化
+    - 空状態の案内メッセージ
+
+### 2026-01-07 (Phase G Step 1完了)
 - ✅ **Phase G Step 1: プロフィール編集機能実装**
   - 基本情報編集
     - メールアドレス変更
