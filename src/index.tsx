@@ -2268,6 +2268,8 @@ const appHtml = `<!DOCTYPE html>
                     supervisor_mode: appState.data.supervisor_mode || 'general'
                 });
                 appState.planId = planRes.data.plan_id;
+                // planIdをlocalStorageに保存（ページリロード後も使用可能に）
+                localStorage.setItem('current_plan_id', planRes.data.plan_id);
                 
                 // 成功メッセージ（期間を動的に表示）
                 const daysCount = planRes.data.days.length;
@@ -2827,17 +2829,22 @@ const appHtml = `<!DOCTYPE html>
         // 表示切り替え機能
         // ========================================
         async function refreshCalendar() {
-            if (!appState.planId) {
+            // localStorageからplanIdを取得（appState.planIdがない場合）
+            const planId = appState.planId || localStorage.getItem('current_plan_id');
+            
+            if (!planId) {
+                alert('献立情報がありません。先に献立を生成してください。');
                 return;
             }
             
             try {
                 // プランの献立を再取得
-                const res = await axios.get(\`/api/plans/\${appState.planId}\`);
+                const res = await axios.get(\`/api/plans/\${planId}\`);
                 const days = res.data.days;
                 
                 // データを更新
                 calendarData = days;
+                appState.planId = planId; // appStateも更新
                 
                 // 現在の表示モードで再描画
                 if (currentViewMode === 'calendar') {
@@ -3597,6 +3604,8 @@ const appHtml = `<!DOCTYPE html>
             try {
                 const res = await axios.get(\`/api/plans/\${planId}\`);
                 appState.planId = planId;
+                // localStorageにも保存
+                localStorage.setItem('current_plan_id', planId);
                 calendarData = res.data.days;
                 
                 // モーダルを閉じて献立を表示
@@ -5218,6 +5227,17 @@ async function route(req: Request, env: Bindings): Promise<Response> {
             (recipe.title.includes('レバー') || recipe.title.includes('ホルモン') || 
              recipe.title.includes('ハツ') || recipe.title.includes('砂肝'))) {
           console.log(`除外: ${recipe.title} (内臓料理)`);
+          continue;
+        }
+        
+        // 🌶️ 辛い料理除外対応（dislikes_jsonに'spicy'が含まれる場合）
+        const spicyKeywords = [
+          '麻婆', 'マーボー', 'キムチ', 'カレー', '担々', 'タンタン', 
+          '激辛', '辛口', '唐辛子', 'ピリ辛', '四川', '韓国', 
+          'チリ', 'ハバネロ', 'ジャーク', 'ラー油', '豆板醤'
+        ];
+        if (dislikes.includes('spicy') && spicyKeywords.some(keyword => recipe.title.includes(keyword))) {
+          console.log(`除外: ${recipe.title} (辛い料理)`);
           continue;
         }
         
