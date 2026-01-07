@@ -5573,6 +5573,177 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   }
 
   // ========================================
+  // 寄付API（子ども食堂支援）
+  // ========================================
+  
+  // POST /api/donations/create - 寄付を登録
+  if (pathname === "/api/donations/create" && req.method === "POST") {
+    const body = await readJson(req);
+    
+    // 必須フィールドのチェック
+    if (!body.donor_name || !body.donor_email || !body.unit_count) {
+      return badRequest("donor_name, donor_email, and unit_count are required");
+    }
+    
+    // 口数の検証（1〜10口）
+    if (body.unit_count < 1 || body.unit_count > 10) {
+      return badRequest("unit_count must be between 1 and 10");
+    }
+    
+    const donation_id = uuid();
+    const certificate_id = uuid();
+    const amount = body.unit_count * 300;
+    
+    // 証明書番号を生成（DC-2026-001 形式）
+    const now = new Date();
+    const year = now.getFullYear();
+    
+    // 今年の寄付件数を取得して証明書番号を生成
+    const countResult = await env.DB.prepare(`
+      SELECT COUNT(*) as count FROM donations
+      WHERE strftime('%Y', created_at) = ?
+    `).bind(year.toString()).first() as any;
+    
+    const nextNumber = (countResult?.count || 0) + 1;
+    const certificate_number = `DC-${year}-${String(nextNumber).padStart(3, '0')}`;
+    
+    try {
+      // 寄付を登録
+      await env.DB.prepare(`
+        INSERT INTO donations (
+          donation_id, household_id, donor_name, donor_email, donor_phone,
+          amount, unit_count, message, status, payment_method, is_public
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        donation_id,
+        body.household_id || null,
+        body.donor_name,
+        body.donor_email,
+        body.donor_phone || null,
+        amount,
+        body.unit_count,
+        body.message || null,
+        'completed',
+        body.payment_method || 'bank_transfer',
+        body.is_public !== undefined ? body.is_public : 1
+      ).run();
+      
+      // 証明書を発行
+      await env.DB.prepare(`
+        INSERT INTO donation_certificates (
+          certificate_id, donation_id, certificate_number, issue_date
+        ) VALUES (?, ?, ?, DATE('now'))
+      `).bind(certificate_id, donation_id, certificate_number).run();
+      
+      return json({
+        donation_id,
+        certificate_id,
+        certificate_number,
+        amount,
+        message: '寄付を受け付けました。ありがとうございます！'
+      }, 201);
+    } catch (error: any) {
+      console.error('寄付登録エラー:', error);
+      return new Response(JSON.stringify({
+        error: '寄付の登録に失敗しました',
+        details: error.message
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+  
+  // GET /api/donations/list - 公開された寄付一覧を取得
+  if (pathname === "/api/donations/list" && req.method === "GET") {
+    const donations = await env.DB.prepare(`
+      SELECT 
+        donation_id,
+        donor_name,
+        amount,
+        unit_count,
+        message,
+        created_at
+      FROM donations
+      WHERE status = 'completed' AND is_public = 1
+      ORDER BY created_at DESC
+      LIMIT 50
+    `).all();
+    
+    return json({ donations: donations.results || [] });
+  }
+  
+  // GET /api/donations/stats - 寄付統計を取得
+  if (pathname === "/api/donations/stats" && req.method === "GET") {
+    const stats = await env.DB.prepare(`
+      SELECT 
+        COUNT(*) as total_count,
+        SUM(amount) as total_amount,
+        SUM(unit_count) as total_units,
+        AVG(amount) as avg_amount
+      FROM donations
+      WHERE status = 'completed'
+    `).first();
+    
+    return json({ stats: stats || {} });
+  }
+  
+  // GET /api/donations/certificate/:donation_id - 寄付証明書を取得
+  if (pathname.match(/^\/api\/donations\/certificate\/[^/]+$/) && req.method === "GET") {
+    const donation_id = pathname.split("/").pop();
+    
+    const result = await env.DB.prepare(`
+      SELECT 
+        d.donation_id,
+        d.donor_name,
+        d.donor_email,
+        d.amount,
+        d.unit_count,
+        d.created_at,
+        dc.certificate_id,
+        dc.certificate_number,
+        dc.issue_date
+      FROM donations d
+      JOIN donation_certificates dc ON d.donation_id = dc.donation_id
+      WHERE d.donation_id = ?
+    `).bind(donation_id).first();
+    
+    if (!result) {
+      return badRequest("Certificate not found");
+    }
+    
+    return json({ certificate: result });
+  }
+  
+  // GET /api/admin/donations - 管理者用寄付一覧
+  if (pathname === "/api/admin/donations" && req.method === "GET") {
+    // TODO: 管理者認証チェック
+    
+    const donations = await env.DB.prepare(`
+      SELECT 
+        d.donation_id,
+        d.household_id,
+        d.donor_name,
+        d.donor_email,
+        d.donor_phone,
+        d.amount,
+        d.unit_count,
+        d.message,
+        d.status,
+        d.payment_method,
+        d.is_public,
+        d.created_at,
+        dc.certificate_number
+      FROM donations d
+      LEFT JOIN donation_certificates dc ON d.donation_id = dc.donation_id
+      ORDER BY d.created_at DESC
+      LIMIT 100
+    `).all();
+    
+    return json({ donations: donations.results || [] });
+  }
+
+  // ========================================
   // AI対話API（OpenAI）
   // ========================================
   
@@ -6754,6 +6925,30 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   }
 
   // ========================================
+  // /donation：子ども食堂寄付LP
+  // ========================================
+  if (pathname === "/donation") {
+    return new Response(DONATION_LP_HTML, {
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store'
+      }
+    });
+  }
+  
+  // ========================================
+  // /donation/thanks：寄付完了ページ
+  // ========================================
+  if (pathname === "/donation/thanks") {
+    return new Response(DONATION_THANKS_HTML, {
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store'
+      }
+    });
+  }
+
+  // ========================================
   // /login：ユーザーログイン画面
   // ========================================
   if (pathname === "/login") {
@@ -6811,5 +7006,459 @@ app.all("*", async (c) => {
     return json({ error: { message: e?.message ?? "Internal Error" } }, 500);
   }
 });
+
+// ========================================
+// 子ども食堂寄付LP HTML
+// ========================================
+const DONATION_LP_HTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>子ども食堂を支援する - あなたの300円が子どもたちの笑顔を守る</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- ヒーローセクション -->
+    <div class="hero-bg text-white py-20">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center mb-12">
+                <h1 class="text-5xl font-bold mb-6">
+                    一杯300円の温かさが、<br>子どもたちの笑顔を守る
+                </h1>
+                <p class="text-2xl mb-8 opacity-90">
+                    あなたの善意で、子ども食堂が蘇る
+                </p>
+                <a href="#donate-form" class="inline-block bg-yellow-400 text-gray-900 px-12 py-4 rounded-full text-xl font-bold hover:bg-yellow-300 transition shadow-2xl">
+                    <i class="fas fa-heart mr-2"></i>
+                    今すぐ寄付する
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 統計セクション -->
+    <div class="bg-white py-12 shadow-md">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center" id="stats-section">
+                <div>
+                    <div class="text-5xl font-bold text-purple-600 mb-2" id="total-amount">0</div>
+                    <div class="text-gray-600 font-semibold">累計寄付金額（円）</div>
+                </div>
+                <div>
+                    <div class="text-5xl font-bold text-purple-600 mb-2" id="total-count">0</div>
+                    <div class="text-gray-600 font-semibold">寄付者数（人）</div>
+                </div>
+                <div>
+                    <div class="text-5xl font-bold text-purple-600 mb-2" id="total-units">0</div>
+                    <div class="text-gray-600 font-semibold">支援食数（食）</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 問題提起セクション -->
+    <div class="max-w-6xl mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold text-center text-gray-800 mb-12">
+            いま、子ども食堂が危機に瀕しています
+        </h2>
+        
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+            <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
+                <h3 class="text-2xl font-bold text-red-700 mb-4">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    資金不足
+                </h3>
+                <p class="text-gray-700 leading-relaxed">
+                    物価高騰により、食材費が30%以上上昇。多くの子ども食堂が運営困難に陥っています。
+                </p>
+            </div>
+            
+            <div class="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-lg">
+                <h3 class="text-2xl font-bold text-orange-700 mb-4">
+                    <i class="fas fa-child mr-2"></i>
+                    増え続ける子どもたち
+                </h3>
+                <p class="text-gray-700 leading-relaxed">
+                    支援を必要とする子どもは年々増加。でも、予算は限られています。
+                </p>
+            </div>
+        </div>
+
+        <div class="text-center bg-gradient-to-r from-purple-100 to-pink-100 p-8 rounded-2xl">
+            <p class="text-2xl font-bold text-gray-800 mb-4">
+                だからこそ、あなたの力が必要です
+            </p>
+            <p class="text-lg text-gray-700">
+                一口300円の寄付が、子どもたちに温かい食事と居場所を提供します
+            </p>
+        </div>
+    </div>
+
+    <!-- 寄付の使い道 -->
+    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 py-16">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center text-gray-800 mb-12">
+                あなたの寄付は、こう使われます
+            </h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
+                    <div class="text-center mb-4">
+                        <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto">
+                            <i class="fas fa-utensils text-3xl text-white"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mb-3">食材の購入</h3>
+                    <p class="text-gray-600 text-center">
+                        新鮮な野菜、お肉、お魚など、栄養バランスの取れた食材を購入します
+                    </p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
+                    <div class="text-center mb-4">
+                        <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto">
+                            <i class="fas fa-home text-3xl text-white"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mb-3">運営費</h3>
+                    <p class="text-gray-600 text-center">
+                        会場費、光熱費など、子ども食堂を続けるための基本的な費用に使います
+                    </p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg card-hover">
+                    <div class="text-center mb-4">
+                        <div class="w-20 h-20 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center mx-auto">
+                            <i class="fas fa-smile text-3xl text-white"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mb-3">活動拡大</h3>
+                    <p class="text-gray-600 text-center">
+                        より多くの子どもたちに支援を届けるため、新しい活動に挑戦します
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 寄付フォーム -->
+    <div class="max-w-3xl mx-auto px-4 py-16" id="donate-form">
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">
+                <i class="fas fa-heart text-red-500 mr-2"></i>
+                寄付フォーム
+            </h2>
+            
+            <form id="donation-form" class="space-y-6">
+                <!-- 口数選択 -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">
+                        寄付口数を選択（1口 = 300円）
+                    </label>
+                    <div class="grid grid-cols-5 gap-3">
+                        <button type="button" class="unit-btn px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition font-semibold" data-units="1">
+                            1口<br><span class="text-sm">300円</span>
+                        </button>
+                        <button type="button" class="unit-btn px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition font-semibold" data-units="2">
+                            2口<br><span class="text-sm">600円</span>
+                        </button>
+                        <button type="button" class="unit-btn px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition font-semibold" data-units="3">
+                            3口<br><span class="text-sm">900円</span>
+                        </button>
+                        <button type="button" class="unit-btn px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition font-semibold" data-units="5">
+                            5口<br><span class="text-sm">1,500円</span>
+                        </button>
+                        <button type="button" class="unit-btn px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition font-semibold" data-units="10">
+                            10口<br><span class="text-sm">3,000円</span>
+                        </button>
+                    </div>
+                    <input type="hidden" id="unit_count" name="unit_count" value="1" required>
+                    <div class="mt-3 text-center">
+                        <span class="text-2xl font-bold text-purple-600">寄付金額: </span>
+                        <span id="amount-display" class="text-3xl font-bold text-purple-600">300円</span>
+                    </div>
+                </div>
+                
+                <!-- 表示名 -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-user text-purple-600 mr-2"></i>
+                        表示名（本名でなくてもOK）
+                    </label>
+                    <input type="text" id="donor_name" name="donor_name" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="例：やさしいママ、応援団">
+                </div>
+                
+                <!-- メールアドレス -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-envelope text-purple-600 mr-2"></i>
+                        メールアドレス（寄付証明書送付用）
+                    </label>
+                    <input type="email" id="donor_email" name="donor_email" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="example@email.com">
+                </div>
+                
+                <!-- 電話番号（任意） -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-phone text-purple-600 mr-2"></i>
+                        電話番号（任意）
+                    </label>
+                    <input type="tel" id="donor_phone" name="donor_phone"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="090-1234-5678">
+                </div>
+                
+                <!-- メッセージ -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-comment text-purple-600 mr-2"></i>
+                        メッセージ（任意）
+                    </label>
+                    <textarea id="message" name="message" rows="3"
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder="子どもたちへの応援メッセージをどうぞ"></textarea>
+                </div>
+                
+                <!-- 公開設定 -->
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="is_public" name="is_public" checked
+                               class="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                        <span class="ml-3 text-gray-700">寄付者一覧に表示する</span>
+                    </label>
+                </div>
+                
+                <!-- 送信ボタン -->
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-lg text-xl font-bold hover:from-purple-700 hover:to-pink-700 transition shadow-lg">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    寄付を送信する
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 寄付者一覧 -->
+    <div class="bg-gray-100 py-16">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">
+                <i class="fas fa-users text-purple-600 mr-2"></i>
+                応援してくださっている皆様
+            </h2>
+            <div id="donors-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- JavaScriptで動的に挿入 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 統計情報を取得
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/donations/stats');
+                const data = await response.json();
+                const stats = data.stats;
+                
+                document.getElementById('total-amount').textContent = (stats.total_amount || 0).toLocaleString();
+                document.getElementById('total-count').textContent = (stats.total_count || 0).toLocaleString();
+                document.getElementById('total-units').textContent = (stats.total_units || 0).toLocaleString();
+            } catch (error) {
+                console.error('統計情報の取得エラー:', error);
+            }
+        }
+        
+        // 寄付者一覧を取得
+        async function loadDonors() {
+            try {
+                const response = await fetch('/api/donations/list');
+                const data = await response.json();
+                const donations = data.donations || [];
+                
+                const listEl = document.getElementById('donors-list');
+                listEl.innerHTML = donations.map(d => \`
+                    <div class="bg-white p-6 rounded-lg shadow card-hover">
+                        <div class="flex items-center mb-3">
+                            <i class="fas fa-user-circle text-3xl text-purple-600 mr-3"></i>
+                            <div>
+                                <div class="font-bold text-lg">\${d.donor_name}</div>
+                                <div class="text-sm text-gray-500">\${new Date(d.created_at).toLocaleDateString('ja-JP')}</div>
+                            </div>
+                        </div>
+                        <div class="text-purple-600 font-bold mb-2">
+                            \${d.amount.toLocaleString()}円（\${d.unit_count}口）
+                        </div>
+                        \${d.message ? \`<p class="text-gray-600 text-sm italic">"\${d.message}"</p>\` : ''}
+                    </div>
+                \`).join('');
+            } catch (error) {
+                console.error('寄付者一覧の取得エラー:', error);
+            }
+        }
+        
+        // 口数選択
+        document.querySelectorAll('.unit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.unit-btn').forEach(b => {
+                    b.classList.remove('border-purple-500', 'bg-purple-50', 'font-bold');
+                    b.classList.add('border-gray-300');
+                });
+                btn.classList.add('border-purple-500', 'bg-purple-50', 'font-bold');
+                btn.classList.remove('border-gray-300');
+                
+                const units = parseInt(btn.dataset.units);
+                document.getElementById('unit_count').value = units;
+                document.getElementById('amount-display').textContent = (units * 300).toLocaleString() + '円';
+            });
+        });
+        
+        // 初期選択（1口）
+        document.querySelector('.unit-btn').click();
+        
+        // フォーム送信
+        document.getElementById('donation-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                donor_name: document.getElementById('donor_name').value,
+                donor_email: document.getElementById('donor_email').value,
+                donor_phone: document.getElementById('donor_phone').value || null,
+                unit_count: parseInt(document.getElementById('unit_count').value),
+                message: document.getElementById('message').value || null,
+                is_public: document.getElementById('is_public').checked ? 1 : 0
+            };
+            
+            try {
+                const response = await fetch('/api/donations/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // 完了ページに遷移
+                    window.location.href = '/donation/thanks?donation_id=' + result.donation_id;
+                } else {
+                    alert('エラー: ' + (result.error || '寄付の送信に失敗しました'));
+                }
+            } catch (error) {
+                console.error('寄付送信エラー:', error);
+                alert('寄付の送信中にエラーが発生しました');
+            }
+        });
+        
+        // ページ読み込み時に実行
+        loadStats();
+        loadDonors();
+    </script>
+</body>
+</html>
+`;
+
+// ========================================
+// 寄付完了ページ HTML
+// ========================================
+const DONATION_THANKS_HTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寄付ありがとうございます - 子ども食堂支援</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-pink-50 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-8">
+        <div class="text-center mb-8">
+            <div class="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-check text-5xl text-white"></i>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">
+                ご寄付ありがとうございます！
+            </h1>
+            <p class="text-xl text-gray-600 mb-6">
+                あなたの善意が、子どもたちの笑顔を守ります
+            </p>
+        </div>
+        
+        <div id="donation-info" class="bg-purple-50 p-6 rounded-xl mb-6">
+            <!-- JavaScriptで動的に挿入 -->
+        </div>
+        
+        <div class="space-y-4">
+            <a href="/donation" class="block w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg text-center font-semibold hover:from-purple-700 hover:to-pink-700 transition">
+                <i class="fas fa-arrow-left mr-2"></i>
+                寄付ページに戻る
+            </a>
+            <a href="/" class="block w-full bg-gray-200 text-gray-800 px-6 py-3 rounded-lg text-center font-semibold hover:bg-gray-300 transition">
+                <i class="fas fa-home mr-2"></i>
+                トップページへ
+            </a>
+        </div>
+    </div>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const donationId = urlParams.get('donation_id');
+        
+        async function loadDonationInfo() {
+            if (!donationId) {
+                document.getElementById('donation-info').innerHTML = \`
+                    <p class="text-center text-gray-600">寄付情報を取得できませんでした</p>
+                \`;
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/donations/certificate/' + donationId);
+                const data = await response.json();
+                const cert = data.certificate;
+                
+                document.getElementById('donation-info').innerHTML = \`
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">寄付内容</h3>
+                    <div class="space-y-2 text-gray-700">
+                        <p><strong>寄付金額:</strong> \${(cert.amount || 0).toLocaleString()}円（\${cert.unit_count}口）</p>
+                        <p><strong>寄付者名:</strong> \${cert.donor_name}</p>
+                        <p><strong>証明書番号:</strong> \${cert.certificate_number}</p>
+                        <p><strong>発行日:</strong> \${cert.issue_date}</p>
+                    </div>
+                    <div class="mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+                        <p class="text-sm text-gray-700">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            寄付証明書は、ご登録のメールアドレスに送信されました。
+                        </p>
+                    </div>
+                \`;
+            } catch (error) {
+                console.error('寄付情報の取得エラー:', error);
+            }
+        }
+        
+        loadDonationInfo();
+    </script>
+</body>
+</html>
+`;
 
 export default app
