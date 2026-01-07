@@ -1250,6 +1250,10 @@ const appHtml = `<!DOCTYPE html>
                                         <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition flex-shrink-0"></i>
                                         <span>献立作成</span>
                                     </a></li>
+                                    <li><a href="/donation" class="text-yellow-300 hover:text-yellow-100 transition flex items-center gap-2 group font-semibold" style="word-wrap: break-word;">
+                                        <i class="fas fa-heart text-xs group-hover:translate-x-1 transition flex-shrink-0"></i>
+                                        <span>子ども食堂を支援する</span>
+                                    </a></li>
                                     <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group" style="word-wrap: break-word;">
                                         <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition flex-shrink-0"></i>
                                         <span>使い方ガイド</span>
@@ -6961,6 +6965,18 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   }
 
   // ========================================
+  // /admin/donations：管理者寄付ダッシュボード
+  // ========================================
+  if (pathname === "/admin/donations") {
+    return new Response(ADMIN_DONATION_DASHBOARD_HTML, {
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store'
+      }
+    });
+  }
+
+  // ========================================
   // /admin/login：管理者ログイン画面
   // ========================================
   if (pathname === "/admin/login") {
@@ -7456,6 +7472,312 @@ const DONATION_THANKS_HTML = `
         }
         
         loadDonationInfo();
+    </script>
+</body>
+</html>
+`;
+
+// ========================================
+// 管理者寄付ダッシュボード HTML
+// ========================================
+const ADMIN_DONATION_DASHBOARD_HTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寄付管理ダッシュボード - 管理者画面</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- ヘッダー -->
+    <header class="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-shield-alt text-3xl"></i>
+                <div>
+                    <h1 class="text-2xl font-bold">寄付管理ダッシュボード</h1>
+                    <p class="text-sm text-purple-200">管理者専用画面</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="/donation" class="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition">
+                    <i class="fas fa-eye mr-2"></i>
+                    寄付ページを表示
+                </a>
+                <a href="/" class="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition">
+                    <i class="fas fa-home mr-2"></i>
+                    トップページ
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- 統計カード -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-gray-600 font-semibold">累計寄付金額</h3>
+                    <i class="fas fa-yen-sign text-2xl text-green-500"></i>
+                </div>
+                <p id="total-amount" class="text-3xl font-bold text-gray-800">0円</p>
+                <p class="text-sm text-gray-500 mt-1">全期間合計</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-gray-600 font-semibold">寄付者数</h3>
+                    <i class="fas fa-users text-2xl text-blue-500"></i>
+                </div>
+                <p id="total-count" class="text-3xl font-bold text-gray-800">0人</p>
+                <p class="text-sm text-gray-500 mt-1">累計寄付者</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-gray-600 font-semibold">支援食数</h3>
+                    <i class="fas fa-utensils text-2xl text-purple-500"></i>
+                </div>
+                <p id="total-units" class="text-3xl font-bold text-gray-800">0食</p>
+                <p class="text-sm text-gray-500 mt-1">提供可能な食事数</p>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-gray-600 font-semibold">平均寄付額</h3>
+                    <i class="fas fa-chart-line text-2xl text-orange-500"></i>
+                </div>
+                <p id="avg-amount" class="text-3xl font-bold text-gray-800">0円</p>
+                <p class="text-sm text-gray-500 mt-1">1人あたり</p>
+            </div>
+        </div>
+
+        <!-- グラフセクション -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-chart-bar text-purple-600 mr-2"></i>
+                月別寄付推移
+            </h2>
+            <canvas id="monthlyChart" height="80"></canvas>
+        </div>
+
+        <!-- 寄付一覧 -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-list text-purple-600 mr-2"></i>
+                    寄付一覧
+                </h2>
+                <button onclick="exportCSV()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+                    <i class="fas fa-file-excel mr-2"></i>
+                    CSVエクスポート
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">日時</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">寄付者名</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">メール</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">電話番号</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">金額</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">口数</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">公開</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">証明書番号</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">メッセージ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="donations-table" class="divide-y divide-gray-200">
+                        <!-- JavaScriptで動的に挿入 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allDonations = [];
+        
+        // 統計情報を取得
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/donations/stats');
+                const data = await response.json();
+                const stats = data.stats;
+                
+                const totalAmount = stats.total_amount || 0;
+                const totalCount = stats.total_count || 0;
+                const totalUnits = stats.total_units || 0;
+                const avgAmount = stats.avg_amount || 0;
+                
+                document.getElementById('total-amount').textContent = Math.round(totalAmount).toLocaleString() + '円';
+                document.getElementById('total-count').textContent = Math.round(totalCount).toLocaleString() + '人';
+                document.getElementById('total-units').textContent = Math.round(totalUnits).toLocaleString() + '食';
+                document.getElementById('avg-amount').textContent = Math.round(avgAmount).toLocaleString() + '円';
+            } catch (error) {
+                console.error('統計情報の取得エラー:', error);
+            }
+        }
+        
+        // 寄付一覧を取得
+        async function loadDonations() {
+            try {
+                const response = await fetch('/api/admin/donations');
+                const data = await response.json();
+                allDonations = data.donations || [];
+                
+                const tableEl = document.getElementById('donations-table');
+                tableEl.innerHTML = allDonations.map(d => \`
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                            \${new Date(d.created_at).toLocaleString('ja-JP')}
+                        </td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                            \${d.donor_name}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600">
+                            \${d.donor_email}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600">
+                            \${d.donor_phone || '-'}
+                        </td>
+                        <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
+                            \${d.amount.toLocaleString()}円
+                        </td>
+                        <td class="px-4 py-3 text-sm text-center">
+                            <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                                \${d.unit_count}口
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-center">
+                            \${d.is_public ? '<span class="text-green-600"><i class="fas fa-check"></i></span>' : '<span class="text-gray-400"><i class="fas fa-times"></i></span>'}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600 text-center font-mono">
+                            \${d.certificate_number || '-'}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600">
+                            \${d.message ? '<span class="italic">"' + d.message.substring(0, 30) + (d.message.length > 30 ? '..."' : '"') + '</span>' : '-'}
+                        </td>
+                    </tr>
+                \`).join('');
+            } catch (error) {
+                console.error('寄付一覧の取得エラー:', error);
+            }
+        }
+        
+        // CSVエクスポート
+        function exportCSV() {
+            const headers = ['日時', '寄付者名', 'メール', '電話番号', '金額', '口数', '公開', '証明書番号', 'メッセージ'];
+            const rows = allDonations.map(d => [
+                new Date(d.created_at).toLocaleString('ja-JP'),
+                d.donor_name,
+                d.donor_email,
+                d.donor_phone || '',
+                d.amount,
+                d.unit_count,
+                d.is_public ? '公開' : '非公開',
+                d.certificate_number || '',
+                (d.message || '').replace(/"/g, '""')
+            ]);
+            
+            const csv = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => \`"\${cell}"\`).join(','))
+            ].join('\\n');
+            
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = \`donations_\${new Date().toISOString().split('T')[0]}.csv\`;
+            link.click();
+        }
+        
+        // グラフを描画
+        async function renderChart() {
+            // 月別集計
+            const monthlyData = {};
+            allDonations.forEach(d => {
+                const month = d.created_at.substring(0, 7); // YYYY-MM
+                if (!monthlyData[month]) {
+                    monthlyData[month] = { amount: 0, count: 0 };
+                }
+                monthlyData[month].amount += d.amount;
+                monthlyData[month].count += 1;
+            });
+            
+            const months = Object.keys(monthlyData).sort();
+            const amounts = months.map(m => monthlyData[m].amount);
+            const counts = months.map(m => monthlyData[m].count);
+            
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months.map(m => m + '月'),
+                    datasets: [{
+                        label: '寄付金額（円）',
+                        data: amounts,
+                        backgroundColor: 'rgba(147, 51, 234, 0.5)',
+                        borderColor: 'rgba(147, 51, 234, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    }, {
+                        label: '寄付者数（人）',
+                        data: counts,
+                        backgroundColor: 'rgba(236, 72, 153, 0.5)',
+                        borderColor: 'rgba(236, 72, 153, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1',
+                        type: 'line'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '寄付金額（円）'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '寄付者数（人）'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // ページ読み込み時に実行
+        async function init() {
+            await loadStats();
+            await loadDonations();
+            renderChart();
+        }
+        
+        init();
     </script>
 </body>
 </html>
