@@ -7618,7 +7618,7 @@ const PROFILE_HTML = `
 
         // 嫌いな食材の選択肢
         const dislikesOptions = [
-            '貝類', 'エビ', 'カニ', 'イカ', 'タコ', '魚', '肉', '豚肉', '牛肉', '鶏肉',
+            '辛い物', '貝類', 'エビ', 'カニ', 'イカ', 'タコ', '魚', '肉', '豚肉', '牛肉', '鶏肉',
             '卵', '乳製品', 'ナス', 'ピーマン', 'トマト', 'キノコ', '海藻', '豆腐', '納豆', 'レバー'
         ];
 
@@ -7655,14 +7655,28 @@ const PROFILE_HTML = `
                 const childrenAges = JSON.parse(profile.children_ages_json || '[]');
                 document.getElementById('children_ages').value = childrenAges.join(', ');
 
-                // 嫌いな食材のチェックボックス生成
+                // 嫌いな食材のチェックボックス生成（英語→日本語マッピング）
                 const dislikesContainer = document.getElementById('dislikes-container');
                 const currentDislikes = JSON.parse(profile.dislikes_json || '[]');
+                const reverseDislikesMapping = {
+                    'spicy': '辛い物',
+                    'shellfish': '貝類',
+                    'shrimp': 'エビ',
+                    'crab': 'カニ',
+                    'squid': 'イカ',
+                    'octopus': 'タコ',
+                    'fish': '魚',
+                    'offal': 'レバー'
+                };
                 dislikesOptions.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'flex items-center';
+                    // DBに保存されている英語キーを日本語に変換してチェック
+                    const isChecked = currentDislikes.some(dislike => {
+                        return reverseDislikesMapping[dislike] === item || dislike === item;
+                    });
                     div.innerHTML = \`
-                        <input type="checkbox" id="dislike-\${item}" value="\${item}" class="mr-2 w-4 h-4 text-purple-600 focus:ring-purple-500" \${currentDislikes.includes(item) ? 'checked' : ''}>
+                        <input type="checkbox" id="dislike-\${item}" value="\${item}" class="mr-2 w-4 h-4 text-purple-600 focus:ring-purple-500" \${isChecked ? 'checked' : ''}>
                         <label for="dislike-\${item}" class="text-sm text-gray-700">\${item}</label>
                     \`;
                     dislikesContainer.appendChild(div);
@@ -7729,11 +7743,22 @@ const PROFILE_HTML = `
                 const childrenAgesInput = document.getElementById('children_ages').value.trim();
                 const children_ages = childrenAgesInput ? childrenAgesInput.split(',').map(age => parseInt(age.trim())).filter(age => !isNaN(age)) : [];
 
-                // 嫌いな食材を収集
+                // 嫌いな食材を収集（日本語→英語マッピング）
+                const dislikesMapping = {
+                    '辛い物': 'spicy',
+                    '貝類': 'shellfish',
+                    'エビ': 'shrimp',
+                    'カニ': 'crab',
+                    'イカ': 'squid',
+                    'タコ': 'octopus',
+                    '魚': 'fish',
+                    'レバー': 'offal'
+                };
                 const dislikes = [];
                 dislikesOptions.forEach(item => {
                     if (document.getElementById(\`dislike-\${item}\`).checked) {
-                        dislikes.push(item);
+                        // マッピングがあれば英語に変換、なければそのまま
+                        dislikes.push(dislikesMapping[item] || item);
                     }
                 });
 
