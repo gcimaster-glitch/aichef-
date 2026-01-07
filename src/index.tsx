@@ -2094,6 +2094,12 @@ const appHtml = `<!DOCTYPE html>
                 const modal = document.getElementById('plan-generation-modal');
                 const content = document.getElementById('plan-generation-modal-content');
                 
+                if (!modal || !content) {
+                    console.error('モーダル要素が見つかりません');
+                    alert('エラー: モーダル要素が見つかりません。ページをリロードしてください。');
+                    return;
+                }
+                
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
                 
@@ -2290,6 +2296,16 @@ const appHtml = `<!DOCTYPE html>
                 console.error('エラーステータス:', error.response?.status);
                 console.error('エラーメッセージ:', error.message);
                 console.error('完全なエラーオブジェクト:', JSON.stringify(error, null, 2));
+                
+                // content要素の取得（catchブロック内で再取得）
+                const modal = document.getElementById('plan-generation-modal');
+                const content = document.getElementById('plan-generation-modal-content');
+                
+                if (!modal || !content) {
+                    console.error('エラー表示用のモーダル要素が見つかりません');
+                    alert('エラーが発生しました。ページをリロードしてください。');
+                    return;
+                }
                 
                 let errorMessage = 'もう一度お試しください';
                 let errorDetails = '';
