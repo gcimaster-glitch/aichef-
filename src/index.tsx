@@ -4890,33 +4890,40 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   // ========================================
   if (pathname === "/api/plans/generate" && req.method === "POST") {
     try {
-      console.log('献立生成API開始');
+      console.log('=== 献立生成API開始 ===');
       const body = await readJson(req);
       console.log('リクエストボディ:', JSON.stringify(body, null, 2));
       
       if (!body.household_id) return badRequest("household_id is required");
 
-    console.log('household_id:', body.household_id);
-    const household = await env.DB.prepare(
-      `SELECT * FROM households WHERE household_id = ?`
-    ).bind(body.household_id).first() as any;
+    console.log('[Step 1] household_id:', body.household_id);
     
-    console.log('household取得結果:', household ? 'あり' : 'なし');
-    if (!household) return badRequest("household not found");
+    try {
+      const household = await env.DB.prepare(
+        `SELECT * FROM households WHERE household_id = ?`
+      ).bind(body.household_id).first() as any;
+      
+      console.log('[Step 2] household取得結果:', household ? 'あり' : 'なし');
+      if (!household) return badRequest("household not found");
 
-    const plan_id = uuid();
-    const menu_variety = body.menu_variety || 'balanced';
-    const supervisor_mode = body.supervisor_mode || 'general';
-    
-    console.log('plan_id:', plan_id);
-    console.log('menu_variety:', menu_variety);
-    console.log('supervisor_mode:', supervisor_mode);
-    
-    // 期間計算（plan_daysを使用、なければmonthsから計算）
-    const planDays = body.plan_days || (household.months * 30);
-    console.log('期間計算開始 - start_date:', household.start_date, 'plan_days:', planDays);
-    const period = buildPeriodByDays(household.start_date, planDays);
-    console.log('期間計算完了 - 日数:', period.dates.length);
+      const plan_id = uuid();
+      const menu_variety = body.menu_variety || 'balanced';
+      const supervisor_mode = body.supervisor_mode || 'general';
+      
+      console.log('[Step 3] plan_id:', plan_id);
+      console.log('[Step 3] menu_variety:', menu_variety);
+      console.log('[Step 3] supervisor_mode:', supervisor_mode);
+      
+      // 期間計算（plan_daysを使用、なければmonthsから計算）
+      const planDays = body.plan_days || (household.months * 30);
+      console.log('[Step 4] 期間計算開始 - start_date:', household.start_date, 'plan_days:', planDays);
+      
+      const period = buildPeriodByDays(household.start_date, planDays);
+      console.log('[Step 5] 期間計算完了 - 日数:', period.dates.length);
+    } catch (stepError) {
+      console.error('初期化エラー:', stepError);
+      throw stepError;
+    }
     
     // 監修者モードに応じたレシピフィルタ
     let supervisorFilter = '';
@@ -5017,31 +5024,38 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     
     // 監修者モードとメニューバラエティを組み合わせる
     const combinedFilter = popularityFilter + ' ' + supervisorFilter + ' ' + timeFilter;
-    console.log('combinedFilter:', combinedFilter);
+    console.log('[Step 6] combinedFilter:', combinedFilter);
     
     // 全レシピをランダム順に取得（人気度を無視）
     // ✅ 改善委員会決定：人気度順ではなく完全ランダム化で多様性を確保
-    console.log('レシピ取得開始（完全ランダム順）');
-    const allMainRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='main' ${combinedFilter} ORDER BY RANDOM()`
-    ).all();
+    console.log('[Step 7] レシピ取得開始（完全ランダム順）');
     
-    const allSideRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='side' ${combinedFilter} ORDER BY RANDOM()`
-    ).all();
-    
-    const allSoupRecipes = await env.DB.prepare(
-      `SELECT * FROM recipes WHERE role='soup' ${combinedFilter} ORDER BY RANDOM()`
-    ).all();
+    let mainRecipes, sideRecipes, soupRecipes;
+    try {
+      const allMainRecipes = await env.DB.prepare(
+        `SELECT * FROM recipes WHERE role='main' ${combinedFilter} ORDER BY RANDOM()`
+      ).all();
+      
+      const allSideRecipes = await env.DB.prepare(
+        `SELECT * FROM recipes WHERE role='side' ${combinedFilter} ORDER BY RANDOM()`
+      ).all();
+      
+      const allSoupRecipes = await env.DB.prepare(
+        `SELECT * FROM recipes WHERE role='soup' ${combinedFilter} ORDER BY RANDOM()`
+      ).all();
 
-    let mainRecipes = (allMainRecipes.results ?? []) as any[];
-    let sideRecipes = (allSideRecipes.results ?? []) as any[];
-    let soupRecipes = (allSoupRecipes.results ?? []) as any[];
-    
-    console.log('取得レシピ数 - main:', mainRecipes.length, 'side:', sideRecipes.length, 'soup:', soupRecipes.length);
+      mainRecipes = (allMainRecipes.results ?? []) as any[];
+      sideRecipes = (allSideRecipes.results ?? []) as any[];
+      soupRecipes = (allSoupRecipes.results ?? []) as any[];
+      
+      console.log('[Step 8] 取得レシピ数 - main:', mainRecipes.length, 'side:', sideRecipes.length, 'soup:', soupRecipes.length);
+    } catch (recipeError) {
+      console.error('[ERROR] レシピ取得エラー:', recipeError);
+      throw recipeError;
+    }
     
     // 🚨 嫌いな食材・アレルギーのフィルタリング
-    console.log('=== 嫌いな食材・アレルギーフィルタリング開始 ===');
+    console.log('[Step 9] === 嫌いな食材・アレルギーフィルタリング開始 ===');
     
     // household の嫌いな食材とアレルギーを取得
     const dislikesJson = household.dislikes_json || '[]';
@@ -5049,8 +5063,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     const dislikes = JSON.parse(dislikesJson);
     const allergiesStandard = JSON.parse(allergiesStandardJson);
     
-    console.log('嫌いな食材:', dislikes);
-    console.log('アレルギー:', allergiesStandard);
+    console.log('[Step 10] 嫌いな食材:', dislikes);
+    console.log('[Step 10] アレルギー:', allergiesStandard);
     
     // 除外する食材IDのマッピング（食材名 → ingredient_id）
     const dislikeMapping: { [key: string]: string[] } = {
