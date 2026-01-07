@@ -1,4650 +1,578 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { serveStatic } from 'hono/cloudflare-workers'
-import { LANDING_HTML } from './landing-content'
-import { explainMenuChoice, suggestMenuAdjustment } from './openai-helper'
 
 type Bindings = {
-  DB?: D1Database;
-  OPENAI_API_KEY?: string;
+  DB: D1Database
+  OPENAI_API_KEY: string
 }
 
-type Json = Record<string, unknown>;
+const app = new Hono<{ Bindings: Bindings }>()
 
-// ========================================
-// Login Pages
-// ========================================
-const LOGIN_HTML = `
+// CORS設定
+app.use('/api/*', cors())
+
+// 静的ファイル配信
+app.use('/static/*', serveStatic({ root: './public' }))
+app.use('/images/*', serveStatic({ root: './public' }))
+app.use('/landing.html', serveStatic({ path: './public/landing.html' }))
+
+// メインページ
+app.get('/app', (c) => {
+  return c.html(`
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ログイン - AICHEFS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full mx-4">
-        <div class="text-center mb-8">
-            <i class="fas fa-utensils text-5xl text-purple-600 mb-4"></i>
-            <h1 class="text-3xl font-bold text-gray-800">AICHEFS</h1>
-            <p class="text-gray-600 mt-2">ログイン</p>
-        </div>
-        
-        <form id="loginForm" class="space-y-6">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
-                <input type="email" id="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent">
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">パスワード</label>
-                <input type="password" id="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent">
-            </div>
-            
-            <div id="error-message" class="hidden text-red-600 text-sm"></div>
-            
-            <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition">
-                <i class="fas fa-sign-in-alt mr-2"></i>ログイン
-            </button>
-        </form>
-        
-        <div class="mt-6 text-center">
-            <a href="/" class="text-sm text-purple-600 hover:underline">トップページに戻る</a>
-        </div>
-    </div>
-    
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('error-message');
-            
-            try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    localStorage.setItem('session_id', data.session_id);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    window.location.href = '/dashboard';
-                } else {
-                    errorDiv.textContent = data.error || 'ログインに失敗しました';
-                    errorDiv.classList.remove('hidden');
-                }
-            } catch (error) {
-                errorDiv.textContent = 'ネットワークエラーが発生しました';
-                errorDiv.classList.remove('hidden');
-            }
-        });
-    </script>
-</body>
-</html>
-`;
-
-const ADMIN_LOGIN_HTML = `
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理者ログイン - AICHEFS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gradient-to-br from-gray-900 to-gray-700 min-h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full mx-4">
-        <div class="text-center mb-8">
-            <i class="fas fa-shield-alt text-5xl text-gray-800 mb-4"></i>
-            <h1 class="text-3xl font-bold text-gray-800">AICHEFS</h1>
-            <p class="text-gray-600 mt-2">管理者ログイン</p>
-        </div>
-        
-        <form id="adminLoginForm" class="space-y-6">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">ユーザー名</label>
-                <input type="text" id="username" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">パスワード</label>
-                <input type="password" id="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent">
-            </div>
-            
-            <div id="error-message" class="hidden text-red-600 text-sm"></div>
-            
-            <button type="submit" class="w-full bg-gradient-to-r from-gray-800 to-gray-900 text-white py-3 rounded-lg font-semibold hover:from-gray-900 hover:to-black transition">
-                <i class="fas fa-user-shield mr-2"></i>管理者としてログイン
-            </button>
-        </form>
-        
-        <div class="mt-6 text-center">
-            <a href="/" class="text-sm text-gray-600 hover:underline">トップページに戻る</a>
-        </div>
-    </div>
-    
-    <script>
-        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('error-message');
-            
-            try {
-                const response = await fetch('/api/auth/admin-login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    localStorage.setItem('admin_session_id', data.session_id);
-                    localStorage.setItem('admin', JSON.stringify(data.admin));
-                    window.location.href = '/admin';
-                } else {
-                    errorDiv.textContent = data.error || 'ログインに失敗しました';
-                    errorDiv.classList.remove('hidden');
-                }
-            } catch (error) {
-                errorDiv.textContent = 'ネットワークエラーが発生しました';
-                errorDiv.classList.remove('hidden');
-            }
-        });
-    </script>
-</body>
-</html>
-`;
-
-const REGISTER_HTML = `
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>会員登録 - AICHEFS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen flex items-center justify-center py-12">
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full mx-4">
-        <div class="text-center mb-8">
-            <i class="fas fa-user-plus text-5xl text-green-600 mb-4"></i>
-            <h1 class="text-3xl font-bold text-gray-800">AICHEFS</h1>
-            <p class="text-gray-600 mt-2">新規会員登録</p>
-        </div>
-        
-        <form id="registerForm" class="space-y-6">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">お名前</label>
-                <input type="text" id="name" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent" placeholder="山田 太郎">
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
-                <input type="email" id="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent" placeholder="example@email.com">
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">パスワード</label>
-                <input type="password" id="password" required minlength="8" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent" placeholder="8文字以上">
-                <p class="text-xs text-gray-500 mt-1">8文字以上で入力してください</p>
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">パスワード（確認）</label>
-                <input type="password" id="password_confirm" required minlength="8" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent" placeholder="もう一度入力">
-            </div>
-            
-            <div id="error-message" class="hidden text-red-600 text-sm"></div>
-            <div id="success-message" class="hidden text-green-600 text-sm"></div>
-            
-            <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 transition">
-                <i class="fas fa-user-plus mr-2"></i>会員登録
-            </button>
-        </form>
-        
-        <div class="mt-6 text-center space-y-2">
-            <p class="text-sm text-gray-600">
-                すでにアカウントをお持ちの方は
-                <a href="/login" class="text-green-600 hover:underline">ログイン</a>
-            </p>
-            <a href="/" class="text-sm text-gray-500 hover:underline block">トップページに戻る</a>
-        </div>
-    </div>
-    
-    <script>
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const password_confirm = document.getElementById('password_confirm').value;
-            const errorDiv = document.getElementById('error-message');
-            const successDiv = document.getElementById('success-message');
-            
-            errorDiv.classList.add('hidden');
-            successDiv.classList.add('hidden');
-            
-            // パスワード一致チェック
-            if (password !== password_confirm) {
-                errorDiv.textContent = 'パスワードが一致しません';
-                errorDiv.classList.remove('hidden');
-                return;
-            }
-            
-            // パスワード長チェック
-            if (password.length < 8) {
-                errorDiv.textContent = 'パスワードは8文字以上で入力してください';
-                errorDiv.classList.remove('hidden');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    successDiv.textContent = '会員登録が完了しました！ログイン画面に移動します...';
-                    successDiv.classList.remove('hidden');
-                    
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 2000);
-                } else {
-                    errorDiv.textContent = data.error || '登録に失敗しました';
-                    errorDiv.classList.remove('hidden');
-                }
-            } catch (error) {
-                errorDiv.textContent = 'ネットワークエラーが発生しました';
-                errorDiv.classList.remove('hidden');
-            }
-        });
-    </script>
-</body>
-</html>
-`;
-
-const USER_DASHBOARD_HTML = `
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>マイページ - AICHEFS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- ヘッダー -->
-    <header class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <i class="fas fa-utensils text-2xl text-purple-600"></i>
-                <h1 class="text-2xl font-bold text-gray-800">AICHEFS</h1>
-            </div>
-            <div class="flex items-center gap-4">
-                <span id="user-name" class="text-gray-700"></span>
-                <button onclick="logout()" class="text-sm text-red-600 hover:underline">
-                    <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
-                </button>
-            </div>
-        </div>
-    </header>
-    
-    <!-- メインコンテンツ -->
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <!-- ダッシュボードカード -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- 献立作成 -->
-            <div class="bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl p-6 text-white shadow-xl">
-                <i class="fas fa-calendar-plus text-4xl mb-4"></i>
-                <h2 class="text-2xl font-bold mb-2">献立作成</h2>
-                <p class="mb-4 opacity-90">新しい献立を作成します</p>
-                <a href="/app" class="inline-block bg-white text-purple-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
-                    作成する
-                </a>
-            </div>
-            
-            <!-- 履歴 -->
-            <div class="bg-gradient-to-br from-green-500 to-teal-500 rounded-2xl p-6 text-white shadow-xl">
-                <i class="fas fa-history text-4xl mb-4"></i>
-                <h2 class="text-2xl font-bold mb-2">献立履歴</h2>
-                <p class="mb-4 opacity-90"><span id="history-count">0</span>件の履歴</p>
-                <button onclick="showHistoryTab()" class="bg-white text-green-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
-                    閲覧する
-                </button>
-            </div>
-            
-            <!-- お気に入り -->
-            <div class="bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl p-6 text-white shadow-xl">
-                <i class="fas fa-heart text-4xl mb-4"></i>
-                <h2 class="text-2xl font-bold mb-2">お気に入り</h2>
-                <p class="mb-4 opacity-90"><span id="favorites-count">0</span>件のレシピ</p>
-                <button onclick="showFavoritesTab()" class="bg-white text-pink-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
-                    閲覧する
-                </button>
-            </div>
-        </div>
-        
-        <!-- タブナビゲーション -->
-        <div class="bg-white rounded-lg shadow-sm mb-6">
-            <div class="border-b border-gray-200 flex">
-                <button onclick="switchTab('history')" id="tab-history" class="px-6 py-3 font-semibold border-b-2 border-purple-600 text-purple-600">
-                    <i class="fas fa-history mr-2"></i>履歴
-                </button>
-                <button onclick="switchTab('favorites')" id="tab-favorites" class="px-6 py-3 font-semibold text-gray-600 hover:text-purple-600">
-                    <i class="fas fa-heart mr-2"></i>お気に入り
-                </button>
-                <button onclick="switchTab('profile')" id="tab-profile" class="px-6 py-3 font-semibold text-gray-600 hover:text-purple-600">
-                    <i class="fas fa-user mr-2"></i>プロフィール
-                </button>
-            </div>
-        </div>
-        
-        <!-- タブコンテンツ -->
-        <div id="content-history" class="bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">献立履歴</h2>
-            <div id="history-list" class="space-y-4">
-                <p class="text-gray-500">履歴を読み込み中...</p>
-            </div>
-        </div>
-        
-        <div id="content-favorites" class="hidden bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">お気に入りレシピ</h2>
-            <div id="favorites-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <p class="text-gray-500">お気に入りを読み込み中...</p>
-            </div>
-        </div>
-        
-        <div id="content-profile" class="hidden bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">プロフィール</h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">お名前</label>
-                    <input type="text" id="profile-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg" disabled>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
-                    <input type="email" id="profile-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg" disabled>
-                </div>
-                <p class="text-sm text-gray-500">※ プロフィール編集機能は近日公開予定です</p>
-            </div>
-        </div>
-    </main>
-    
-    <script>
-        let userData = null;
-        let household_id = null;
-        
-        // 初期化
-        async function init() {
-            // セッション確認
-            const session_id = localStorage.getItem('session_id');
-            const user = localStorage.getItem('user');
-            
-            if (!session_id || !user) {
-                window.location.href = '/login';
-                return;
-            }
-            
-            userData = JSON.parse(user);
-            household_id = userData.household_id;
-            document.getElementById('user-name').textContent = userData.name;
-            document.getElementById('profile-name').value = userData.name;
-            document.getElementById('profile-email').value = userData.email;
-            
-            // データ読み込み
-            await loadHistory();
-            await loadFavorites();
-        }
-        
-        // 履歴読み込み
-        async function loadHistory() {
-            try {
-                const response = await fetch(\`/api/history/list/\${household_id}\`);
-                const data = await response.json();
-                
-                document.getElementById('history-count').textContent = data.count || 0;
-                
-                const listEl = document.getElementById('history-list');
-                if (data.histories && data.histories.length > 0) {
-                    listEl.innerHTML = data.histories.map(h => '<div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">' +
-                        '<div class="flex justify-between items-start">' +
-                            '<div>' +
-                                '<h3 class="font-bold text-lg text-gray-800">' + h.title + '</h3>' +
-                                '<p class="text-sm text-gray-600 mt-1">' +
-                                    '<i class="far fa-calendar mr-1"></i>' + h.start_date + ' ~ ' + h.end_date +
-                                '</p>' +
-                                '<p class="text-sm text-gray-600">' +
-                                    '<i class="fas fa-users mr-1"></i>' + h.members_count + '人分 | ' + h.total_days + '日間' +
-                                '</p>' +
-                            '</div>' +
-                            '<div class="flex gap-2">' +
-                                '<button class="history-view-btn text-blue-600 hover:text-blue-800" data-history-id="' + h.history_id + '">' +
-                                    '<i class="fas fa-eye"></i>' +
-                                '</button>' +
-                                '<button class="history-delete-btn text-red-600 hover:text-red-800" data-history-id="' + h.history_id + '">' +
-                                    '<i class="fas fa-trash"></i>' +
-                                '</button>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>').join('');
-                } else {
-                    listEl.innerHTML = '<p class="text-gray-500">まだ履歴がありません</p>';
-                }
-            } catch (error) {
-                console.error('History load error:', error);
-            }
-        }
-        
-        // お気に入り読み込み
-        async function loadFavorites() {
-            try {
-                const response = await fetch(\`/api/favorites/list/\${household_id}\`);
-                const data = await response.json();
-                
-                document.getElementById('favorites-count').textContent = data.count || 0;
-                
-                const listEl = document.getElementById('favorites-list');
-                if (data.favorites && data.favorites.length > 0) {
-                    listEl.innerHTML = data.favorites.map(f => '<div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">' +
-                        '<h3 class="font-bold text-gray-800 mb-2">' + f.title + '</h3>' +
-                        '<p class="text-sm text-gray-600 mb-2">' + (f.description || '') + '</p>' +
-                        '<div class="flex justify-between items-center text-sm text-gray-500">' +
-                            '<span><i class="fas fa-globe mr-1"></i>' + f.cuisine + '</span>' +
-                            '<span><i class="far fa-clock mr-1"></i>' + f.time_min + '分</span>' +
-                        '</div>' +
-                    '</div>').join('');
-                } else {
-                    listEl.innerHTML = '<p class="text-gray-500 col-span-full">まだお気に入りがありません</p>';
-                }
-            } catch (error) {
-                console.error('Favorites load error:', error);
-            }
-        }
-        
-        // タブ切り替え
-        function switchTab(tab) {
-            ['history', 'favorites', 'profile'].forEach(t => {
-                document.getElementById(\`content-\${t}\`).classList.add('hidden');
-                document.getElementById(\`tab-\${t}\`).classList.remove('border-b-2', 'border-purple-600', 'text-purple-600');
-                document.getElementById(\`tab-\${t}\`).classList.add('text-gray-600');
-            });
-            
-            document.getElementById(\`content-\${tab}\`).classList.remove('hidden');
-            document.getElementById(\`tab-\${tab}\`).classList.add('border-b-2', 'border-purple-600', 'text-purple-600');
-            document.getElementById(\`tab-\${tab}\`).classList.remove('text-gray-600');
-        }
-        
-        function showHistoryTab() { switchTab('history'); }
-        function showFavoritesTab() { switchTab('favorites'); }
-        
-        // 履歴詳細表示
-        async function viewHistory(history_id) {
-            alert('履歴詳細表示機能は近日実装予定です');
-        }
-        
-        // 履歴削除
-        async function deleteHistory(history_id) {
-            if (!confirm('この履歴を削除してもよろしいですか？')) return;
-            
-            try {
-                const response = await fetch(\`/api/history/delete/\${history_id}\`, { method: 'DELETE' });
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('履歴を削除しました');
-                    await loadHistory();
-                } else {
-                    alert('削除に失敗しました');
-                }
-            } catch (error) {
-                console.error('Delete error:', error);
-                alert('エラーが発生しました');
-            }
-        }
-        
-        // ログアウト
-        function logout() {
-            localStorage.removeItem('session_id');
-            localStorage.removeItem('user');
-            window.location.href = '/';
-        }
-        
-        // 初期化実行
-        init();
-    </script>
-</body>
-</html>
-`;
-
-const ADMIN_DASHBOARD_HTML = `
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理者ダッシュボード - AICHEFS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- ヘッダー -->
-    <header class="bg-gray-900 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <i class="fas fa-shield-alt text-2xl"></i>
-                <h1 class="text-2xl font-bold">AICHEFS 管理者</h1>
-            </div>
-            <button onclick="logout()" class="text-sm text-red-400 hover:text-red-300">
-                <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
-            </button>
-        </div>
-    </header>
-    
-    <!-- メインコンテンツ -->
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <h2 class="text-3xl font-bold text-gray-800 mb-8">管理者ダッシュボード</h2>
-        
-        <!-- 統計カード -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">総ユーザー数</p>
-                        <p id="total-users" class="text-3xl font-bold text-gray-800">-</p>
-                    </div>
-                    <i class="fas fa-users text-4xl text-blue-500"></i>
-                </div>
-                <p class="text-sm text-green-600 mt-2">
-                    <i class="fas fa-arrow-up mr-1"></i>
-                    <span id="users-growth">-</span>% 今月
-                </p>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">総献立数</p>
-                        <p id="total-plans" class="text-3xl font-bold text-gray-800">-</p>
-                    </div>
-                    <i class="fas fa-calendar-alt text-4xl text-green-500"></i>
-                </div>
-                <p class="text-sm text-green-600 mt-2">
-                    <i class="fas fa-arrow-up mr-1"></i>
-                    <span id="plans-growth">-</span>% 今月
-                </p>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">アクティブユーザー</p>
-                        <p id="active-users" class="text-3xl font-bold text-gray-800">-</p>
-                    </div>
-                    <i class="fas fa-user-check text-4xl text-purple-500"></i>
-                </div>
-                <p class="text-sm text-gray-600 mt-2">過去7日間</p>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">メルマガ登録</p>
-                        <p id="newsletter-count" class="text-3xl font-bold text-gray-800">-</p>
-                    </div>
-                    <i class="fas fa-envelope text-4xl text-pink-500"></i>
-                </div>
-                <p class="text-sm text-gray-600 mt-2">
-                    開封率 <span id="open-rate">-</span>%
-                </p>
-            </div>
-        </div>
-        
-        <!-- ユーザー一覧 -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">最近のユーザー</h3>
-            <div class="overflow-x-auto">
-                <table class="min-w-full">
-                    <thead>
-                        <tr class="border-b">
-                            <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">ユーザー名</th>
-                            <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">家族人数</th>
-                            <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">献立数</th>
-                            <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">登録日</th>
-                        </tr>
-                    </thead>
-                    <tbody id="users-table">
-                        <tr>
-                            <td colspan="4" class="text-center py-4 text-gray-500">読み込み中...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- クイックアクション -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white">
-                <i class="fas fa-utensils text-3xl mb-3"></i>
-                <h3 class="text-xl font-bold mb-2">レシピ管理</h3>
-                <p class="text-sm mb-4 opacity-90">レシピの追加・編集・削除</p>
-                <button class="bg-white text-blue-600 px-4 py-2 rounded font-semibold hover:bg-gray-100 transition" disabled>
-                    近日公開
-                </button>
-            </div>
-            
-            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white">
-                <i class="fas fa-users-cog text-3xl mb-3"></i>
-                <h3 class="text-xl font-bold mb-2">ユーザー管理</h3>
-                <p class="text-sm mb-4 opacity-90">ユーザーの詳細管理</p>
-                <button class="bg-white text-green-600 px-4 py-2 rounded font-semibold hover:bg-gray-100 transition" disabled>
-                    近日公開
-                </button>
-            </div>
-            
-            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md p-6 text-white">
-                <i class="fas fa-chart-line text-3xl mb-3"></i>
-                <h3 class="text-xl font-bold mb-2">詳細統計</h3>
-                <p class="text-sm mb-4 opacity-90">アクセス解析・レポート</p>
-                <button class="bg-white text-purple-600 px-4 py-2 rounded font-semibold hover:bg-gray-100 transition" disabled>
-                    近日公開
-                </button>
-            </div>
-        </div>
-    </main>
-    
-    <script>
-        // 初期化
-        async function init() {
-            // セッション確認
-            const session_id = localStorage.getItem('admin_session_id');
-            const admin = localStorage.getItem('admin');
-            
-            if (!session_id || !admin) {
-                window.location.href = '/admin/login';
-                return;
-            }
-            
-            // データ読み込み
-            await loadStats();
-            await loadUsers();
-        }
-        
-        // 統計データ読み込み
-        async function loadStats() {
-            try {
-                const response = await fetch('/api/admin/stats');
-                const data = await response.json();
-                
-                document.getElementById('total-users').textContent = data.totalUsers || 0;
-                document.getElementById('total-plans').textContent = data.totalPlans || 0;
-                document.getElementById('active-users').textContent = data.activeUsers || 0;
-                document.getElementById('newsletter-count').textContent = data.newsletter || 0;
-                document.getElementById('users-growth').textContent = data.usersGrowth || 0;
-                document.getElementById('plans-growth').textContent = data.plansGrowth || 0;
-                document.getElementById('open-rate').textContent = data.openRate || 0;
-            } catch (error) {
-                console.error('Stats load error:', error);
-            }
-        }
-        
-        // ユーザー一覧読み込み
-        async function loadUsers() {
-            try {
-                const response = await fetch('/api/admin/users');
-                const data = await response.json();
-                
-                const tableEl = document.getElementById('users-table');
-                if (data.users && data.users.length > 0) {
-                    tableEl.innerHTML = data.users.slice(0, 10).map(u => \`
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="py-3 px-4">\${u.title}</td>
-                            <td class="py-3 px-4">\${u.members_count}人</td>
-                            <td class="py-3 px-4">\${u.plan_count || 0}件</td>
-                            <td class="py-3 px-4">\${new Date(u.created_at).toLocaleDateString('ja-JP')}</td>
-                        </tr>
-                    \`).join('');
-                } else {
-                    tableEl.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">ユーザーがいません</td></tr>';
-                }
-            } catch (error) {
-                console.error('Users load error:', error);
-            }
-        }
-        
-        // ログアウト
-        function logout() {
-            localStorage.removeItem('admin_session_id');
-            localStorage.removeItem('admin');
-            window.location.href = '/';
-        }
-        
-        // 初期化実行
-        init();
-    </script>
-</body>
-</html>
-`;
-
-// ========================================
-// Landing Page (TOPページ) - 静的ファイルとして配信
-// ========================================
-// landingHtmlは削除しました。landing.htmlは静的ファイルとして配信されます。
-
-// ========================================
-// App Page (献立作成チャット)
-// ========================================
-const appHtml = `<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aメニュー - 毎日の献立を考える負担から解放</title>
+    <title>AICHEFS - AI献立アシスタント</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 印刷用スタイル */
-        @media print {
-            body {
-                font-size: 10pt;
-                line-height: 1.3;
-            }
-            
-            .no-print {
-                display: none !important;
-            }
-            
-            #calendar-container {
-                box-shadow: none !important;
-                padding: 0 !important;
-            }
-            
-            .calendar-week {
-                page-break-inside: avoid;
-                break-inside: avoid;
-            }
-            
-            /* 10日ごとに改ページ */
-            .page-break-after-10 {
-                page-break-after: always;
-            }
-            
-            .day-card {
-                border: 1px solid #ccc !important;
-                padding: 8px !important;
-                margin-bottom: 6px !important;
-                box-shadow: none !important;
-            }
-            
-            .day-date {
-                font-size: 11pt;
-                font-weight: bold;
-                margin-bottom: 4px;
-            }
-            
-            .recipe-item {
-                font-size: 9pt;
-                margin-bottom: 2px;
-            }
-            
-            @page {
-                size: A4;
-                margin: 15mm;
-            }
-            
-            /* カレンダー印刷時のスタイル */
-            .calendar-grid-month {
-                display: grid !important;
-                grid-template-columns: repeat(7, 1fr) !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                page-break-inside: avoid;
-            }
-            
-            .calendar-day-cell {
-                min-height: 80px !important;
-                padding: 4px !important;
-                border: 1px solid #ccc !important;
-                page-break-inside: avoid;
-            }
-            
-            .calendar-day-content {
-                font-size: 8pt !important;
-            }
-            
-            .calendar-day-actions {
-                display: none !important;
-            }
-            
-            /* モーダルの背景を非表示 */
-            .modal-backdrop,
-            .fixed.inset-0 {
-                display: none !important;
-            }
-            
-            /* 買い物リスト印刷用スタイル */
-            #shopping-modal {
-                position: static !important;
-                background: white !important;
-                backdrop-filter: none !important;
-            }
-            
-            #shopping-modal > div {
-                max-width: 100% !important;
-                box-shadow: none !important;
-                border-radius: 0 !important;
-            }
-            
-            #shopping-modal .bg-gradient-to-r {
-                background: white !important;
-                color: black !important;
-                border-bottom: 2px solid #000 !important;
-            }
-            
-            #shopping-modal button {
-                display: none !important;
-            }
-            
-            #shopping-modal-content {
-                max-height: none !important;
-            }
-            
-            /* 週ごとの買い物リストの改ページ */
-            .week-shopping-list {
-                page-break-before: auto;
-                page-break-after: auto;
-                page-break-inside: avoid;
-            }
+        body {
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
         }
         
-        /* 画面表示用スタイル */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1rem;
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
-        .day-card {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 1rem;
-            transition: all 0.3s;
-            background: white;
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
         }
         
-        .day-card:hover {
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-            transform: translateY(-4px);
-            border-color: #3b82f6;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        .day-card[draggable="true"]:hover {
-            cursor: grab;
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
         }
         
-        .day-card[draggable="true"]:active {
-            cursor: grabbing;
-        }
-        
-        .recipe-badge {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 6px;
-        }
-        
-        .badge-main { background-color: #ef4444; }
-        .badge-side { background-color: #10b981; }
-        .badge-soup { background-color: #3b82f6; }
-        
-        /* 月表示カレンダー用スタイル */
-        .calendar-grid-month {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
-            background-color: #e5e7eb;
-            border: 1px solid #e5e7eb;
-            max-width: 100%;
-            overflow-x: auto;
-        }
-        
-        /* レスポンシブ対応 */
-        @media screen and (max-width: 768px) {
-            .calendar-grid-month {
-                font-size: 12px;
-            }
-            
-            .calendar-day-cell {
-                min-height: 80px;
-                padding: 4px;
-            }
-            
-            .calendar-day-content {
-                font-size: 9px;
-            }
-        }
-        
-        @media screen and (max-width: 480px) {
-            .calendar-grid-month {
-                font-size: 10px;
-            }
-            
-            .calendar-day-cell {
-                min-height: 60px;
-                padding: 2px;
-            }
-            
-            .calendar-day-content {
-                font-size: 8px;
-            }
-            
-            .calendar-day-number {
-                font-size: 12px;
-            }
-        }
-        
-        .calendar-header {
-            background-color: #f3f4f6;
-            padding: 8px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        .calendar-day-cell {
-            background-color: white;
-            padding: 8px;
-            min-height: 120px;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .calendar-day-cell:hover {
-            background-color: #f9fafb;
-        }
-        
-        .calendar-day-empty {
-            background-color: #f9fafb;
-            padding: 8px;
-            min-height: 120px;
-        }
-        
-        .calendar-day-number {
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 4px;
-            color: #374151;
-        }
-        
-        .calendar-day-content {
-            font-size: 11px;
-            color: #6b7280;
-        }
-        
-        .calendar-day-actions {
-            position: absolute;
-            bottom: 4px;
-            right: 4px;
+        .modal.active {
             display: flex;
-            gap: 4px;
-            opacity: 0;
-            transition: opacity 0.2s;
+            align-items: center;
+            justify-content: center;
         }
         
-        .calendar-day-cell:hover .calendar-day-actions {
-            opacity: 1;
-        }
-        
-        .calendar-btn {
-            background-color: #3b82f6;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background-color 0.2s;
-        }
-        
-        .calendar-btn:hover {
-            background-color: #2563eb;
-        }
-        
-        /* アニメーションバナー用スタイル */
-        @keyframes gradient {
-            0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-        
-        @keyframes fade-in {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -100%);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, 0);
-            }
-        }
-        
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-            }
-            to {
-                opacity: 0;
-            }
-        }
-        
-        .animate-gradient {
-            background-size: 200% 200%;
-            animation: gradient 4s ease infinite;
-        }
-        
-        .animate-fade-in {
-            animation: fade-in 1s ease-out;
+        @media print {
+            .no-print { display: none !important; }
+            body { font-size: 10pt; }
         }
     </style>
 </head>
-<body class="bg-gray-50" style="overflow-x: hidden;">
-    <div id="app" class="container mx-auto px-4 py-8 max-w-6xl" style="max-width: min(1536px, 100vw); overflow-x: hidden;">
-        <!-- ヘッダー -->
-        <!-- アプリヘッダー - 横長バナー -->
-        <div class="no-print mb-8 relative overflow-hidden rounded-2xl" style="height: 200px; max-width: 100%;">
-            <div class="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-gradient"></div>
-            <div class="absolute inset-0 flex items-center justify-center">
-                <div class="text-center text-white px-4">
-                    <div class="flex items-center justify-center gap-3 mb-2">
-                        <i class="fas fa-utensils text-4xl md:text-5xl"></i>
-                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold" style="text-shadow: 3px 3px 6px rgba(0,0,0,0.3);">
-                            AICHEFS
-                        </h1>
-                    </div>
-                    <h2 class="text-xl md:text-2xl lg:text-3xl font-bold mb-3" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                        AIシェフ
-                    </h2>
-                    <p class="text-base md:text-lg lg:text-xl opacity-95" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
-                        考えなくていい。<br>悩まなくていい。<br>今日から晩ごはんが決まります。
-                    </p>
-                </div>
-            </div>
-            <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/20 to-transparent"></div>
+<body class="bg-gray-50">
+    <!-- ヘッダー -->
+    <header class="gradient-bg text-white py-8 no-print">
+        <div class="container mx-auto px-4 max-w-6xl">
+            <h1 class="text-4xl font-bold text-center">
+                <i class="fas fa-utensils mr-3"></i>AICHEFS
+            </h1>
+            <p class="text-center mt-2 text-lg">AIシェフ - 毎日の献立を考える負担から解放</p>
+            <p class="text-center mt-1">考えなくていい。悩まなくていい。今日から晩ごはんが決まります。</p>
         </div>
+    </header>
 
-        <!-- TOPページヘッダー広告 -->
-        <div id="ad-top-header" class="ad-container no-print mb-6" style="display:flex;justify-content:center;"></div>
-
-        <!-- チャットエリア -->
-        <div id="chat-container" class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-6">
-            <div id="messages" class="space-y-4 mb-6"></div>
+    <!-- メインコンテンツ -->
+    <main class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- 質問エリア -->
+        <div id="question-area" class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <div id="messages" class="mb-6 space-y-4"></div>
             <div id="input-area"></div>
         </div>
 
-        <!-- 献立カレンダー（生成後に表示） -->
-        <div id="calendar-container" class="hidden bg-white rounded-lg shadow-lg p-6">
-            <!-- 献立ページ上部アニメーションバナー -->
-            <div class="no-print mb-6 relative overflow-hidden rounded-2xl" style="height: 160px;">
-                <div class="absolute inset-0 bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 animate-gradient"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="text-center text-white px-4">
-                        <div class="flex items-center justify-center gap-3 mb-2">
-                            <i class="fas fa-calendar-alt text-4xl"></i>
-                            <h2 class="text-4xl md:text-5xl font-bold" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                                今日の献立、明日の笑顔
-                            </h2>
-                        </div>
-                        <p class="text-lg md:text-xl opacity-90" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
-                            あなたの献立があなたの毎日を彩ります
-                        </p>
-                    </div>
-                </div>
-                <!-- アニメーション装飾 -->
-                <div class="absolute top-4 left-4 animate-bounce" style="animation-delay: 0.2s;">
-                    <i class="fas fa-utensils text-white text-2xl opacity-30"></i>
-                </div>
-                <div class="absolute bottom-4 right-4 animate-bounce" style="animation-delay: 0.5s;">
-                    <i class="fas fa-heart text-white text-2xl opacity-30"></i>
-                </div>
-                <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white/20 to-transparent"></div>
-            </div>
-            
-            <div class="flex justify-between items-center mb-6 no-print">
-                <h2 class="text-3xl font-bold">
-                    <i class="fas fa-calendar-alt mr-2"></i>
-                    1ヶ月分の献立
+        <!-- カレンダーエリア（非表示） -->
+        <div id="calendar-container" class="hidden"></div>
+
+        <!-- 会員登録モーダル -->
+        <div id="auth-modal" class="modal">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+                    <i class="fas fa-user-circle mr-2 text-purple-600"></i>会員登録
                 </h2>
-                <div class="flex gap-2 flex-wrap">
-                    <button onclick="showHistory()" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition flex items-center gap-2 text-sm">
-                        <i class="fas fa-history"></i>
-                        履歴
-                    </button>
-                    <button onclick="showFavorites()" class="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition flex items-center gap-2 text-sm">
-                        <i class="fas fa-heart"></i>
-                        お気に入り
-                    </button>
-                    <button onclick="toggleCalendarView()" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-2 text-sm">
-                        <i class="fas fa-calendar"></i>
-                        <span id="view-toggle-text">月表示</span>
-                    </button>
-                    <button onclick="generateShoppingList()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-2 text-sm">
-                        <i class="fas fa-shopping-cart"></i>
-                        買い物リスト
-                    </button>
-                    <button onclick="exportToGoogleCalendar()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2 text-sm">
-                        <i class="fab fa-google"></i>
-                        カレンダー連携
-                    </button>
-                    <button onclick="handlePrint()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center gap-2">
-                        <i class="fas fa-print"></i>
-                        印刷する
-                    </button>
-                    <button onclick="handleDownloadCalendar()" class="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-2">
-                        <i class="fas fa-download"></i>
-                        ダウンロード
-                    </button>
-                    <div id="user-info" class="hidden px-4 py-2 bg-gray-100 rounded-lg flex items-center gap-2">
-                        <i class="fas fa-user-circle text-gray-600"></i>
-                        <span id="user-name" class="text-sm font-medium text-gray-700"></span>
-                        <button onclick="logout()" class="text-xs text-red-600 hover:underline ml-2">ログアウト</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="print-title" class="hidden print:block text-center mb-4">
-                <h1 class="text-xl font-bold">献立カレンダー</h1>
-                <p id="print-period" class="text-sm text-gray-600"></p>
-            </div>
-            
-            <div id="calendar-content"></div>
-            
-            <!-- カレンダー下部広告 -->
-            <div id="ad-calendar-bottom" class="ad-container no-print mt-8" style="display:flex;justify-content:center;"></div>
-        </div>
-        
-        <!-- フッターセクション（完全レスポンシブ版） -->
-        <footer class="no-print mt-12 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white rounded-2xl shadow-2xl" style="overflow: hidden; max-width: 100%; width: 100%; box-sizing: border-box;">
-            <!-- 波のアニメーション背景 -->
-            <div class="relative" style="overflow: hidden;">
-                <div class="absolute inset-0 opacity-20" style="pointer-events: none;">
-                    <svg class="absolute bottom-0 w-full h-32" viewBox="0 0 1200 120" preserveAspectRatio="none" style="overflow: hidden;">
-                        <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" 
-                              fill="currentColor" class="text-purple-700 opacity-50 animate-wave"></path>
-                    </svg>
-                </div>
-                
-                <div class="relative z-10 p-4 sm:p-6 md:p-8 lg:p-12" style="max-width: 100%; overflow: hidden;">
-                    <!-- メインコンテンツエリア -->
-                    <div class="max-w-6xl mx-auto" style="max-width: 100%; overflow: hidden; word-wrap: break-word;">
-                        <!-- トップセクション -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-8">
-                            <!-- ブランド情報 -->
-                            <div class="space-y-4" style="overflow: hidden; word-wrap: break-word;">
-                                <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-                                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-                                        <i class="fas fa-utensils text-xl sm:text-2xl text-white"></i>
-                                    </div>
-                                    <div style="overflow: hidden;">
-                                        <h3 class="text-xl sm:text-2xl font-bold" style="word-wrap: break-word;">Aメニュー</h3>
-                                        <p class="text-xs sm:text-sm text-purple-200" style="word-wrap: break-word;">今日の献立、明日の笑顔</p>
-                                    </div>
-                                </div>
-                                <p class="text-xs sm:text-sm text-purple-200 leading-relaxed" style="word-wrap: break-word; overflow-wrap: break-word;">
-                                    AIが考える、あなたの家族にぴったりの献立。毎日の食事が楽しくなります。
-                                </p>
-                                <div class="flex gap-2 sm:gap-3 flex-wrap">
-                                    <a href="#" class="w-9 h-9 sm:w-10 sm:h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110 flex-shrink-0">
-                                        <i class="fab fa-twitter text-sm sm:text-base"></i>
-                                    </a>
-                                    <a href="#" class="w-9 h-9 sm:w-10 sm:h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110 flex-shrink-0">
-                                        <i class="fab fa-facebook text-sm sm:text-base"></i>
-                                    </a>
-                                    <a href="#" class="w-9 h-9 sm:w-10 sm:h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition transform hover:scale-110 flex-shrink-0">
-                                        <i class="fab fa-instagram text-sm sm:text-base"></i>
-                                    </a>
-                                </div>
-                            </div>
-                            
-                            <!-- クイックリンク -->
-                            <div style="overflow: hidden; word-wrap: break-word;">
-                                <h4 class="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2">
-                                    <i class="fas fa-link text-yellow-400 text-sm sm:text-base"></i>
-                                    <span style="word-wrap: break-word;">クイックリンク</span>
-                                </h4>
-                                <ul class="space-y-2 text-xs sm:text-sm">
-                                    <li><a href="/app" class="text-purple-200 hover:text-white transition flex items-center gap-2 group" style="word-wrap: break-word;">
-                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition flex-shrink-0"></i>
-                                        <span>献立作成</span>
-                                    </a></li>
-                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group" style="word-wrap: break-word;">
-                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition flex-shrink-0"></i>
-                                        <span>使い方ガイド</span>
-                                    </a></li>
-                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group" style="word-wrap: break-word;">
-                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition flex-shrink-0"></i>
-                                        <span>よくある質問</span>
-                                    </a></li>
-                                    <li><a href="#" class="text-purple-200 hover:text-white transition flex items-center gap-2 group" style="word-wrap: break-word;">
-                                        <i class="fas fa-chevron-right text-xs group-hover:translate-x-1 transition flex-shrink-0"></i>
-                                        <span>プライバシーポリシー</span>
-                                    </a></li>
-                                </ul>
-                            </div>
-                            
-                            <!-- メルマガ登録 -->
-                            <div style="overflow: hidden; word-wrap: break-word;">
-                                <h4 class="text-base sm:text-lg font-bold mb-3 sm:mb-4 flex items-center gap-2">
-                                    <i class="fas fa-envelope text-pink-400 text-sm sm:text-base"></i>
-                                    <span style="word-wrap: break-word;">メルマガ登録</span>
-                                </h4>
-                                <p class="text-xs sm:text-sm text-purple-200 mb-3" style="word-wrap: break-word; overflow-wrap: break-word;">
-                                    お得な情報や新機能をお届けします
-                                </p>
-                                <div class="flex gap-2 flex-wrap">
-                                    <input type="email" id="newsletter-email" placeholder="メールアドレス" 
-                                           class="flex-1 min-w-0 px-3 sm:px-4 py-2 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:bg-opacity-30 transition text-xs sm:text-sm"
-                                           style="max-width: 100%; word-wrap: break-word;">
-                                    <button onclick="subscribeNewsletter()" 
-                                            class="px-4 sm:px-6 py-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-lg hover:from-pink-600 hover:to-orange-600 transition transform hover:scale-105 shadow-lg font-semibold whitespace-nowrap text-xs sm:text-sm flex-shrink-0">
-                                        登録
-                                    </button>
-                                </div>
-                                <p id="newsletter-message" class="text-xs mt-2" style="word-wrap: break-word; overflow-wrap: break-word;"></p>
-                            </div>
+                <div id="auth-content">
+                    <p class="text-gray-600 mb-6 text-center">印刷・ダウンロード機能を使用するには会員登録が必要です</p>
+                    <form id="auth-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                氏名 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="auth-name" required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                   placeholder="山田 太郎">
                         </div>
-                        
-                        <!-- お問い合わせボタン -->
-                        <div class="text-center py-4 sm:py-6 border-t border-white border-opacity-20">
-                            <button onclick="openContactForm()" 
-                                    class="inline-flex items-center gap-2 px-6 sm:px-8 py-2 sm:py-3 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-full transition transform hover:scale-105 backdrop-blur-sm border border-white border-opacity-30 text-sm sm:text-base flex-wrap justify-center">
-                                <i class="fas fa-comment-dots text-pink-400 flex-shrink-0"></i>
-                                <span class="font-semibold">お問い合わせ</span>
-                            </button>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                メールアドレス <span class="text-red-500">*</span>
+                            </label>
+                            <input type="email" id="auth-email" required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                   placeholder="example@email.com">
                         </div>
-                        
-                        <!-- ログインボタン -->
-                        <div class="text-center py-4 sm:py-6 border-t border-white border-opacity-20">
-                            <div class="flex gap-4 justify-center flex-wrap">
-                                <a href="/login" 
-                                   class="inline-flex items-center gap-2 px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 rounded-full transition transform hover:scale-105 shadow-lg text-sm sm:text-base font-semibold">
-                                    <i class="fas fa-user flex-shrink-0"></i>
-                                    <span>ユーザーログイン</span>
-                                </a>
-                                <a href="/admin/login" 
-                                   class="inline-flex items-center gap-2 px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 rounded-full transition transform hover:scale-105 shadow-lg text-sm sm:text-base font-semibold">
-                                    <i class="fas fa-user-shield flex-shrink-0"></i>
-                                    <span>管理者ログイン</span>
-                                </a>
-                            </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                パスワード <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password" id="auth-password" required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                   placeholder="8文字以上">
                         </div>
-                        
-                        <!-- コピーライト -->
-                        <div class="text-center py-3 sm:py-4 border-t border-white border-opacity-20" style="overflow: hidden; word-wrap: break-word;">
-                            <p class="text-xs sm:text-sm text-purple-200" style="word-wrap: break-word; overflow-wrap: break-word;">
-                                &copy; 2026 <span class="font-bold text-white">Aメニュー</span>. All rights reserved.
-                            </p>
-                            <p class="text-xs text-purple-300 mt-1" style="word-wrap: break-word; overflow-wrap: break-word;">
-                                Made with <i class="fas fa-heart text-pink-400 animate-pulse"></i> in Japan
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- サイドバー広告枠（改善版） -->
-            <div id="ad-sidebar" class="ad-container p-4 bg-black bg-opacity-20" style="display:flex;justify-content:center;"></div>
-        </footer>
-        
-        <style>
-            @keyframes wave {
-                0% { transform: translateX(0) translateY(0); }
-                50% { transform: translateX(-25%) translateY(-10px); }
-                100% { transform: translateX(-50%) translateY(0); }
-            }
-            .animate-wave {
-                animation: wave 10s linear infinite;
-            }
-        </style>
-        
-        <!-- お問い合わせモーダル -->
-        <div id="contact-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold">お問い合わせ</h3>
-                    <button onclick="closeContactForm()" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-                <div class="space-y-4">
-                    <input type="text" id="contact-name" placeholder="お名前" 
-                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="email" id="contact-email" placeholder="メールアドレス" 
-                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="text" id="contact-subject" placeholder="件名" 
-                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <textarea id="contact-message" placeholder="お問い合わせ内容" rows="5"
-                              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                    <button onclick="submitContact()" 
-                            class="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-                        送信
-                    </button>
-                    <p id="contact-message-result" class="text-sm text-center"></p>
+                        <button type="submit" 
+                                class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition">
+                            <i class="fas fa-user-plus mr-2"></i>登録して続ける
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- 献立生成モーダル -->
+        <div id="loading-modal" class="modal">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+                <div class="mb-6">
+                    <i class="fas fa-spinner fa-spin text-6xl text-purple-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">献立を作成中...</h3>
+                <p class="text-gray-600" id="loading-message">レシピデータベースを検索しています</p>
+                <div class="mt-6 bg-gray-200 rounded-full h-2">
+                    <div id="loading-progress" class="bg-gradient-to-r from-purple-600 to-indigo-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
     <script>
+        // アプリケーション状態
         const appState = {
             step: 0,
-            householdId: null,
             planId: null,
             data: {
                 title: '',
                 start_date: '',
-                months: 1,
-                members_count: 0,
+                plan_days: 30,
+                members_count: 1,
                 members: [],
                 budget_tier_per_person: 500,
-                budget_distribution: 'average',
                 cooking_time_limit_min: 30,
-                shopping_frequency: 'weekly',
-                fish_frequency: 'normal',
                 dislikes: [],
                 allergies: { standard: [], free_text: [] }
-            },
-            planId: null
+            }
         };
 
+        // 質問定義
         const questions = [
-            {
-                id: 'welcome',
-                type: 'message',
-                text: 'こんにちは！AIシェフへようこそ。<br>いくつかの質問に答えるだけで、あなたに最適な晩ごはん献立が完成します。<br><br>準備はいいですか？',
-                options: [{ label: 'はじめる', value: 'start' }]
-            },
             {
                 id: 'consent',
                 type: 'choice',
-                text: '⚠️ 重要な注意事項 ⚠️<br><br>このサービスでは、アレルギーや嫌いな食材を考慮した献立を作成しますが、<strong>完全な除外を保証するものではありません</strong>。<br><br>• アレルギー情報は命に関わる重要な情報です<br>• データベースの食材情報には限界があります<br>• 調理時の交差汚染などは考慮されていません<br><br><strong>食物アレルギーをお持ちの方は、必ず献立内容を確認してからご利用ください。</strong><br><br>上記の注意事項に同意しますか？',
-                field: '_consent',
+                text: '⚠️ アレルギー情報の取り扱いについて\\n\\nアレルギー情報は命に関わる重要な情報です。以下の点にご注意ください：\\n\\n• 本システムはアレルギー物質の完全な除外を保証するものではありません\\n• データベースの食材情報には限界があります\\n• 調理時の交差汚染（コンタミネーション）は考慮されていません\\n• 必ず食品ラベルを確認し、自己責任でご使用ください\\n\\n上記の内容に同意しますか？',
+                field: 'consent',
                 options: [
-                    { label: '✅ 同意して続ける', value: 'agree' },
-                    { label: '❌ 同意しない', value: 'disagree' }
+                    { label: '✅ 同意して続ける', value: 'yes' },
+                    { label: '❌ 同意しない（トップへ戻る）', value: 'no' }
                 ]
             },
             {
                 id: 'start_date',
                 type: 'date',
-                text: 'いつから始めますか？',
+                text: '献立の開始日を教えてください',
                 field: 'start_date',
-                condition: (data: any) => data._consent === 'agree'
+                condition: () => appState.data.consent === 'yes'
             },
             {
                 id: 'plan_days',
                 type: 'choice',
-                text: '何日分作りますか？',
+                text: '何日分の献立が必要ですか？',
                 field: 'plan_days',
                 options: [
-                    { label: '1ヶ月（30日）', value: 30, icon: '📋' },
-                    { label: '3週間（21日）', value: 21, icon: '🗓️' },
-                    { label: '2週間（14日）', value: 14, icon: '📆' },
-                    { label: '1週間（7日）', value: 7, icon: '📅' }
-                ]
+                    { label: '1週間（7日）', value: 7 },
+                    { label: '2週間（14日）', value: 14 },
+                    { label: '3週間（21日）', value: 21 },
+                    { label: '1ヶ月（30日）', value: 30 }
+                ],
+                condition: () => appState.data.consent === 'yes'
             },
             {
-                id: 'adults_count',
-                type: 'choice',
-                text: '大人は何人ですか？',
-                field: 'adults_count',
-                options: [
-                    { label: '1人', value: 1 },
-                    { label: '2人', value: 2 },
-                    { label: '3人', value: 3 },
-                    { label: '4人', value: 4 }
-                ]
-            },
-            {
-                id: 'children_count',
-                type: 'choice',
-                text: 'お子さんは何人ですか？',
-                field: 'children_count',
-                options: [
-                    { label: 'いない', value: 0 },
-                    { label: '1人', value: 1 },
-                    { label: '2人', value: 2 },
-                    { label: '3人', value: 3 }
-                ]
-            },
-            {
-                id: 'children_ages',
-                type: 'multi-choice',
-                text: 'お子さんの年齢を教えてください（複数選択可）',
-                field: 'children_ages',
-                condition: (data) => data.children_count > 0,
-                options: [
-                    { label: '0-2歳（離乳食・幼児食）', value: '0-2' },
-                    { label: '3-5歳（幼児）', value: '3-5' },
-                    { label: '6-12歳（小学生）', value: '6-12' },
-                    { label: '13-18歳（中高生）', value: '13-18' }
-                ]
-            },
-            {
-                id: 'children_dislikes',
-                type: 'multi-choice',
-                text: 'お子さんの好き嫌いはありますか？（複数選択可）',
-                field: 'children_dislikes',
-                condition: (data) => data.children_count > 0,
-                options: [
-                    { label: 'なし', value: 'none' },
-                    { label: '野菜全般', value: 'vegetables' },
-                    { label: '魚', value: 'fish' },
-                    { label: '肉', value: 'meat' },
-                    { label: 'ピーマン・にんじん', value: 'green_veg' },
-                    { label: 'きのこ類', value: 'mushrooms' },
-                    { label: '辛いもの', value: 'spicy' }
-                ]
-            },
-            {
-                id: 'budget',
-                type: 'choice',
-                text: '1人あたりの平均予算を選んでください',
-                field: 'budget_tier_per_person',
-                options: [
-                    { label: '300円（超節約）', value: 300 },
-                    { label: '500円（節約）', value: 500 },
-                    { label: '800円（標準）', value: 800 },
-                    { label: '1000円（やや贅沢）', value: 1000 },
-                    { label: '1200円（贅沢）', value: 1200 }
-                ]
-            },
-            {
-                id: 'time',
-                type: 'choice',
-                text: '平日の調理時間の目安は？',
-                field: 'cooking_time_limit_min',
-                options: [
-                    { label: '15分（超時短）', value: 15 },
-                    { label: '30分（時短）', value: 30 },
-                    { label: '45分（標準）', value: 45 },
-                    { label: '60分（じっくり）', value: 60 }
-                ]
-            },
-            {
-                id: 'menu_variety',
-                type: 'choice',
-                text: '定番メニューの頻度は？',
-                field: 'menu_variety',
-                options: [
-                    { label: '定番中心（唐揚げ・ハンバーグ多め）', value: 'popular' },
-                    { label: 'バランス（定番とバラエティ）', value: 'balanced' },
-                    { label: 'バラエティ重視（珍しい料理も）', value: 'variety' }
-                ]
-            },
-            {
-                id: 'supervisor_mode',
-                type: 'choice',
-                text: 'どんな献立スタイルがお好みですか？<br>（監修者を選んでください）',
-                field: 'supervisor_mode',
-                options: [
-                    { label: '一般（バランス重視）', value: 'general' },
-                    { label: '栄養士監修（栄養バランス最優先）', value: 'nutritionist' },
-                    { label: 'イケイケママ監修（おしゃれ＆映える料理）', value: 'trendy_mom' },
-                    { label: '家族ダイエット（低カロリー重視）', value: 'diet' },
-                    { label: '高カロリー好きパパ監修（ボリューム満点）', value: 'high_calorie_dad' },
-                    { label: '時短ママ監修（15分で完成）', value: 'quick_mom' },
-                    { label: '節約主婦監修（コスパ最優先）', value: 'budget_conscious' },
-                    { label: 'グルメパパ監修（本格派レストラン風）', value: 'gourmet_dad' },
-                    { label: '和食中心（伝統的な日本料理）', value: 'japanese_traditional' },
-                    { label: '洋食中心（パスタ・グラタン多め）', value: 'western' },
-                    { label: '中華好き（中華料理多め）', value: 'chinese' },
-                    { label: 'エスニック好き（アジア料理）', value: 'ethnic' },
-                    { label: '子供大好きメニュー（子供ウケ重視）', value: 'kids_favorite' },
-                    { label: 'アスリート家族（高タンパク質）', value: 'athlete' },
-                    { label: 'ベジタリアン寄り（野菜中心）', value: 'vegetarian_oriented' },
-                    { label: '魚好き家族（魚料理多め）', value: 'fish_lover' },
-                    { label: '肉好き家族（肉料理多め）', value: 'meat_lover' },
-                    { label: 'シニア向け（やわらかめ・薄味）', value: 'senior_friendly' },
-                    { label: '作り置き中心（週末まとめて調理）', value: 'meal_prep' },
-                    { label: 'ワンプレート（カフェ風盛り付け）', value: 'one_plate' }
-                ]
+                id: 'members_count',
+                type: 'number',
+                text: '家族の人数を教えてください',
+                field: 'members_count',
+                min: 1,
+                max: 10,
+                condition: () => appState.data.consent === 'yes'
             },
             {
                 id: 'allergies',
                 type: 'multi-choice',
-                text: 'アレルギーはありますか？（複数選択可）',
+                text: '⚠️ アレルギーをお持ちですか？（複数選択可）',
                 field: 'allergies.standard',
                 options: [
                     { label: 'なし', value: 'none' },
-                    { label: '卵', value: 'egg' },
-                    { label: '乳', value: 'milk' },
-                    { label: '小麦', value: 'wheat' },
-                    { label: 'えび', value: 'shrimp' },
-                    { label: 'かに', value: 'crab' },
-                    { label: 'そば', value: 'buckwheat' },
-                    { label: '落花生', value: 'peanut' }
-                ]
+                    { label: '🥚 卵', value: 'egg' },
+                    { label: '🥛 乳製品', value: 'milk' },
+                    { label: '🌾 小麦', value: 'wheat' },
+                    { label: '🦐 エビ', value: 'shrimp' },
+                    { label: '🦀 カニ', value: 'crab' },
+                    { label: '🍜 そば', value: 'buckwheat' },
+                    { label: '🥜 ピーナッツ', value: 'peanut' }
+                ],
+                condition: () => appState.data.consent === 'yes'
             },
             {
                 id: 'dislikes',
                 type: 'multi-choice',
-                text: '家族全員が苦手な食材はありますか？（複数選択可）',
+                text: '苦手な食材はありますか？（複数選択可）',
                 field: 'dislikes',
                 options: [
                     { label: 'なし', value: 'none' },
                     { label: '🐟 魚全般', value: 'fish' },
-                    { label: '🍤 エビ', value: 'shrimp' },
+                    { label: '🦐 エビ', value: 'shrimp' },
                     { label: '🦀 カニ', value: 'crab' },
                     { label: '🐙 タコ', value: 'octopus' },
                     { label: '🦑 イカ', value: 'squid' },
-                    { label: '🐚 貝類（あさり・しじみ・ホタテ等）', value: 'shellfish' },
-                    { label: '🍖 内臓類・モツ（レバー・ハツ・ホルモン等）', value: 'offal' },
-                    { label: '🍅 トマト', value: 'tomato' },
-                    { label: '🍆 なす', value: 'eggplant' },
-                    { label: '🫑 ピーマン', value: 'green_pepper' },
-                    { label: '🥬 セロリ', value: 'celery' },
-                    { label: '🌿 パクチー', value: 'cilantro' },
-                    { label: '🍄 きのこ類', value: 'mushroom' },
-                    { label: '🧄 にんにく', value: 'garlic' },
-                    { label: '🧅 玉ねぎ', value: 'onion' },
-                    { label: '🌶️ 辛いもの', value: 'spicy' }
-                ]
-            },
-            {
-                id: 'title',
-                type: 'text',
-                text: 'この献立にタイトルをつけてください<br>（例：「岩間家の1月」「我が家の献立」）',
-                field: 'title',
-                placeholder: '献立のタイトル'
-            },
-            {
-                id: 'email',
-                type: 'text',
-                text: '献立をメールで受け取りますか？<br>メールアドレスを入力してください（任意）',
-                field: 'email',
-                placeholder: 'example@gmail.com',
-                optional: true
+                    { label: '🦪 貝類', value: 'shellfish' },
+                    { label: '🥩 ホルモン', value: 'offal' }
+                ],
+                condition: () => appState.data.consent === 'yes'
             },
             {
                 id: 'confirm',
                 type: 'confirm',
-                text: '設定完了です！<br>これで1ヶ月分の献立を作成します。よろしいですか？',
-                summary: true
+                text: '設定完了です！これで献立を作成します。よろしいですか？',
+                summary: true,
+                condition: () => appState.data.consent === 'yes'
             }
         ];
 
+        // DOM要素
         const messagesEl = document.getElementById('messages');
         const inputAreaEl = document.getElementById('input-area');
         const calendarContainerEl = document.getElementById('calendar-container');
-        const calendarContentEl = document.getElementById('calendar-content');
+        const authModal = document.getElementById('auth-modal');
+        const loadingModal = document.getElementById('loading-modal');
 
+        // メッセージ追加
         function addMessage(text, isBot = true) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = isBot ? 
-                'flex items-start space-x-2' : 
-                'flex items-start space-x-2 justify-end';
+            messageDiv.className = 'flex items-start gap-3 fade-in ' + (isBot ? '' : 'flex-row-reverse');
             
-            const icon = isBot ? '<i class="fas fa-robot text-blue-500"></i>' : '<i class="fas fa-user text-green-500"></i>';
-            const bgColor = isBot ? 'bg-blue-50' : 'bg-green-50';
+            const icon = '<div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white flex-shrink-0">' +
+                         '<i class="fas fa-' + (isBot ? 'robot' : 'user') + '"></i></div>';
             
-            messageDiv.innerHTML = \`
-                \${isBot ? icon : ''}
-                <div class="\${bgColor} rounded-lg p-3 max-w-md">
-                    <p class="text-gray-800">\${text}</p>
-                </div>
-                \${!isBot ? icon : ''}
-            \`;
+            const bubble = '<div class="bg-' + (isBot ? 'gray-100' : 'purple-100') + ' rounded-lg p-4 max-w-md">' +
+                          '<p class="text-gray-800 whitespace-pre-wrap">' + text + '</p></div>';
             
+            messageDiv.innerHTML = (isBot ? icon : '') + bubble + (isBot ? '' : icon);
             messagesEl.appendChild(messageDiv);
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
 
+        // 入力表示
         function showInput(question) {
             inputAreaEl.innerHTML = '';
-
-            if (question.type === 'message') {
-                const btnContainer = document.createElement('div');
-                btnContainer.className = 'flex gap-2';
-                question.options.forEach(opt => {
-                    const btn = document.createElement('button');
-                    btn.className = 'px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
-                    btn.textContent = opt.label;
-                    btn.onclick = () => nextStep();
-                    btnContainer.appendChild(btn);
-                });
-                inputAreaEl.appendChild(btnContainer);
-            }
-            else if (question.type === 'text') {
+            
+            if (question.type === 'choice') {
                 const container = document.createElement('div');
-                container.className = 'max-w-lg mx-auto';
+                container.className = 'space-y-2 max-w-lg mx-auto';
                 
-                const input = document.createElement('input');
-                input.type = question.field === 'email' ? 'email' : 'text';
-                input.className = 'w-full px-4 py-2 border rounded';
-                input.placeholder = question.placeholder || '';
-                
-                const btnGroup = document.createElement('div');
-                btnGroup.className = 'flex gap-2 mt-2';
-                
-                // 戻るボタン
-                if (appState.step > 0) {
-                    const backBtn = document.createElement('button');
-                    backBtn.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
-                    backBtn.textContent = '← 戻る';
-                    backBtn.onclick = () => prevStep();
-                    btnGroup.appendChild(backBtn);
-                }
-                
-                const btn = document.createElement('button');
-                btn.className = 'flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
-                btn.textContent = '次へ';
-                btn.onclick = () => {
-                    const value = input.value.trim();
-                    // optionalフィールドは空でもOK
-                    if (value || question.optional) {
-                        if (value) {
-                            appState.data[question.field] = value;
-                            addMessage(value, false);
-                        } else {
-                            addMessage('（スキップ）', false);
+                question.options.forEach(opt => {
+                    const button = document.createElement('button');
+                    button.className = 'w-full text-left px-6 py-4 bg-white border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition flex items-center gap-3';
+                    button.innerHTML = '<span class="text-lg">' + opt.label + '</span>';
+                    button.onclick = () => {
+                        if (opt.value === 'no') {
+                            window.location.href = '/';
+                            return;
                         }
-                        nextStep();
-                    } else {
-                        alert('入力してください');
-                    }
-                };
-                btnGroup.appendChild(btn);
-                
-                // optionalフィールドにはスキップボタンを追加
-                if (question.optional) {
-                    const skipBtn = document.createElement('button');
-                    skipBtn.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
-                    skipBtn.textContent = 'スキップ';
-                    skipBtn.onclick = () => {
-                        addMessage('（スキップ）', false);
+                        appState.data[question.field] = opt.value;
+                        addMessage(opt.label, false);
                         nextStep();
                     };
-                    btnGroup.appendChild(skipBtn);
-                }
-                
-                container.appendChild(input);
-                container.appendChild(btnGroup);
+                    container.appendChild(button);
+                });
                 
                 inputAreaEl.appendChild(container);
-            }
-            else if (question.type === 'date') {
+            } else if (question.type === 'multi-choice') {
+                const selected = new Set();
+                const container = document.createElement('div');
+                container.className = 'space-y-2 max-w-lg mx-auto';
+                
+                question.options.forEach(opt => {
+                    const button = document.createElement('button');
+                    button.className = 'w-full text-left px-6 py-4 bg-white border-2 border-gray-200 rounded-lg hover:border-purple-500 transition flex items-center gap-3';
+                    button.innerHTML = '<div class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center">' +
+                                      '<i class="fas fa-check text-purple-600 hidden"></i></div>' +
+                                      '<span class="text-lg">' + opt.label + '</span>';
+                    button.onclick = () => {
+                        if (opt.value === 'none') {
+                            selected.clear();
+                            selected.add('none');
+                            container.querySelectorAll('button').forEach(b => {
+                                b.classList.remove('border-purple-500', 'bg-purple-50');
+                                b.querySelector('i').classList.add('hidden');
+                            });
+                            button.classList.add('border-purple-500', 'bg-purple-50');
+                            button.querySelector('i').classList.remove('hidden');
+                        } else {
+                            selected.delete('none');
+                            if (selected.has(opt.value)) {
+                                selected.delete(opt.value);
+                                button.classList.remove('border-purple-500', 'bg-purple-50');
+                                button.querySelector('i').classList.add('hidden');
+                            } else {
+                                selected.add(opt.value);
+                                button.classList.add('border-purple-500', 'bg-purple-50');
+                                button.querySelector('i').classList.remove('hidden');
+                            }
+                        }
+                    };
+                    container.appendChild(button);
+                });
+                
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = 'w-full mt-4 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition';
+                confirmBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i>次へ';
+                confirmBtn.onclick = () => {
+                    const values = Array.from(selected).filter(v => v !== 'none');
+                    if (question.field === 'allergies.standard') {
+                        appState.data.allergies.standard = values;
+                    } else {
+                        appState.data[question.field] = values;
+                    }
+                    const message = values.length === 0 ? 'なし' : values.map(v => {
+                        const opt = question.options.find(o => o.value === v);
+                        return opt ? opt.label : v;
+                    }).join(', ');
+                    addMessage(message, false);
+                    nextStep();
+                };
+                container.appendChild(confirmBtn);
+                inputAreaEl.appendChild(container);
+            } else if (question.type === 'date') {
                 const container = document.createElement('div');
                 container.className = 'max-w-lg mx-auto';
                 
                 const input = document.createElement('input');
                 input.type = 'date';
-                input.className = 'w-full px-4 py-2 border rounded';
+                input.className = 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200';
                 input.value = new Date().toISOString().split('T')[0];
+                container.appendChild(input);
                 
-                const btnGroup = document.createElement('div');
-                btnGroup.className = 'flex gap-2 mt-2';
-                
-                // 戻るボタン
-                if (appState.step > 0) {
-                    const backBtn = document.createElement('button');
-                    backBtn.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
-                    backBtn.textContent = '← 戻る';
-                    backBtn.onclick = () => prevStep();
-                    btnGroup.appendChild(backBtn);
-                }
-                
-                const btn = document.createElement('button');
-                btn.className = 'flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
-                btn.textContent = '次へ';
-                btn.onclick = () => {
+                const button = document.createElement('button');
+                button.className = 'w-full mt-4 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition';
+                button.innerHTML = '<i class="fas fa-arrow-right mr-2"></i>次へ';
+                button.onclick = () => {
                     appState.data[question.field] = input.value;
                     addMessage(input.value, false);
                     nextStep();
                 };
-                btnGroup.appendChild(btn);
-                
-                container.appendChild(input);
-                container.appendChild(btnGroup);
-                
+                container.appendChild(button);
                 inputAreaEl.appendChild(container);
-            }
-            else if (question.type === 'number') {
+            } else if (question.type === 'number') {
                 const container = document.createElement('div');
                 container.className = 'max-w-lg mx-auto';
                 
                 const input = document.createElement('input');
                 input.type = 'number';
-                input.className = 'w-full px-4 py-2 border rounded';
                 input.min = question.min || 1;
                 input.max = question.max || 10;
                 input.value = question.min || 1;
-                
-                const btn = document.createElement('button');
-                btn.className = 'mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
-                btn.textContent = '次へ';
-                btn.onclick = () => {
-                    appState.data[question.field] = parseInt(input.value);
-                    if (question.field === 'members_count') {
-                        appState.data.members = Array(parseInt(input.value)).fill(0).map(() => ({
-                            gender: 'unknown',
-                            age_band: 'adult'
-                        }));
-                    }
-                    addMessage(input.value + '人', false);
-                    nextStep();
-                };
-                
+                input.className = 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-center text-2xl font-bold';
                 container.appendChild(input);
-                container.appendChild(btn);
                 
-                inputAreaEl.appendChild(container);
-            }
-            else if (question.type === 'choice') {
-                const container = document.createElement('div');
-                container.className = 'max-w-lg mx-auto';
-                
-                const btnContainer = document.createElement('div');
-                btnContainer.className = 'space-y-3 mb-4';
-                question.options.forEach(opt => {
-                    const btn = document.createElement('button');
-                    btn.className = 'group relative px-5 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl hover:from-blue-100 hover:to-indigo-100 hover:border-blue-400 hover:shadow-lg transition-all duration-200 transform hover:scale-105 text-left';
-                    
-                    // Create inner HTML elements
-                    const iconDiv = document.createElement('div');
-                    iconDiv.className = 'flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md';
-                    iconDiv.innerHTML = '<i class="fas fa-check opacity-0 group-hover:opacity-100 transition-opacity"></i>';
-                    
-                    const labelSpan = document.createElement('span');
-                    labelSpan.className = 'text-gray-800 font-medium group-hover:text-blue-700';
-                    labelSpan.textContent = opt.label;
-                    
-                    const flexDiv = document.createElement('div');
-                    flexDiv.className = 'flex items-center gap-3';
-                    flexDiv.appendChild(iconDiv);
-                    flexDiv.appendChild(labelSpan);
-                    
-                    btn.appendChild(flexDiv);
-                    btn.onclick = () => {
-                        appState.data[question.field] = opt.value;
-                        
-                        // 同意確認で「同意しない」を選んだ場合
-                        if (question.id === 'consent' && opt.value === 'disagree') {
-                            addMessage(opt.label, false);
-                            alert('ご利用いただくには注意事項への同意が必要です。トップページに戻ります。');
-                            window.location.href = '/';
-                            return;
-                        }
-                        
-                        addMessage(opt.label, false);
-                        nextStep();
-                    };
-                    btnContainer.appendChild(btn);
-                });
-                container.appendChild(btnContainer);
-                
-                // 戻るボタン
-                if (appState.step > 0) {
-                    const backBtn = document.createElement('button');
-                    backBtn.className = 'mt-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
-                    backBtn.textContent = '← 戻る';
-                    backBtn.onclick = () => prevStep();
-                    container.appendChild(backBtn);
-                }
-                
-                inputAreaEl.appendChild(container);
-            }
-            else if (question.type === 'multi-choice') {
-                const container = document.createElement('div');
-                container.className = 'max-w-lg mx-auto';
-                
-                const selected = new Set();
-                const btnContainer = document.createElement('div');
-                btnContainer.className = 'space-y-3 mb-4';
-                
-                question.options.forEach(opt => {
-                    const btn = document.createElement('button');
-                    btn.className = 'group relative px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all duration-200 text-left';
-                    
-                    // Create inner elements
-                    const checkbox = document.createElement('div');
-                    checkbox.className = 'flex-shrink-0 w-6 h-6 border-2 border-gray-300 rounded-md flex items-center justify-center transition-all';
-                    
-                    const checkIcon = document.createElement('i');
-                    checkIcon.className = 'fas fa-check text-white text-xs opacity-0';
-                    checkbox.appendChild(checkIcon);
-                    
-                    const labelSpan = document.createElement('span');
-                    labelSpan.className = 'text-sm font-medium text-gray-700';
-                    labelSpan.textContent = opt.label;
-                    
-                    const flexDiv = document.createElement('div');
-                    flexDiv.className = 'flex items-center gap-2';
-                    flexDiv.appendChild(checkbox);
-                    flexDiv.appendChild(labelSpan);
-                    
-                    btn.appendChild(flexDiv);
-                    
-                    btn.onclick = () => {
-                        if (opt.value === 'none') {
-                            selected.clear();
-                            btnContainer.querySelectorAll('button').forEach(b => {
-                                b.classList.remove('border-blue-500', 'bg-blue-50');
-                                b.querySelector('div div').classList.remove('bg-blue-500', 'border-blue-500');
-                                b.querySelector('i').classList.add('opacity-0');
-                            });
-                            checkbox.classList.add('bg-blue-500', 'border-blue-500');
-                            checkIcon.classList.remove('opacity-0');
-                            selected.add(opt.value);
-                            btn.classList.add('border-blue-500', 'bg-blue-50');
-                        } else {
-                            // 「なし」のチェックを外す
-                            const noneBtn = Array.from(btnContainer.querySelectorAll('button')).find(b => 
-                                b.textContent.includes('なし')
-                            );
-                            if (noneBtn) {
-                                noneBtn.classList.remove('border-blue-500', 'bg-blue-50');
-                                noneBtn.querySelector('div div').classList.remove('bg-blue-500', 'border-blue-500');
-                                noneBtn.querySelector('i').classList.add('opacity-0');
-                            }
-                            selected.delete('none');
-                            
-                            if (selected.has(opt.value)) {
-                                selected.delete(opt.value);
-                                btn.classList.remove('border-blue-500', 'bg-blue-50');
-                                checkbox.classList.remove('bg-blue-500', 'border-blue-500');
-                                checkIcon.classList.add('opacity-0');
-                            } else {
-                                selected.add(opt.value);
-                                btn.classList.add('border-blue-500', 'bg-blue-50');
-                                checkbox.classList.add('bg-blue-500', 'border-blue-500');
-                                checkIcon.classList.remove('opacity-0');
-                            }
-                        }
-                    };
-                    btnContainer.appendChild(btn);
-                });
-                
-                const confirmBtn = document.createElement('button');
-                confirmBtn.className = 'flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold';
-                confirmBtn.innerHTML = '<i class="fas fa-arrow-right mr-2"></i>次へ';
-                confirmBtn.onclick = () => {
-                    appState.data.allergies.standard = Array.from(selected).filter(v => v !== 'none');
-                    const msg = selected.size === 0 || selected.has('none') ? 'なし' : Array.from(selected).join(', ');
-                    addMessage(msg, false);
+                const button = document.createElement('button');
+                button.className = 'w-full mt-4 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition';
+                button.innerHTML = '<i class="fas fa-arrow-right mr-2"></i>次へ';
+                button.onclick = () => {
+                    const value = parseInt(input.value);
+                    appState.data[question.field] = value;
+                    if (question.field === 'members_count') {
+                        appState.data.members = Array(value).fill({ gender: 'unknown', age_band: 'adult' });
+                    }
+                    addMessage(value + '人', false);
                     nextStep();
                 };
-                
-                const btnGroup = document.createElement('div');
-                btnGroup.className = 'flex gap-2';
-                
-                // 戻るボタン
-                if (appState.step > 0) {
-                    const backBtn = document.createElement('button');
-                    backBtn.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
-                    backBtn.textContent = '← 戻る';
-                    backBtn.onclick = () => prevStep();
-                    btnGroup.appendChild(backBtn);
-                }
-                
-                btnGroup.appendChild(confirmBtn);
-                
-                container.appendChild(btnContainer);
-                container.appendChild(btnGroup);
-                
+                container.appendChild(button);
                 inputAreaEl.appendChild(container);
-            }
-            else if (question.type === 'confirm') {
+            } else if (question.type === 'confirm') {
                 const container = document.createElement('div');
                 container.className = 'max-w-lg mx-auto';
                 
-                const periodLabel = appState.data.plan_days === 30 ? '1ヶ月（30日）' : 
-                                    appState.data.plan_days === 21 ? '3週間（21日）' :
-                                    appState.data.plan_days === 14 ? '2週間（14日）' : 
-                                    appState.data.plan_days === 7 ? '1週間（7日）' :
-                                    appState.data.plan_days + '日間';
-                const summary = \`
-                    <div class="bg-gray-50 p-4 rounded mb-4">
-                        <p><strong>タイトル:</strong> \${appState.data.title}</p>
-                        <p><strong>開始日:</strong> \${appState.data.start_date}</p>
-                        <p><strong>期間:</strong> \${periodLabel}</p>
-                        <p><strong>人数:</strong> \${appState.data.members_count}人</p>
-                        <p><strong>予算:</strong> \${appState.data.budget_tier_per_person}円/人</p>
-                        <p><strong>調理時間:</strong> \${appState.data.cooking_time_limit_min}分</p>
-                    </div>
-                \`;
-                container.innerHTML = summary;
+                const summary = document.createElement('div');
+                summary.className = 'bg-gray-50 rounded-lg p-6 mb-4 space-y-2';
                 
-                const btnGroup = document.createElement('div');
-                btnGroup.className = 'flex gap-2';
+                const periodLabel = appState.data.plan_days === 30 ? '1ヶ月（30日）' :
+                                   appState.data.plan_days === 21 ? '3週間（21日）' :
+                                   appState.data.plan_days === 14 ? '2週間（14日）' :
+                                   appState.data.plan_days === 7 ? '1週間（7日）' :
+                                   appState.data.plan_days + '日間';
                 
-                // 戻るボタン
-                const backBtn = document.createElement('button');
-                backBtn.className = 'px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400';
-                backBtn.textContent = '← 戻る';
-                backBtn.onclick = () => prevStep();
-                btnGroup.appendChild(backBtn);
+                summary.innerHTML = '<p><strong>開始日:</strong> ' + appState.data.start_date + '</p>' +
+                                   '<p><strong>期間:</strong> ' + periodLabel + '</p>' +
+                                   '<p><strong>人数:</strong> ' + appState.data.members_count + '人</p>' +
+                                   '<p><strong>アレルギー:</strong> ' + (appState.data.allergies.standard.length === 0 ? 'なし' : appState.data.allergies.standard.join(', ')) + '</p>' +
+                                   '<p><strong>苦手な食材:</strong> ' + (appState.data.dislikes.length === 0 ? 'なし' : appState.data.dislikes.join(', ')) + '</p>';
                 
-                const btn = document.createElement('button');
-                btn.className = 'flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
-                btn.textContent = '献立を作成する';
-                btn.onclick = async () => {
-                    btn.disabled = true;
-                    btn.textContent = '生成中...';
-                    await generatePlan();
-                };
-                btnGroup.appendChild(btn);
+                container.appendChild(summary);
                 
-                container.appendChild(btnGroup);
-                
+                const button = document.createElement('button');
+                button.className = 'w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition';
+                button.innerHTML = '<i class="fas fa-check-circle mr-2"></i>献立を作成する';
+                button.onclick = () => generatePlan();
+                container.appendChild(button);
                 inputAreaEl.appendChild(container);
             }
         }
 
+        // 次のステップ
         function nextStep() {
-            // 条件付き質問のスキップ処理
-            let nextIndex = appState.step + 1;
-            while (nextIndex < questions.length) {
-                const question = questions[nextIndex];
-                // condition関数がある場合は条件をチェック
-                if (question.condition && !question.condition(appState.data)) {
-                    nextIndex++;
-                    continue;
-                }
-                break;
-            }
+            appState.step++;
             
-            if (nextIndex < questions.length) {
-                appState.step = nextIndex;
-                const question = questions[appState.step];
-                
-                // 🔝 画面を上部にスクロール
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                
-                // メッセージエリアをクリア（ページ分割式）
-                messagesEl.innerHTML = '';
-                
-                // プログレスバー表示
-                const progress = Math.round((appState.step / questions.length) * 100);
-                const progressHtml = \`
-                    <div class="mb-6">
-                        <div class="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>質問 \${appState.step + 1} / \${questions.length}</span>
-                            <span>\${progress}% 完了</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div id="progress-bar-\${appState.step}" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-                        </div>
-                    </div>
-                \`;
-                messagesEl.innerHTML = progressHtml;
-                // プログレスバーの幅を動的に設定
-                setTimeout(() => {
-                    const progressBar = document.getElementById('progress-bar-' + appState.step);
-                    if (progressBar) {
-                        progressBar.style.width = progress + '%';
-                    }
-                }, 10);
-                
-                addMessage(question.text);
-                showInput(question);
-            }
-        }
-        
-        function prevStep() {
-            // 最初の質問より前には戻れない
-            if (appState.step <= 0) {
-                return;
-            }
-            
-            // 条件付き質問を考慮して前の質問を探す
-            let prevIndex = appState.step - 1;
-            while (prevIndex >= 0) {
-                const question = questions[prevIndex];
-                // condition関数がある場合は条件をチェック
-                if (question.condition && !question.condition(appState.data)) {
-                    prevIndex--;
-                    continue;
-                }
-                break;
-            }
-            
-            if (prevIndex >= 0) {
-                appState.step = prevIndex;
-                const question = questions[appState.step];
-                
-                // メッセージエリアをクリア
-                messagesEl.innerHTML = '';
-                
-                // プログレスバー表示
-                const progress = Math.round((appState.step / questions.length) * 100);
-                const progressHtml = \`
-                    <div class="mb-6">
-                        <div class="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>質問 \${appState.step + 1} / \${questions.length}</span>
-                            <span>\${progress}% 完了</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div id="progress-bar-\${appState.step}" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-                        </div>
-                    </div>
-                \`;
-                messagesEl.innerHTML = progressHtml;
-                // プログレスバーの幅を動的に設定
-                setTimeout(() => {
-                    const progressBar = document.getElementById('progress-bar-' + appState.step);
-                    if (progressBar) {
-                        progressBar.style.width = progress + '%';
-                    }
-                }, 10);
-                
-                addMessage(question.text);
-                showInput(question);
-            }
-        }
-
-        async function generatePlan() {
-            try {
-                // モーダルを表示
-                const modal = document.getElementById('plan-generation-modal');
-                const content = document.getElementById('plan-generation-modal-content');
-                
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                
-                // ローディングアニメーション表示
-                const loadingHtml = \`
-                    <div class="flex flex-col items-center justify-center py-16 px-6">
-                        <!-- メインアニメーション -->
-                        <div class="relative w-48 h-48 mb-8">
-                            <!-- 外側の回転リング -->
-                            <div class="absolute inset-0 border-8 border-transparent border-t-blue-500 border-r-purple-500 rounded-full animate-spin" style="animation-duration: 3s;"></div>
-                            <div class="absolute inset-2 border-8 border-transparent border-b-pink-500 border-l-orange-500 rounded-full animate-spin" style="animation-duration: 2s; animation-direction: reverse;"></div>
-                            <div class="absolute inset-4 border-8 border-transparent border-t-green-500 border-r-yellow-500 rounded-full animate-spin" style="animation-duration: 4s;"></div>
-                            
-                            <!-- 中央のアイコン -->
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <div class="text-6xl animate-bounce">
-                                    <i class="fas fa-utensils text-blue-500"></i>
-                                </div>
-                            </div>
-                            
-                            <!-- パルスエフェクト -->
-                            <div class="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-ping" style="animation-duration: 2s;"></div>
-                        </div>
-                        
-                        <!-- テキストセクション -->
-                        <h3 class="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-                            献立を作成中...
-                        </h3>
-                        <p class="text-lg text-gray-600 mb-6 text-center max-w-md">
-                            AIがあなたの家族に最適な献立を考えています
-                        </p>
-                        
-                        <!-- プログレスステップ -->
-                        <div class="w-full max-w-2xl space-y-4">
-                            <div id="step-1" class="loading-step flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 transform transition-all duration-500">
-                                <div class="flex-shrink-0 w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                                    <i class="fas fa-search text-xl"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="font-bold text-gray-800">レシピ検索中</h4>
-                                    <p class="text-sm text-gray-600">703品のレシピから最適な組み合わせを探しています</p>
-                                </div>
-                                <div class="loading-spinner">
-                                    <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
-                                </div>
-                            </div>
-                            
-                            <div id="step-2" class="loading-step flex items-center gap-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-200 opacity-50 transform transition-all duration-500">
-                                <div class="flex-shrink-0 w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                                    <i class="fas fa-balance-scale text-xl"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="font-bold text-gray-800">栄養バランス調整中</h4>
-                                    <p class="text-sm text-gray-600">主菜・副菜・汁物のバランスを最適化しています</p>
-                                </div>
-                                <div class="loading-spinner hidden">
-                                    <i class="fas fa-spinner fa-spin text-2xl text-purple-500"></i>
-                                </div>
-                            </div>
-                            
-                            <div id="step-3" class="loading-step flex items-center gap-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-200 opacity-50 transform transition-all duration-500">
-                                <div class="flex-shrink-0 w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                                    <i class="fas fa-calendar-check text-xl"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="font-bold text-gray-800">献立カレンダー作成中</h4>
-                                    <p class="text-sm text-gray-600">31日分の献立を組み立てています</p>
-                                </div>
-                                <div class="loading-spinner hidden">
-                                    <i class="fas fa-spinner fa-spin text-2xl text-pink-500"></i>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- プログレスバー -->
-                        <div class="w-full max-w-2xl mt-8">
-                            <div class="h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">
-                                <div id="progress-bar" class="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
-                            </div>
-                            <p class="text-center text-sm text-gray-500 mt-2">
-                                <span id="progress-text">準備中...</span>
-                            </p>
-                        </div>
-                        
-                        <!-- 豆知識 -->
-                        <div class="mt-8 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg max-w-2xl">
-                            <p class="text-sm text-gray-700 flex items-start gap-2">
-                                <i class="fas fa-lightbulb text-yellow-500 mt-0.5"></i>
-                                <span><strong>豆知識:</strong> カレーやシチューなどの煮込み料理は、汁物をサラダに自動変更して栄養バランスを最適化しています！</span>
-                            </p>
-                        </div>
-                    </div>
-                \`;
-                content.innerHTML = loadingHtml;
-                
-                // アニメーションシーケンス（HTMLの外で実行）
-                setTimeout(() => {
-                    document.getElementById('step-1').classList.add('scale-105');
-                    document.getElementById('progress-bar').style.width = '33%';
-                    document.getElementById('progress-text').textContent = 'レシピ検索中... 33%';
-                }, 500);
-                
-                setTimeout(() => {
-                    document.getElementById('step-1').classList.remove('scale-105');
-                    document.getElementById('step-1').querySelector('.loading-spinner').innerHTML = '<i class="fas fa-check text-2xl text-green-500"></i>';
-                    
-                    document.getElementById('step-2').classList.remove('opacity-50');
-                    document.getElementById('step-2').classList.add('scale-105', 'bg-gradient-to-r', 'from-purple-50', 'to-purple-100', 'border-purple-200');
-                    document.getElementById('step-2').querySelector('.loading-spinner').classList.remove('hidden');
-                    document.getElementById('progress-bar').style.width = '66%';
-                    document.getElementById('progress-text').textContent = '栄養バランス調整中... 66%';
-                }, 2000);
-                
-                setTimeout(() => {
-                    document.getElementById('step-2').classList.remove('scale-105');
-                    document.getElementById('step-2').querySelector('.loading-spinner').innerHTML = '<i class="fas fa-check text-2xl text-green-500"></i>';
-                    
-                    document.getElementById('step-3').classList.remove('opacity-50');
-                    document.getElementById('step-3').classList.add('scale-105', 'bg-gradient-to-r', 'from-pink-50', 'to-pink-100', 'border-pink-200');
-                    document.getElementById('step-3').querySelector('.loading-spinner').classList.remove('hidden');
-                    document.getElementById('progress-bar').style.width = '100%';
-                    document.getElementById('progress-text').textContent = '献立カレンダー作成中... 100%';
-                }, 4000);
-                
-                messagesEl.innerHTML = loadingHtml;
-                
-                // 家族構成を計算
-                const adults_count = appState.data.adults_count || 2;
-                const children_count = appState.data.children_count || 0;
-                appState.data.members_count = adults_count + children_count;
-                
-                // 子供の年齢帯を設定
-                const childAgeBands = [];
-                if (appState.data.children_ages && appState.data.children_ages.length > 0) {
-                    for (const ageRange of appState.data.children_ages) {
-                        if (ageRange === '0-2') childAgeBands.push('preschool');
-                        else if (ageRange === '3-5') childAgeBands.push('preschool');
-                        else if (ageRange === '6-12') childAgeBands.push('elementary');
-                        else if (ageRange === '13-18') childAgeBands.push('junior_high');
-                        else childAgeBands.push('preschool');
-                    }
-                }
-                
-                // 年齢が指定されていない子供はpreschoolをデフォルトに
-                while (childAgeBands.length < children_count) {
-                    childAgeBands.push('preschool');
-                }
-                
-                appState.data.members = [
-                    ...Array(adults_count).fill({ gender: 'unknown', age_band: 'adult' }),
-                    ...childAgeBands.map(band => ({ gender: 'unknown', age_band: band }))
-                ];
-                
-                // 必須フィールドのデフォルト値を設定
-                appState.data.budget_distribution = appState.data.budget_distribution || 'average';
-                appState.data.dislikes = appState.data.family_dislikes || [];
-                appState.data.allergies = appState.data.allergies || { standard: [], free_text: [] };
-                
-                const householdRes = await axios.post('/api/households', appState.data);
-                const household_id = householdRes.data.household_id;
-                appState.householdId = household_id; // household_idを保存
-
-                const planRes = await axios.post('/api/plans/generate', { 
-                    household_id,
-                    menu_variety: appState.data.menu_variety || 'balanced',
-                    supervisor_mode: appState.data.supervisor_mode || 'general'
-                });
-                appState.planId = planRes.data.plan_id;
-                
-                // 成功メッセージ（期間を動的に表示）
-                const daysCount = planRes.data.days.length;
-                const periodText = daysCount === 7 ? '1週間' :
-                                   daysCount === 14 ? '2週間' :
-                                   daysCount === 21 ? '3週間' :
-                                   daysCount === 30 ? '4週間（1ヶ月）' : daysCount + '日間';
-                content.innerHTML = \`
-                    <div class="flex flex-col items-center justify-center py-12">
-                        <div class="text-6xl mb-4 animate-bounce">🎉</div>
-                        <h3 class="text-3xl font-bold text-gray-800 mb-2">献立が完成しました！</h3>
-                        <p class="text-gray-600">\${periodText}分の献立をご覧ください</p>
-                    </div>
-                \`;
-                
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                    document.getElementById('chat-container').classList.add('hidden');
-                    showCalendar(planRes.data.days);
-                }, 2000);
-
-            } catch (error) {
-                console.error('献立生成エラー:', error);
-                console.error('エラー詳細:', error.response?.data);
-                console.error('エラーステータス:', error.response?.status);
-                console.error('エラーメッセージ:', error.message);
-                console.error('完全なエラーオブジェクト:', JSON.stringify(error, null, 2));
-                
-                let errorMessage = 'もう一度お試しください';
-                let errorDetails = '';
-                
-                if (error.response) {
-                    // サーバーからのレスポンスがある場合
-                    if (error.response.data?.error?.message) {
-                        errorMessage = error.response.data.error.message;
-                        errorDetails = error.response.data.error.details || '';
-                    } else if (error.response.data?.message) {
-                        errorMessage = error.response.data.message;
-                    } else {
-                        errorMessage = \`サーバーエラー (ステータス: \${error.response.status})\`;
-                        errorDetails = JSON.stringify(error.response.data);
-                    }
-                } else if (error.request) {
-                    // リクエストは送られたがレスポンスがない
-                    errorMessage = 'サーバーに接続できませんでした';
-                    errorDetails = 'ネットワーク接続を確認してください';
-                } else if (error.message) {
-                    // リクエスト設定時のエラー
-                    errorMessage = error.message;
-                }
-                
-                content.innerHTML = \`
-                    <div class="flex flex-col items-center justify-center py-12">
-                        <div class="text-6xl mb-4">😢</div>
-                        <h3 class="text-2xl font-bold text-red-600 mb-2">エラーが発生しました</h3>
-                        <p class="text-gray-600 mb-2">\${errorMessage}</p>
-                        \${errorDetails ? \`<p class="text-sm text-gray-500 mb-4">\${errorDetails}</p>\` : ''}
-                        <button onclick="location.reload()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                            最初からやり直す
-                        </button>
-                    </div>
-                \`;
-            }
-        }
-
-        let currentViewMode = 'grid'; // 'grid' or 'calendar'
-        let calendarData = [];
-        
-        function showCalendar(days) {
-            calendarData = days; // データを保存
-            calendarContainerEl.classList.remove('hidden');
-            
-            // 📍 画面トップへスムーススクロール
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-            
-            // 🎉 完成通知トーストを表示（期間を動的に表示）
-            const daysCount = days.length;
-            const periodText = daysCount === 7 ? '1週間' :
-                               daysCount === 14 ? '2週間' :
-                               daysCount === 21 ? '3週間' :
-                               daysCount === 30 ? '4週間（1ヶ月）' : daysCount + '日間';
-            const toast = document.createElement('div');
-            toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
-            toast.style.animation = 'slideDown 0.5s ease-out, fadeOut 0.5s ease-out 4.5s';
-            toast.innerHTML = \`
-                <i class="fas fa-check-circle text-3xl"></i>
-                <div>
-                    <div class="font-bold text-lg">🎉 献立が完成しました！</div>
-                    <div class="text-sm opacity-90">\${periodText}分の献立をお楽しみください</div>
-                </div>
-            \`;
-            document.body.appendChild(toast);
-            
-            // 5秒後にトーストを削除
-            setTimeout(() => {
-                toast.remove();
-            }, 5000);
-            
-            // 印刷用のタイトル設定
-            if (days.length > 0) {
-                const startDate = days[0].date;
-                const endDate = days[days.length - 1].date;
-                document.getElementById('print-period').textContent = \`期間: \${startDate} 〜 \${endDate}\`;
-            }
-            
-            // ユーザー情報を表示
-            const user = getCurrentUser();
-            if (user) {
-                const userInfo = document.getElementById('user-info');
-                const userName = document.getElementById('user-name');
-                userName.textContent = user.name;
-                userInfo.classList.remove('hidden');
-            }
-            
-            let html = '';
-            
-            // 10日ごとにグループ化
-            for (let i = 0; i < days.length; i += 10) {
-                const chunk = days.slice(i, i + 10);
-                const pageBreakClass = (i + 10 < days.length) ? 'page-break-after-10' : '';
-                
-                html += \`<div class="calendar-page \${pageBreakClass}">\`;
-                html += '<div class="calendar-grid">';
-                
-                chunk.forEach(day => {
-                    const recipes = day.recipes || [];
-                    const main = recipes.find(r => r.role === 'main');
-                    const side = recipes.find(r => r.role === 'side');
-                    const soup = recipes.find(r => r.role === 'soup');
-                    
-                    const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(day.date).getDay()];
-
-                    html += \`
-                        <div class="day-card" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}" 
-                             draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" 
-                             ondrop="handleDrop(event)" ondragend="handleDragEnd(event)" style="cursor: move;">
-                            <div class="day-date text-lg font-bold text-gray-800 mb-3 border-b pb-2 flex justify-between items-center">
-                                <span>\${day.date} (\${dayOfWeek})</span>
-                                <i class="fas fa-grip-vertical text-gray-400 text-sm"></i>
-                            </div>
-                            <div class="space-y-2 text-sm">
-                                \${main ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + main.recipe_id + '" data-recipe-title="' + main.title + '">' + main.title + '</a></span></div>' : ''}
-                                \${side ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-side mt-1"></span><span class="flex-1"><span class="font-semibold text-green-600">副菜:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + side.recipe_id + '" data-recipe-title="' + side.title + '">' + side.title + '</a></span></div>' : ''}
-                                \${soup ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-soup mt-1"></span><span class="flex-1"><span class="font-semibold text-blue-600">汁物:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + soup.recipe_id + '" data-recipe-title="' + soup.title + '">' + soup.title + '</a></span></div>' : ''}
-                            </div>
-                            <div class="mt-3 text-xs text-gray-500 border-t pt-2">
-                                <i class="far fa-clock"></i> 約\${day.estimated_time_min}分
-                            </div>
-                            <div class="mt-3 flex gap-2 no-print">
-                                <button class="explain-menu-btn flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-xs font-medium transition-colors" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
-                                    <i class="fas fa-comment-dots"></i> なぜこの献立？
-                                </button>
-                                <button class="suggest-change-btn flex-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-xs font-medium transition-colors" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
-                                    <i class="fas fa-sync-alt"></i> 変更する
-                                </button>
-                            </div>
-                        </div>
-                    \`;
-                });
-                
-                html += '</div></div>';
-            }
-            
-            calendarContentEl.innerHTML = html;
-            
-            // カレンダー下部の広告を読み込み
-            loadAds('calendar_page');
-        }
-        
-        // ========================================
-        // 広告読み込み
-        // ========================================
-        async function loadAds(page_location) {
-            try {
-                const res = await axios.get(\`/api/ads/\${page_location}\`);
-                const ads = res.data.ads || [];
-                
-                ads.forEach(ad => {
-                    const containerId = getAdContainerId(ad.slot_name);
-                    const container = document.getElementById(containerId);
-                    if (!container) return;
-                    
-                    // 広告を表示
-                    if (ad.html_code) {
-                        container.innerHTML = ad.html_code;
-                    } else if (ad.image_url) {
-                        const adLink = document.createElement('a');
-                        adLink.href = ad.link_url;
-                        adLink.target = '_blank';
-                        adLink.onclick = () => trackAdClick(ad.ad_id);
-                        
-                        const adImg = document.createElement('img');
-                        adImg.src = ad.image_url;
-                        adImg.alt = ad.title;
-                        adImg.style.maxWidth = ad.width + 'px';
-                        adImg.style.maxHeight = ad.height + 'px';
-                        
-                        adLink.appendChild(adImg);
-                        container.appendChild(adLink);
-                    }
-                    
-                    // インプレッション記録
-                    trackAdImpression(ad.ad_id, page_location);
-                });
-            } catch (error) {
-                console.error('広告読み込みエラー:', error);
-            }
-        }
-        
-        function getAdContainerId(slot_name) {
-            const map = {
-                'TOPページヘッダーバナー': 'ad-top-header',
-                'TOPページサイドバー': 'ad-sidebar',
-                'カレンダーページ下部バナー': 'ad-calendar-bottom'
-            };
-            return map[slot_name] || 'ad-container';
-        }
-        
-        async function trackAdClick(ad_id) {
-            try {
-                await axios.post('/api/ads/track/click', { ad_id });
-            } catch (error) {
-                console.error('クリック追跡エラー:', error);
-            }
-        }
-        
-        async function trackAdImpression(ad_id, page_location) {
-            try {
-                await axios.post('/api/ads/track/impression', { ad_id, page_location });
-            } catch (error) {
-                console.error('表示追跡エラー:', error);
-            }
-        }
-        
-        // ========================================
-        // メルマガ登録
-        // ========================================
-        async function subscribeNewsletter() {
-            const emailInput = document.getElementById('newsletter-email');
-            const messageEl = document.getElementById('newsletter-message');
-            const email = emailInput.value.trim();
-            
-            if (!email) {
-                messageEl.textContent = 'メールアドレスを入力してください';
-                messageEl.className = 'text-sm mt-2 text-red-500';
-                return;
-            }
-            
-            try {
-                const res = await axios.post('/api/newsletter/subscribe', { email });
-                messageEl.textContent = res.data.message;
-                messageEl.className = 'text-sm mt-2 text-green-600';
-                emailInput.value = '';
-            } catch (error) {
-                messageEl.textContent = 'エラーが発生しました';
-                messageEl.className = 'text-sm mt-2 text-red-500';
-            }
-        }
-        
-        // ========================================
-        // お問い合わせフォーム
-        // ========================================
-        function openContactForm() {
-            const modal = document.getElementById('contact-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-        
-        function closeContactForm() {
-            const modal = document.getElementById('contact-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            
-            // フォームをクリア
-            document.getElementById('contact-name').value = '';
-            document.getElementById('contact-email').value = '';
-            document.getElementById('contact-subject').value = '';
-            document.getElementById('contact-message').value = '';
-            document.getElementById('contact-message-result').textContent = '';
-        }
-        
-        async function submitContact() {
-            const name = document.getElementById('contact-name').value.trim();
-            const email = document.getElementById('contact-email').value.trim();
-            const subject = document.getElementById('contact-subject').value.trim();
-            const message = document.getElementById('contact-message').value.trim();
-            const resultEl = document.getElementById('contact-message-result');
-            
-            if (!name || !email || !subject || !message) {
-                resultEl.textContent = 'すべての項目を入力してください';
-                resultEl.className = 'text-sm text-center text-red-500';
-                return;
-            }
-            
-            try {
-                const res = await axios.post('/api/support/create', { name, email, subject, message });
-                resultEl.textContent = res.data.message;
-                resultEl.className = 'text-sm text-center text-green-600';
-                
-                setTimeout(() => {
-                    closeContactForm();
-                }, 2000);
-            } catch (error) {
-                resultEl.textContent = 'エラーが発生しました';
-                resultEl.className = 'text-sm text-center text-red-500';
-            }
-        }
-
-        // ========================================
-        // AI対話機能
-        // ========================================
-        async function explainMenu(planDayId, date) {
-            if (!planDayId) {
-                alert('献立情報が見つかりません');
-                return;
-            }
-            
-            // ボタンを無効化
-            const button = event?.target?.closest('button');
-            if (button) {
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 考え中...';
-            }
-            
-            // モーダルを表示
-            const modal = document.getElementById('ai-modal');
-            const title = document.getElementById('ai-modal-title');
-            const content = document.getElementById('ai-modal-content');
-            
-            title.textContent = \`\${date}の献立について\`;
-            content.innerHTML = \`
-                <div class="flex flex-col items-center justify-center py-12">
-                    <!-- AIアニメーション -->
-                    <div class="relative w-24 h-24 mb-6">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <i class="fas fa-brain text-5xl text-blue-500 animate-pulse"></i>
-                        </div>
-                        <div class="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin" style="animation-duration: 2s;"></div>
-                        <div class="absolute inset-2 border-4 border-transparent border-b-purple-500 rounded-full animate-spin" style="animation-duration: 1.5s; animation-direction: reverse;"></div>
-                    </div>
-                    
-                    <h3 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                        AIが分析中
-                    </h3>
-                    <p class="text-gray-600 mb-4">献立の理由を考えています...</p>
-                    
-                    <!-- ドットアニメーション -->
-                    <div class="flex gap-2">
-                        <div class="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0s;"></div>
-                        <div class="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
-                        <div class="w-3 h-3 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
-                    </div>
-                </div>
-            \`;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            try {
-                const res = await axios.post('/api/ai/explain-menu', {
-                    plan_day_id: planDayId,
-                    household_id: appState.householdId
-                });
-                
-                content.innerHTML = \`
-                    <div class="prose max-w-none">
-                        <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-500 p-6 rounded-lg shadow-sm">
-                            <div class="flex items-start gap-3 mb-3">
-                                <i class="fas fa-lightbulb text-2xl text-yellow-500"></i>
-                                <h4 class="text-lg font-bold text-gray-800">AIからの説明</h4>
-                            </div>
-                            <p class="text-gray-800 leading-relaxed">\${res.data.explanation}</p>
-                        </div>
-                    </div>
-                \`;
-            } catch (error) {
-                content.innerHTML = \`
-                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                        <div class="flex items-center gap-2 mb-2">
-                            <i class="fas fa-exclamation-triangle text-red-500"></i>
-                            <h4 class="font-bold text-red-800">エラーが発生しました</h4>
-                        </div>
-                        <p class="text-red-700">もう一度お試しください。</p>
-                    </div>
-                \`;
-            } finally {
-                // ボタンを元に戻す
-                if (button) {
-                    button.disabled = false;
-                    button.innerHTML = '<i class="fas fa-lightbulb"></i> なぜこの献立？';
-                }
-            }
-        }
-        
-        async function suggestChange(planDayId, date) {
-            if (!planDayId) {
-                alert('献立情報が見つかりません');
-                return;
-            }
-            
-            const userRequest = prompt(\`\${date}の献立をどのように変更しますか？\\n\\n例：\\n・魚が多いので肉料理に変えて\\n・もっと時短にして（15分以内）\\n・野菜を多めにして\`);
-            
-            if (!userRequest) return;
-            
-            // ボタンを無効化
-            const button = event?.target?.closest('button');
-            if (button) {
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提案中...';
-            }
-            
-            // モーダルを表示
-            const modal = document.getElementById('ai-modal');
-            const title = document.getElementById('ai-modal-title');
-            const content = document.getElementById('ai-modal-content');
-            
-            title.textContent = '献立変更の提案';
-            content.innerHTML = \`
-                <div class="flex flex-col items-center justify-center py-12">
-                    <!-- 変更アニメーション -->
-                    <div class="relative w-24 h-24 mb-6">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <i class="fas fa-exchange-alt text-5xl text-orange-500 animate-pulse"></i>
-                        </div>
-                        <div class="absolute inset-0 border-4 border-transparent border-t-orange-500 rounded-full animate-spin" style="animation-duration: 2s;"></div>
-                        <div class="absolute inset-2 border-4 border-transparent border-b-yellow-500 rounded-full animate-spin" style="animation-duration: 1.5s; animation-direction: reverse;"></div>
-                    </div>
-                    
-                    <h3 class="text-xl font-bold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent mb-2">
-                        代替案を考え中
-                    </h3>
-                    <p class="text-gray-600 mb-2">あなたの要望に合うレシピを探しています...</p>
-                    <p class="text-sm text-gray-500">「\${userRequest}」</p>
-                    
-                    <!-- プログレス -->
-                    <div class="w-full max-w-md mt-6 space-y-2">
-                        <div class="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-                            <i class="fas fa-spinner fa-spin text-orange-500"></i>
-                            <span class="text-sm text-gray-700">要望を分析中...</span>
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg opacity-50">
-                            <i class="fas fa-search text-yellow-500"></i>
-                            <span class="text-sm text-gray-700">最適なレシピを検索中...</span>
-                        </div>
-                    </div>
-                </div>
-            \`;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            try {
-                const res = await axios.post('/api/ai/suggest-adjustment', {
-                    plan_day_id: planDayId,
-                    household_id: appState.householdId,
-                    user_request: userRequest
-                });
-                
-                // 代替レシピのHTML生成
-                let alternativesHtml = '';
-                if (res.data.alternatives && res.data.alternatives.length > 0) {
-                    alternativesHtml = \`
-                        <div class="mt-4 pt-4 border-t">
-                            <p class="text-sm font-semibold text-gray-700 mb-3">💡 おすすめの代替レシピ（クリックで差し替え）</p>
-                            <div class="space-y-2">
-                                \${res.data.alternatives.map((alt, index) => '<button class="replace-recipe-btn w-full text-left px-4 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all" data-plan-day-id="' + planDayId + '" data-role="' + alt.role + '" data-recipe-id="' + alt.recipe_id + '" data-title="' + alt.title + '">' +
-                                    '<div class="flex items-center justify-between">' +
-                                        '<div>' +
-                                            '<span class="font-medium text-gray-800">' + (index + 1) + '. ' + alt.title + '</span>' +
-                                            '<span class="text-xs text-gray-500 ml-2">約' + alt.time_min + '分</span>' +
-                                        '</div>' +
-                                        '<i class="fas fa-arrow-right text-green-600"></i>' +
-                                    '</div>' +
-                                '</button>').join('')}
-                            </div>
-                        </div>
-                    \`;
-                }
-                
-                content.innerHTML = \`
-                    <div class="prose max-w-none">
-                        <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg mb-4">
-                            <p class="text-sm text-gray-600 mb-2"><strong>あなたの要望：</strong></p>
-                            <p class="text-gray-800">\${userRequest}</p>
-                        </div>
-                        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
-                            <p class="text-sm text-gray-600 mb-2"><strong>AIの提案：</strong></p>
-                            <p class="text-gray-800 leading-relaxed whitespace-pre-wrap">\${res.data.suggestion}</p>
-                        </div>
-                        \${alternativesHtml}
-                    </div>
-                \`;
-            } catch (error) {
-                content.innerHTML = \`
-                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                        <div class="flex items-center gap-2 mb-2">
-                            <i class="fas fa-exclamation-triangle text-red-500"></i>
-                            <h4 class="font-bold text-red-800">エラーが発生しました</h4>
-                        </div>
-                        <p class="text-red-700">もう一度お試しください。</p>
-                    </div>
-                \`;
-            } finally {
-                // ボタンを元に戻す
-                if (button) {
-                    button.disabled = false;
-                    button.innerHTML = '<i class="fas fa-exchange-alt"></i> 変更する';
-                }
-            }
-        }
-        
-        function closeAIModal() {
-            const modal = document.getElementById('ai-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-        
-        async function replaceRecipe(planDayId, role, newRecipeId, newRecipeTitle) {
-            if (!confirm(\`「\${newRecipeTitle}」に差し替えますか？\`)) {
-                return;
-            }
-            
-            try {
-                const res = await axios.post('/api/plans/replace-recipe', {
-                    plan_day_id: planDayId,
-                    role: role,
-                    new_recipe_id: newRecipeId
-                });
-                
-                if (res.data.success) {
-                    alert('献立を差し替えました！');
-                    closeAIModal();
-                    // 献立を再取得して表示を更新
-                    await refreshCalendar();
-                } else {
-                    alert('差し替えに失敗しました');
-                }
-            } catch (error) {
-                console.error(error);
-                alert('エラーが発生しました');
-            }
-        }
-        
-        // ========================================
-        // 表示切り替え機能
-        // ========================================
-        async function refreshCalendar() {
-            if (!appState.planId) {
-                return;
-            }
-            
-            try {
-                // プランの献立を再取得
-                const res = await axios.get(\`/api/plans/\${appState.planId}\`);
-                const days = res.data.days;
-                
-                // データを更新
-                calendarData = days;
-                
-                // 現在の表示モードで再描画
-                if (currentViewMode === 'calendar') {
-                    renderCalendarView(days);
-                } else {
-                    renderGridView(days);
-                }
-            } catch (error) {
-                console.error('カレンダー更新エラー:', error);
-            }
-        }
-        
-        function toggleCalendarView() {
-            currentViewMode = currentViewMode === 'grid' ? 'calendar' : 'grid';
-            const toggleText = document.getElementById('view-toggle-text');
-            
-            if (currentViewMode === 'calendar') {
-                toggleText.textContent = 'リスト表示';
-                renderCalendarView(calendarData);
-            } else {
-                toggleText.textContent = '月表示';
-                renderGridView(calendarData);
-            }
-        }
-        
-        function renderCalendarView(days) {
-            if (days.length === 0) return;
-            
-            const startDate = new Date(days[0].date);
-            const endDate = new Date(days[days.length - 1].date);
-            
-            let html = '<div class="calendar-month-view">';
-            
-            // 月ごとに分割
-            let currentMonth = startDate.getMonth();
-            let currentYear = startDate.getFullYear();
-            let monthDays = [];
-            
-            for (const day of days) {
-                const dayDate = new Date(day.date);
-                if (dayDate.getMonth() !== currentMonth || dayDate.getFullYear() !== currentYear) {
-                    html += renderMonth(currentYear, currentMonth, monthDays);
-                    monthDays = [];
-                    currentMonth = dayDate.getMonth();
-                    currentYear = dayDate.getFullYear();
-                }
-                monthDays.push(day);
-            }
-            
-            // 最後の月
-            if (monthDays.length > 0) {
-                html += renderMonth(currentYear, currentMonth, monthDays);
-            }
-            
-            html += '</div>';
-            calendarContentEl.innerHTML = html;
-        }
-        
-        function renderMonth(year, month, days) {
-            const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const firstDay = new Date(year, month, 1).getDay();
-            
-            let html = \`
-                <div class="calendar-month mb-8">
-                    <h3 class="text-2xl font-bold mb-4">\${year}年 \${monthNames[month]}</h3>
-                    <div class="calendar-grid-month">
-                        <div class="calendar-header">日</div>
-                        <div class="calendar-header">月</div>
-                        <div class="calendar-header">火</div>
-                        <div class="calendar-header">水</div>
-                        <div class="calendar-header">木</div>
-                        <div class="calendar-header">金</div>
-                        <div class="calendar-header">土</div>
-            \`;
-            
-            // 空白セル（月の最初の日より前）
-            for (let i = 0; i < firstDay; i++) {
-                html += '<div class="calendar-day-empty"></div>';
-            }
-            
-            // 日付セル
-            const dayMap = {};
-            days.forEach(day => {
-                const date = new Date(day.date);
-                dayMap[date.getDate()] = day;
-            });
-            
-            for (let date = 1; date <= daysInMonth; date++) {
-                const day = dayMap[date];
-                
-                if (day) {
-                    const recipes = day.recipes || [];
-                    const main = recipes.find(r => r.role === 'main');
-                    const side = recipes.find(r => r.role === 'side');
-                    const soup = recipes.find(r => r.role === 'soup');
-                    
-                    html += \`
-                        <div class="calendar-day-cell" data-plan-day-id="\${day.plan_day_id}" data-date="\${day.date}"
-                             draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" 
-                             ondrop="handleDrop(event)" ondragend="handleDragEnd(event)" style="cursor: move;">
-                            <div class="calendar-day-number">\${date} <i class="fas fa-grip-vertical text-gray-300 text-xs ml-1"></i></div>
-                            <div class="calendar-day-content">
-                                \${main ? \`<div class="text-xs truncate">🍖 \${main.title}</div>\` : ''}
-                                \${side ? \`<div class="text-xs truncate">🥗 \${side.title}</div>\` : ''}
-                                \${soup ? \`<div class="text-xs truncate">🍲 \${soup.title}</div>\` : ''}
-                            </div>
-                            <div class="calendar-day-actions no-print">
-                                <button class="explain-menu-btn calendar-btn" data-plan-day-id="\${day.plan_day_id}" data-date="\${day.date}">
-                                    <i class="fas fa-comment-dots"></i>
-                                </button>
-                                <button class="suggest-change-btn calendar-btn" data-plan-day-id="\${day.plan_day_id}" data-date="\${day.date}">
-                                    <i class="fas fa-sync-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    \`;
-                } else {
-                    html += \`<div class="calendar-day-empty">\${date}</div>\`;
-                }
-            }
-            
-            html += '</div></div>';
-            return html;
-        }
-        
-        function renderGridView(days) {
-            // 元のグリッド表示に戻す
-            let html = '';
-            
-            for (let i = 0; i < days.length; i += 10) {
-                const chunk = days.slice(i, i + 10);
-                const pageBreakClass = (i + 10 < days.length) ? 'page-break-after-10' : '';
-                
-                html += \`<div class="calendar-page \${pageBreakClass}">\`;
-                html += '<div class="calendar-grid">';
-                
-                chunk.forEach(day => {
-                    const recipes = day.recipes || [];
-                    const main = recipes.find(r => r.role === 'main');
-                    const side = recipes.find(r => r.role === 'side');
-                    const soup = recipes.find(r => r.role === 'soup');
-                    
-                    const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(day.date).getDay()];
-
-                    html += \`
-                        <div class="day-card" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}" 
-                             draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" 
-                             ondrop="handleDrop(event)" ondragend="handleDragEnd(event)" style="cursor: move;">
-                            <div class="day-date text-lg font-bold text-gray-800 mb-3 border-b pb-2 flex justify-between items-center">
-                                <span>\${day.date} (\${dayOfWeek})</span>
-                                <i class="fas fa-grip-vertical text-gray-400 text-sm"></i>
-                            </div>
-                            <div class="space-y-2 text-sm">
-                                \${main ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-main mt-1"></span><span class="flex-1"><span class="font-semibold text-red-600">主菜:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + main.recipe_id + '" data-recipe-title="' + main.title + '">' + main.title + '</a></span></div>' : ''}
-                                \${side ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-side mt-1"></span><span class="flex-1"><span class="font-semibold text-green-600">副菜:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + side.recipe_id + '" data-recipe-title="' + side.title + '">' + side.title + '</a></span></div>' : ''}
-                                \${soup ? '<div class="recipe-item flex items-start"><span class="recipe-badge badge-soup mt-1"></span><span class="flex-1"><span class="font-semibold text-blue-600">汁物:</span> <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline cursor-pointer" data-recipe-id="' + soup.recipe_id + '" data-recipe-title="' + soup.title + '">' + soup.title + '</a></span></div>' : ''}
-                            </div>
-                            <div class="mt-3 text-xs text-gray-500 border-t pt-2">
-                                <i class="far fa-clock"></i> 約\${day.estimated_time_min}分
-                            </div>
-                            <div class="mt-3 flex gap-2 no-print">
-                                <button class="explain-menu-btn flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-xs font-medium transition-colors" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
-                                    <i class="fas fa-comment-dots"></i> なぜこの献立？
-                                </button>
-                                <button class="suggest-change-btn flex-1 px-3 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 text-xs font-medium transition-colors" data-plan-day-id="\${day.plan_day_id || ''}" data-date="\${day.date}">
-                                    <i class="fas fa-sync-alt"></i> 変更する
-                                </button>
-                            </div>
-                        </div>
-                    \`;
-                });
-                
-                html += '</div></div>';
-            }
-            
-            calendarContentEl.innerHTML = html;
-        }
-        
-        // ========================================
-        // 買い物リスト生成
-        // ========================================
-        async function generateShoppingList() {
-            if (!appState.planId) {
-                alert('献立データがありません');
-                return;
-            }
-            
-            // ボタンを無効化してローディング表示
-            const button = event?.target;
-            if (button) {
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>生成中...';
-            }
-            
-            // モーダルを先に開いてローディング表示
-            const modal = document.getElementById('shopping-modal');
-            const content = document.getElementById('shopping-modal-content');
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            content.innerHTML = \`
-                <div class="flex flex-col items-center justify-center py-16">
-                    <!-- メインアニメーション -->
-                    <div class="relative w-32 h-32 mb-6">
-                        <!-- 回転するカート -->
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <i class="fas fa-shopping-cart text-6xl text-blue-500 animate-bounce"></i>
-                        </div>
-                        <!-- 回転リング -->
-                        <div class="absolute inset-0 border-8 border-transparent border-t-blue-500 rounded-full animate-spin" style="animation-duration: 1s;"></div>
-                        <div class="absolute inset-2 border-8 border-transparent border-b-green-500 rounded-full animate-spin" style="animation-duration: 1.5s; animation-direction: reverse;"></div>
-                    </div>
-                    
-                    <h3 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-3">
-                        買い物リストを作成中
-                    </h3>
-                    <p class="text-gray-600 mb-4 text-center">
-                        献立から食材を集計しています
-                    </p>
-                    
-                    <!-- プログレス表示 -->
-                    <div class="w-full max-w-md space-y-3">
-                        <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <i class="fas fa-spinner fa-spin text-blue-500"></i>
-                            <span class="text-sm text-gray-700">レシピから食材を抽出中...</span>
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 opacity-50">
-                            <i class="fas fa-calculator text-green-500"></i>
-                            <span class="text-sm text-gray-700">数量を集計中...</span>
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 opacity-50">
-                            <i class="fas fa-layer-group text-purple-500"></i>
-                            <span class="text-sm text-gray-700">カテゴリ別に整理中...</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6 text-xs text-gray-500">
-                        <i class="fas fa-clock mr-1"></i>
-                        通常 2〜3秒で完了します
-                    </div>
-                </div>
-            \`;
-            
-            try {
-                const res = await axios.get(\`/api/shopping-list/\${appState.planId}\`);
-                const data = res.data;
-                
-                // モーダルを表示
-                showShoppingListModal(data);
-            } catch (error) {
-                console.error('買い物リスト生成エラー:', error);
-                content.innerHTML = \`
-                    <div class="flex flex-col items-center justify-center py-16">
-                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                            <i class="fas fa-exclamation-triangle text-4xl text-red-500"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-800 mb-2">エラーが発生しました</h3>
-                        <p class="text-gray-600 mb-4">買い物リストの生成に失敗しました</p>
-                        <button onclick="closeShoppingModal()" 
-                                class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
-                            閉じる
-                        </button>
-                    </div>
-                \`;
-            } finally {
-                // ボタンを元に戻す
-                if (button) {
-                    button.disabled = false;
-                    button.innerHTML = '<i class="fas fa-shopping-cart"></i> 買い物リスト';
-                }
-            }
-        }
-        
-        function showShoppingListModal(data) {
-            const modal = document.getElementById('shopping-modal');
-            const content = document.getElementById('shopping-modal-content');
-            
-            // 期間情報
-            const periodInfo = data.startDate && data.endDate
-                ? \`\${data.startDate} 〜 \${data.endDate}\`
-                : '期間不明';
-            
-            let html = \`
-                <div class="mb-6 p-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200">
-                    <div class="flex items-center justify-between mb-3">
-                        <h4 class="font-bold text-2xl text-gray-800 flex items-center gap-2">
-                            <i class="fas fa-shopping-cart text-blue-600"></i>
-                            買い物リスト
-                        </h4>
-                    </div>
-                    <div class="flex items-center gap-4 text-sm flex-wrap">
-                        <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                            <i class="fas fa-users text-orange-600"></i>
-                            <span class="font-semibold text-gray-700">人数:</span>
-                            <span class="text-gray-900">\${data.membersCount || 2} 人分</span>
-                        </div>
-                        <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                            <i class="fas fa-calendar-alt text-blue-600"></i>
-                            <span class="font-semibold text-gray-700">期間:</span>
-                            <span class="text-gray-900">\${periodInfo}</span>
-                        </div>
-                        <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                            <i class="fas fa-hourglass-half text-purple-600"></i>
-                            <span class="font-semibold text-gray-700">日数:</span>
-                            <span class="text-gray-900">\${data.totalDays || 0} 日分</span>
-                        </div>
-                        <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                            <i class="fas fa-list text-green-600"></i>
-                            <span class="font-semibold text-gray-700">合計:</span>
-                            <span class="text-gray-900">\${data.totalItems} 品目</span>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-600 mt-2">
-                        <i class="fas fa-info-circle"></i> この期間の全献立に必要な食材（\${data.membersCount || 2}人分）をまとめています
-                    </p>
-                </div>
-                
-                <!-- タブ切り替え -->
-                <div class="mb-4">
-                    <div class="flex border-b border-gray-300 overflow-x-auto">
-                        <button onclick="switchShoppingTab('all')" 
-                                id="tab-all"
-                                class="shopping-tab px-4 py-2 font-semibold border-b-2 border-blue-500 text-blue-600">
-                            月全体
-                        </button>
-                        \${(data.weeklyLists || []).map((week, index) => \`
-                            <button class="shopping-tab-btn shopping-tab px-4 py-2 font-semibold border-b-2 border-transparent text-gray-600 hover:text-gray-800" 
-                                    id="tab-week-\${index}"
-                                    data-week-id="week-\${index}">
-                                第\${week.weekNumber}週 (\${week.totalItems}品)
-                            </button>
-                        \`).join('')}
-                    </div>
-                </div>
-                
-                <!-- 月全体の買い物リスト -->
-                <div id="content-all" class="shopping-content">
-                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded mb-4">
-                        <p class="text-sm text-gray-700">
-                            <i class="fas fa-lightbulb text-yellow-600"></i>
-                            <strong>月まとめ買い推奨:</strong> 調味料や保存のきく食材は月初めに一括購入がお得です
-                        </p>
-                    </div>
-                    \${renderShoppingList(data.shoppingList)}
-                </div>
-                
-                <!-- 週ごとの買い物リスト -->
-                \${(data.weeklyLists || []).map((week, index) => \`
-                    <div id="content-week-\${index}" class="shopping-content week-shopping-list hidden">
-                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <h5 class="font-bold text-lg text-gray-800">
-                                    <i class="fas fa-calendar-week text-blue-600"></i>
-                                    第\${week.weekNumber}週の買い物
-                                </h5>
-                                <span class="text-sm text-gray-600">\${week.totalItems} 品目</span>
-                            </div>
-                            <p class="text-sm text-gray-700">
-                                <i class="fas fa-calendar-alt text-blue-600"></i>
-                                期間: <strong>\${week.startDate} 〜 \${week.endDate}</strong>
-                            </p>
-                        </div>
-                        \${renderShoppingList(week.shoppingList)}
-                    </div>
-                \`).join('')}
-            \`;
-            
-            html += \`
-                <div class="mt-6 flex gap-2 justify-end print:hidden">
-                    <button onclick="printShoppingList()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-                        <i class="fas fa-print"></i> 印刷
-                    </button>
-                    <button onclick="closeShoppingModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
-                        <i class="fas fa-times"></i> 閉じる
-                    </button>
-                </div>
-            \`;
-            
-            content.innerHTML = html;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-        
-        function renderShoppingList(shoppingList) {
-            const categories = Object.keys(shoppingList).sort();
-            
-            return categories.map(category => {
-                const items = shoppingList[category];
-                
-                return \`
-                    <div class="mb-6">
-                        <h5 class="font-bold text-md mb-3 pb-2 border-b-2 border-gray-300 flex items-center gap-2">
-                            <span class="text-2xl">\${getCategoryIcon(category)}</span>
-                            <span>\${category}</span>
-                            <span class="text-sm text-gray-500 font-normal">（\${items.length}品）</span>
-                        </h5>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            \${items.map(item => \`
-                                <div class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition">
-                                    <input type="checkbox" class="mr-3 w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
-                                    <span class="flex-1 font-medium text-gray-800">\${item.name}</span>
-                                    <span class="text-sm font-semibold text-blue-600 ml-2 bg-blue-50 px-2 py-1 rounded">
-                                        \${item.quantity}\${item.unit}
-                                    </span>
-                                </div>
-                            \`).join('')}
-                        </div>
-                    </div>
-                \`;
-            }).join('');
-        }
-        
-        function switchShoppingTab(tabId) {
-            // すべてのタブとコンテンツを非表示
-            document.querySelectorAll('.shopping-tab').forEach(tab => {
-                tab.classList.remove('border-blue-500', 'text-blue-600');
-                tab.classList.add('border-transparent', 'text-gray-600');
-            });
-            document.querySelectorAll('.shopping-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            
-            // 選択されたタブとコンテンツを表示
-            const selectedTab = document.getElementById(\`tab-\${tabId}\`);
-            const selectedContent = document.getElementById(\`content-\${tabId}\`);
-            
-            if (selectedTab) {
-                selectedTab.classList.add('border-blue-500', 'text-blue-600');
-                selectedTab.classList.remove('border-transparent', 'text-gray-600');
-            }
-            if (selectedContent) {
-                selectedContent.classList.remove('hidden');
-            }
-        }
-        
-        function getCategoryIcon(category) {
-            const icons = {
-                '野菜': '🥬',
-                '肉・魚': '🥩',
-                '卵・乳製品': '🥚',
-                '豆腐・豆類': '🫘',
-                '調味料': '🧂',
-                'その他': '📦'
-            };
-            return icons[category] || '📦';
-        }
-        
-        function closeShoppingModal() {
-            const modal = document.getElementById('shopping-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-        
-        function printShoppingList() {
-            window.print();
-        }
-        
-        // ========================================
-        // レシピ詳細表示
-        // ========================================
-        async function showRecipeDetail(recipeId, recipeTitle) {
-            if (!recipeId) {
-                alert('レシピ情報がありません');
-                return;
-            }
-            
-            const modal = document.getElementById('recipe-modal');
-            const title = document.getElementById('recipe-modal-title');
-            const content = document.getElementById('recipe-modal-content');
-            
-            title.textContent = recipeTitle || 'レシピ詳細';
-            content.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i><p class="mt-4 text-gray-600">レシピ情報を読み込み中...</p></div>';
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            try {
-                const res = await axios.get(\`/api/recipes/\${recipeId}\`);
-                const recipe = res.data;
-                
-                // JSON文字列をパース
-                recipe.steps = recipe.steps_json ? JSON.parse(recipe.steps_json) : [];
-                recipe.tags = recipe.tags_json ? JSON.parse(recipe.tags_json) : [];
-                recipe.substitutes = recipe.substitutes_json ? JSON.parse(recipe.substitutes_json) : [];
-                
-                // 難易度の表示
-                const difficultyMap = {
-                    'easy': '簡単',
-                    'normal': '普通',
-                    'hard': '難しい'
-                };
-                
-                // 料理ジャンルの表示
-                const cuisineMap = {
-                    'japanese': '和食',
-                    'western': '洋食',
-                    'chinese': '中華',
-                    'other': 'その他'
-                };
-                
-                // カテゴリ名の日本語化
-                const categoryMap = {
-                    'vegetables': '野菜',
-                    'meat_fish': '肉・魚',
-                    'dairy_eggs': '卵・乳製品',
-                    'tofu_beans': '豆腐・豆類',
-                    'seasonings': '調味料',
-                    'others': 'その他'
-                };
-                
-                let html = \`
-                    <div class="space-y-6">
-                        <!-- 基本情報 -->
-                        <div class="flex gap-4 flex-wrap text-sm">
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-clock text-blue-500"></i>
-                                <span><strong>調理時間:</strong> 約\${recipe.time_min}分</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-signal text-green-500"></i>
-                                <span><strong>難易度:</strong> \${difficultyMap[recipe.difficulty] || '普通'}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-utensils text-purple-500"></i>
-                                <span><strong>ジャンル:</strong> \${cuisineMap[recipe.cuisine] || 'その他'}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-yen-sign text-orange-500"></i>
-                                <span><strong>予算:</strong> 約\${recipe.cost_tier}円/人</span>
-                            </div>
-                        </div>
-                        
-                        <!-- 説明 -->
-                        \${recipe.description ? \`
-                            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                                <p class="text-gray-700">\${recipe.description}</p>
-                            </div>
-                        \` : ''}
-                        
-                        <!-- 材料 -->
-                        <div>
-                            <h4 class="text-lg font-bold mb-3 flex items-center gap-2">
-                                <i class="fas fa-list text-green-600"></i>
-                                材料
-                            </h4>
-                            <div class="bg-gray-50 rounded-lg p-4">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    \${(recipe.ingredients || []).map(ing => \`
-                                        <div class="flex justify-between items-center border-b border-gray-200 pb-2">
-                                            <span class="text-gray-800">
-                                                \${ing.name}
-                                                \${ing.is_optional ? '<span class="text-xs text-gray-500">(お好みで)</span>' : ''}
-                                            </span>
-                                            <span class="text-gray-600 font-medium">\${ing.quantity}\${ing.unit}</span>
-                                        </div>
-                                    \`).join('')}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- 調理手順 -->
-                        <div>
-                            <h4 class="text-lg font-bold mb-3 flex items-center gap-2">
-                                <i class="fas fa-tasks text-orange-600"></i>
-                                作り方
-                            </h4>
-                            <div class="space-y-3">
-                                \${(recipe.steps || []).map((step, index) => \`
-                                    <div class="flex gap-3">
-                                        <div class="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold">
-                                            \${index + 1}
-                                        </div>
-                                        <div class="flex-1 bg-gray-50 rounded-lg p-3">
-                                            <p class="text-gray-800">\${step}</p>
-                                        </div>
-                                    </div>
-                                \`).join('')}
-                                
-                                \${recipe.steps.length === 0 ? '<p class="text-gray-500 text-center py-4">手順情報はまだ登録されていません</p>' : ''}
-                            </div>
-                        </div>
-                        
-                        <!-- 調理のコツ -->
-                        \${recipe.tags && recipe.tags.length > 0 ? \`
-                            <div>
-                                <h4 class="text-lg font-bold mb-3 flex items-center gap-2">
-                                    <i class="fas fa-lightbulb text-yellow-600"></i>
-                                    ポイント・コツ
-                                </h4>
-                                <div class="flex flex-wrap gap-2">
-                                    \${recipe.tags.map(tag => \`
-                                        <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                                            \${tag}
-                                        </span>
-                                    \`).join('')}
-                                </div>
-                            </div>
-                        \` : ''}
-                        
-                        <!-- 外部レシピリンク -->
-                        <div>
-                            <h4 class="text-lg font-bold mb-3 flex items-center gap-2">
-                                <i class="fas fa-external-link-alt text-indigo-600"></i>
-                                もっと詳しいレシピを探す
-                            </h4>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <a href="https://cookpad.com/search/\${encodeURIComponent(recipe.title)}" 
-                                   target="_blank" rel="noopener noreferrer"
-                                   class="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg hover:from-orange-500 hover:to-orange-600 transition shadow-md">
-                                    <i class="fas fa-book text-2xl"></i>
-                                    <div>
-                                        <div class="font-bold">クックパッド</div>
-                                        <div class="text-xs opacity-90">300万品以上のレシピ</div>
-                                    </div>
-                                </a>
-                                <a href="https://www.kurashiru.com/search?query=\${encodeURIComponent(recipe.title)}" 
-                                   target="_blank" rel="noopener noreferrer"
-                                   class="flex items-center gap-3 p-4 bg-gradient-to-r from-red-400 to-red-500 text-white rounded-lg hover:from-red-500 hover:to-red-600 transition shadow-md">
-                                    <i class="fas fa-video text-2xl"></i>
-                                    <div>
-                                        <div class="font-bold">クラシル</div>
-                                        <div class="text-xs opacity-90">動画でわかりやすい</div>
-                                    </div>
-                                </a>
-                                <a href="https://delishkitchen.tv/search?q=\${encodeURIComponent(recipe.title)}" 
-                                   target="_blank" rel="noopener noreferrer"
-                                   class="flex items-center gap-3 p-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-lg hover:from-pink-500 hover:to-pink-600 transition shadow-md">
-                                    <i class="fas fa-heart text-2xl"></i>
-                                    <div>
-                                        <div class="font-bold">デリッシュキッチン</div>
-                                        <div class="text-xs opacity-90">簡単で美味しい</div>
-                                    </div>
-                                </a>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2 text-center">
-                                <i class="fas fa-info-circle"></i> 
-                                各サイトで「\${recipe.title}」の詳しいレシピや作り方動画をご覧いただけます
-                            </p>
-                        </div>
-                        
-                        <!-- アクションボタン -->
-                        <div class="flex gap-2 pt-4 border-t">
-                            <button class="add-favorite-btn flex-1 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition" 
-                                    data-recipe-id="\${recipe.recipe_id}" 
-                                    data-recipe-title="\${recipe.title}">
-                                <i class="fas fa-heart"></i> お気に入りに追加
-                            </button>
-                            <button class="share-recipe-btn flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                                    data-recipe-id="\${recipe.recipe_id}" 
-                                    data-recipe-title="\${recipe.title}">
-                                <i class="fas fa-share-alt"></i> 共有
-                            </button>
-                        </div>
-                    </div>
-                \`;
-                
-                content.innerHTML = html;
-            } catch (error) {
-                console.error('レシピ詳細取得エラー:', error);
-                content.innerHTML = \`
-                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                        <p class="text-red-700">レシピ情報の取得に失敗しました</p>
-                    </div>
-                \`;
-            }
-        }
-        
-        function closeRecipeModal() {
-            const modal = document.getElementById('recipe-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-        
-        // ========================================
-        // お気に入り機能
-        // ========================================
-        function addToFavorites(recipeId, recipeTitle) {
-            // ローカルストレージに保存
-            const favorites = JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
-            
-            // 重複チェック
-            if (favorites.some(f => f.recipe_id === recipeId)) {
-                alert('このレシピは既にお気に入りに追加されています');
-                return;
-            }
-            
-            favorites.push({
-                recipe_id: recipeId,
-                title: recipeTitle,
-                added_at: new Date().toISOString()
-            });
-            
-            localStorage.setItem('favoriteRecipes', JSON.stringify(favorites));
-            alert(\`「\${recipeTitle}」をお気に入りに追加しました！\`);
-        }
-        
-        // ========================================
-        // 献立履歴機能
-        // ========================================
-        async function showHistory() {
-            if (!appState.householdId) {
-                alert('履歴を表示するにはログインが必要です');
-                return;
-            }
-            
-            try {
-                const res = await axios.get(\`/api/history/\${appState.householdId}\`);
-                const history = res.data.history || [];
-                
-                if (history.length === 0) {
-                    alert('まだ履歴がありません');
+            // 条件に合う次の質問を探す
+            while (appState.step < questions.length) {
+                const q = questions[appState.step];
+                if (!q.condition || q.condition()) {
+                    addMessage(q.text);
+                    showInput(q);
                     return;
                 }
-                
-                // 履歴モーダルを表示
-                let html = '<div class="space-y-4">';
-                history.forEach(item => {
-                    html += \`
-                        <div class="border rounded-lg p-4 hover:bg-gray-50 transition">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <h4 class="font-bold text-lg">\${item.title}</h4>
-                                    <p class="text-sm text-gray-500">
-                                        \${item.start_date} 〜 (\${item.months}ヶ月)
-                                    </p>
-                                    <p class="text-xs text-gray-400">
-                                        作成日: \${new Date(item.created_at).toLocaleDateString('ja-JP')}
-                                    </p>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button class="load-history-btn px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-                                            data-plan-id="\${item.plan_id}">
-                                        <i class="fas fa-eye"></i> 表示
-                                    </button>
-                                    <button class="archive-history-btn px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
-                                            data-history-id="\${item.history_id}">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    \`;
-                });
-                html += '</div>';
-                
-                // モーダルに表示
-                showModal('献立履歴', html);
-            } catch (error) {
-                console.error('履歴取得エラー:', error);
-                alert('履歴の取得に失敗しました');
+                appState.step++;
             }
         }
-        
-        async function loadHistory(planId) {
-            try {
-                const res = await axios.get(\`/api/plans/\${planId}\`);
-                appState.planId = planId;
-                calendarData = res.data.days;
-                
-                // モーダルを閉じて献立を表示
-                closeModal();
-                showCalendar(res.data.days);
-                
-                // 成功メッセージ
-                const toast = document.createElement('div');
-                toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-                toast.textContent = '✓ 履歴から献立を読み込みました';
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 2000);
-            } catch (error) {
-                console.error('献立読み込みエラー:', error);
-                alert('献立の読み込みに失敗しました');
-            }
-        }
-        
-        async function archiveHistory(historyId) {
-            if (!confirm('この履歴をアーカイブしますか？')) return;
+
+        // 献立生成
+        async function generatePlan() {
+            loadingModal.classList.add('active');
+            const loadingMsg = document.getElementById('loading-message');
+            const loadingProg = document.getElementById('loading-progress');
+            
+            loadingProg.style.width = '33%';
+            loadingMsg.textContent = 'レシピデータベースを検索しています...';
+            
+            setTimeout(() => {
+                loadingProg.style.width = '66%';
+                loadingMsg.textContent = '栄養バランスを調整しています...';
+            }, 1000);
             
             try {
-                await axios.post('/api/history/archive', { history_id: historyId });
-                showHistory(); // 再読み込み
-            } catch (error) {
-                console.error('アーカイブエラー:', error);
-                alert('アーカイブに失敗しました');
-            }
-        }
-        
-        function showModal(title, content) {
-            const modal = document.createElement('div');
-            modal.id = 'history-modal';
-            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
-            modal.innerHTML = \`
-                <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4 flex justify-between items-center">
-                        <h3 class="text-xl font-bold text-white">
-                            <i class="fas fa-history mr-2"></i>
-                            \${title}
-                        </h3>
-                        <button onclick="closeModal()" class="text-white hover:text-gray-200 transition-colors">
-                            <i class="fas fa-times text-2xl"></i>
-                        </button>
-                    </div>
-                    <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
-                        \${content}
-                    </div>
-                </div>
-            \`;
-            document.body.appendChild(modal);
-        }
-        
-        function closeModal() {
-            const modal = document.getElementById('history-modal');
-            if (modal) modal.remove();
-        }
-        
-        // ========================================
-        // ドラッグ&ドロップ機能
-        // ========================================
-        let draggedElement = null;
-        let draggedData = null;
-        
-        function handleDragStart(event) {
-            draggedElement = event.currentTarget;
-            draggedData = {
-                planDayId: draggedElement.dataset.planDayId,
-                date: draggedElement.dataset.date
-            };
-            event.dataTransfer.effectAllowed = 'move';
-            draggedElement.style.opacity = '0.4';
-        }
-        
-        function handleDragOver(event) {
-            if (event.preventDefault) {
-                event.preventDefault();
-            }
-            event.dataTransfer.dropEffect = 'move';
-            
-            const dropTarget = event.currentTarget;
-            if (dropTarget !== draggedElement) {
-                dropTarget.style.borderColor = '#3b82f6';
-                dropTarget.style.borderWidth = '2px';
-                dropTarget.style.borderStyle = 'dashed';
-            }
-            return false;
-        }
-        
-        function handleDragLeave(event) {
-            const dropTarget = event.currentTarget;
-            dropTarget.style.border = '';
-        }
-        
-        async function handleDrop(event) {
-            if (event.stopPropagation) {
-                event.stopPropagation();
-            }
-            
-            const dropTarget = event.currentTarget;
-            dropTarget.style.border = '';
-            
-            if (draggedElement !== dropTarget) {
-                const targetData = {
-                    planDayId: dropTarget.dataset.planDayId,
-                    date: dropTarget.dataset.date
-                };
-                
-                // ローディング表示
-                const loadingToast = document.createElement('div');
-                loadingToast.id = 'drag-loading-toast';
-                loadingToast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
-                const spinnerDiv = document.createElement('div');
-                spinnerDiv.className = 'animate-spin rounded-full h-5 w-5 border-b-2 border-white';
-                const spanText = document.createElement('span');
-                spanText.textContent = '献立を入れ替え中...';
-                loadingToast.appendChild(spinnerDiv);
-                loadingToast.appendChild(spanText);
-                document.body.appendChild(loadingToast);
-                
-                // サーバーに献立の入れ替えをリクエスト
-                try {
-                    const res = await axios.post('/api/plans/swap-days', {
-                        plan_id: appState.planId,
-                        day1_id: draggedData.planDayId,
-                        day2_id: targetData.planDayId
-                    });
-                    
-                    if (res.data.success) {
-                        // 献立データを再取得して更新
-                        const planRes = await axios.get(\`/api/plans/\${appState.planId}\`);
-                        calendarData = planRes.data.days;
-                        
-                        // 現在のビューモードで再描画
-                        if (currentViewMode === 'calendar') {
-                            renderCalendarView(calendarData);
-                        } else {
-                            renderGridView(calendarData);
-                        }
-                        
-                        // ローディングを削除
-                        loadingToast.remove();
-                        
-                        // 成功メッセージ
-                        const toast = document.createElement('div');
-                        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce';
-                        toast.innerHTML = '<i class="fas fa-check-circle mr-2"></i>✓ 献立を入れ替えました';
-                        document.body.appendChild(toast);
-                        setTimeout(() => toast.remove(), 2000);
-                    }
-                } catch (error) {
-                    console.error('献立の入れ替えエラー:', error);
-                    // ローディングを削除
-                    if (document.getElementById('drag-loading-toast')) {
-                        document.getElementById('drag-loading-toast').remove();
-                    }
-                    // エラーメッセージ
-                    const errorToast = document.createElement('div');
-                    errorToast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-                    errorToast.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>献立の入れ替えに失敗しました';
-                    document.body.appendChild(errorToast);
-                    setTimeout(() => errorToast.remove(), 3000);
-                }
-            }
-            
-            return false;
-        }
-        
-        function handleDragEnd(event) {
-            event.currentTarget.style.opacity = '1';
-            
-            // すべてのボーダーをリセット
-            document.querySelectorAll('.day-card').forEach(card => {
-                card.style.border = '';
-            });
-        }
-        
-        function showFavorites() {
-            const favorites = JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
-            
-            if (favorites.length === 0) {
-                alert('お気に入りレシピはまだありません');
-                return;
-            }
-            
-            const modal = document.getElementById('recipe-modal');
-            const title = document.getElementById('recipe-modal-title');
-            const content = document.getElementById('recipe-modal-content');
-            
-            title.textContent = 'お気に入りレシピ';
-            
-            let html = \`
-                <div class="space-y-3">
-                    \${favorites.map((fav, index) => \`
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                            <div class="flex-1">
-                                <a href="javascript:void(0)" class="recipe-link text-blue-600 hover:underline font-medium"
-                                   data-recipe-id="\${fav.recipe_id}" 
-                                   data-recipe-title="\${fav.title}">
-                                    \${fav.title}
-                                </a>
-                                <p class="text-xs text-gray-500 mt-1">追加日: \${new Date(fav.added_at).toLocaleDateString('ja-JP')}</p>
-                            </div>
-                            <button class="remove-favorite-btn ml-3 px-3 py-1 text-red-600 hover:bg-red-50 rounded" data-index="\${index}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    \`).join('')}
-                </div>
-            \`;
-            
-            content.innerHTML = html;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-        
-        function removeFromFavorites(index) {
-            const favorites = JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
-            favorites.splice(index, 1);
-            localStorage.setItem('favoriteRecipes', JSON.stringify(favorites));
-            showFavorites(); // 再表示
-        }
-        
-        // ========================================
-        // SNS共有機能
-        // ========================================
-        function shareRecipe(recipeId, recipeTitle) {
-            const url = \`\${window.location.origin}/recipe/\${recipeId}\`;
-            const text = \`【Aメニュー】\${recipeTitle}のレシピを見つけました！\`;
-            
-            // Web Share API対応ブラウザの場合
-            if (navigator.share) {
-                navigator.share({
-                    title: recipeTitle,
-                    text: text,
-                    url: url
-                }).then(() => {
-                    console.log('共有成功');
-                }).catch(err => {
-                    console.error('共有エラー:', err);
-                    showShareModal(recipeId, recipeTitle);
+                const response = await axios.post('/api/plans/generate', {
+                    ...appState.data,
+                    title: 'My献立 ' + appState.data.start_date,
+                    household_id: 'demo-household-' + Date.now()
                 });
-            } else {
-                showShareModal(recipeId, recipeTitle);
+                
+                loadingProg.style.width = '100%';
+                loadingMsg.textContent = '献立が完成しました！';
+                
+                setTimeout(() => {
+                    loadingModal.classList.remove('active');
+                    appState.planId = response.data.plan_id;
+                    showCalendar(response.data.days);
+                }, 500);
+            } catch (error) {
+                console.error('Error:', error);
+                loadingModal.classList.remove('active');
+                alert('エラーが発生しました。もう一度お試しください。');
             }
         }
-        
-        function showShareModal(recipeId, recipeTitle) {
-            const url = encodeURIComponent(\`\${window.location.origin}/recipe/\${recipeId}\`);
-            const text = encodeURIComponent(\`【Aメニュー】\${recipeTitle}のレシピ\`);
+
+        // カレンダー表示
+        function showCalendar(days) {
+            document.getElementById('question-area').classList.add('hidden');
+            calendarContainerEl.classList.remove('hidden');
             
-            const modal = document.getElementById('recipe-modal');
-            const title = document.getElementById('recipe-modal-title');
-            const content = document.getElementById('recipe-modal-content');
+            let html = '<div class="bg-white rounded-2xl shadow-xl p-8">';
+            html += '<h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">';
+            html += '<i class="fas fa-calendar-alt mr-2 text-purple-600"></i>あなたの献立カレンダー';
+            html += '</h2>';
             
-            title.textContent = 'レシピを共有';
+            html += '<div class="mb-6 flex gap-4 justify-center no-print">';
+            html += '<button onclick="window.print()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">';
+            html += '<i class="fas fa-print mr-2"></i>印刷する';
+            html += '</button>';
+            html += '<button onclick="downloadCalendar()" class="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition">';
+            html += '<i class="fas fa-download mr-2"></i>カレンダーダウンロード';
+            html += '</button>';
+            html += '</div>';
             
-            const html = \`
-                <div class="space-y-3">
-                    <p class="text-gray-600 mb-4">SNSで共有する：</p>
-                    
-                    <a href="https://twitter.com/intent/tweet?text=\${text}&url=\${url}" 
-                       target="_blank" 
-                       class="flex items-center gap-3 p-4 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition">
-                        <i class="fab fa-twitter text-2xl"></i>
-                        <span class="font-medium">Xで共有</span>
-                    </a>
-                    
-                    <a href="https://www.facebook.com/sharer/sharer.php?u=\${url}" 
-                       target="_blank" 
-                       class="flex items-center gap-3 p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                        <i class="fab fa-facebook text-2xl"></i>
-                        <span class="font-medium">Facebookで共有</span>
-                    </a>
-                    
-                    <a href="https://line.me/R/msg/text/?\${text}%20\${url}" 
-                       target="_blank" 
-                       class="flex items-center gap-3 p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
-                        <i class="fab fa-line text-2xl"></i>
-                        <span class="font-medium">LINEで共有</span>
-                    </a>
-                    
-                    <button class="copy-clipboard-btn w-full flex items-center gap-3 p-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
-                            data-url="\${decodeURIComponent(url)}">
-                        <i class="fas fa-copy text-2xl"></i>
-                        <span class="font-medium">URLをコピー</span>
-                    </button>
-                </div>
-            \`;
-            
-            content.innerHTML = html;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-        
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('URLをコピーしました！');
-            }).catch(err => {
-                console.error('コピー失敗:', err);
-                alert('コピーに失敗しました');
-            });
-        }
-        
-        // ========================================
-        // Googleカレンダー連携
-        // ========================================
-        function exportToGoogleCalendar() {
-            if (calendarData.length === 0) {
-                alert('献立データがありません');
-                return;
-            }
-            
-            // .icsファイルを生成
-            let icsContent = 'BEGIN:VCALENDAR\\nVERSION:2.0\\nPRODID:-//Aメニュー//献立カレンダー//JP\\n';
-            
-            calendarData.forEach(day => {
+            html += '<div class="space-y-4">';
+            days.forEach((day, index) => {
+                const date = new Date(day.date);
+                const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
                 const recipes = day.recipes || [];
                 const main = recipes.find(r => r.role === 'main');
                 const side = recipes.find(r => r.role === 'side');
                 const soup = recipes.find(r => r.role === 'soup');
                 
-                const title = \`🍽️ 今日の献立\`;
-                const description = [
-                    main ? \`主菜: \${main.title}\` : '',
-                    side ? \`副菜: \${side.title}\` : '',
-                    soup ? \`汁物: \${soup.title}\` : ''
-                ].filter(Boolean).join('\\\\n');
-                
-                const dateStr = day.date.replace(/-/g, '');
-                
-                icsContent += \`BEGIN:VEVENT\\n\`;
-                icsContent += \`UID:\${day.plan_day_id || Date.now()}@aichef.com\\n\`;
-                icsContent += \`DTSTAMP:\${dateStr}T180000Z\\n\`;
-                icsContent += \`DTSTART:\${dateStr}T180000Z\\n\`;
-                icsContent += \`DTEND:\${dateStr}T190000Z\\n\`;
-                icsContent += \`SUMMARY:\${title}\\n\`;
-                icsContent += \`DESCRIPTION:\${description}\\n\`;
-                icsContent += \`END:VEVENT\\n\`;
+                html += '<div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">';
+                html += '<div class="flex justify-between items-center mb-3">';
+                html += '<div class="text-lg font-bold text-gray-800">' + day.date + ' (' + dayOfWeek + ')</div>';
+                html += '<div class="text-sm text-gray-500">約' + (day.estimated_time_min || 30) + '分</div>';
+                html += '</div>';
+                html += '<div class="space-y-2">';
+                if (main) html += '<div><span class="text-red-600 font-semibold">主菜:</span> ' + main.title + '</div>';
+                if (side) html += '<div><span class="text-green-600 font-semibold">副菜:</span> ' + side.title + '</div>';
+                if (soup) html += '<div><span class="text-blue-600 font-semibold">汁物:</span> ' + soup.title + '</div>';
+                html += '</div>';
+                html += '</div>';
             });
+            html += '</div>';
+            html += '</div>';
             
-            icsContent += 'END:VCALENDAR';
-            
-            // ダウンロード
-            const blob = new Blob([icsContent], { type: 'text/calendar' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'aichef-kondate.ics';
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            alert('カレンダーファイルをダウンロードしました！\\n\\nGoogleカレンダーを開いて：\\n1. 設定 → カレンダーをインポート\\n2. ダウンロードしたファイルを選択\\n3. インポート完了！');
+            calendarContainerEl.innerHTML = html;
         }
-        
-        // ========================================
-        // グローバルスコープに公開（onclick から呼び出すため）
-        // ========================================
-        window.showHistory = showHistory;
-        window.showFavorites = showFavorites;
-        window.toggleCalendarView = toggleCalendarView;
-        window.generateShoppingList = generateShoppingList;
-        window.exportToGoogleCalendar = exportToGoogleCalendar;
-        window.subscribeNewsletter = subscribeNewsletter;
-        window.openContactForm = openContactForm;
-        window.closeContactForm = closeContactForm;
-        window.submitContact = submitContact;
-        window.explainMenu = explainMenu;
-        window.suggestChange = suggestChange;
-        window.closeAIModal = closeAIModal;
-        window.replaceRecipe = replaceRecipe;
-        window.showRecipeDetail = showRecipeDetail;
-        window.addToFavorites = addToFavorites;
-        window.removeFromFavorites = removeFromFavorites;
-        window.shareRecipe = shareRecipe;
-        window.copyToClipboard = copyToClipboard;
-        window.closeModal = closeModal;
 
-        // レシピリンクのイベントデリゲーション
-        document.addEventListener('click', (e) => {
-            const target = e.target as HTMLElement;
-            const recipeLink = target.closest('.recipe-link');
-            if (recipeLink) {
-                e.preventDefault();
-                const recipeId = recipeLink.getAttribute('data-recipe-id');
-                const recipeTitle = recipeLink.getAttribute('data-recipe-title');
-                if (recipeId && recipeTitle) {
-                    showRecipeDetail(recipeId, recipeTitle);
-                }
+        // カレンダーダウンロード
+        function downloadCalendar() {
+            // 未登録の場合は会員登録モーダルを表示
+            const user = JSON.parse(localStorage.getItem('aichef_user') || 'null');
+            if (!user) {
+                authModal.classList.add('active');
+                return;
             }
             
-            // 履歴ボタンのイベントデリゲーション
-            const historyViewBtn = target.closest('.history-view-btn');
-            if (historyViewBtn) {
-                e.preventDefault();
-                const historyId = historyViewBtn.getAttribute('data-history-id');
-                if (historyId) {
-                    viewHistory(historyId);
-                }
-            }
-            
-            const historyDeleteBtn = target.closest('.history-delete-btn');
-            if (historyDeleteBtn) {
-                e.preventDefault();
-                const historyId = historyDeleteBtn.getAttribute('data-history-id');
-                if (historyId) {
-                    deleteHistory(historyId);
-                }
-            }
-            
-            // 献立説明ボタン
-            const explainBtn = target.closest('.explain-menu-btn');
-            if (explainBtn) {
-                e.preventDefault();
-                const planDayId = explainBtn.getAttribute('data-plan-day-id');
-                const date = explainBtn.getAttribute('data-date');
-                if (date) {
-                    explainMenu(planDayId || '', date);
-                }
-            }
-            
-            // 献立変更ボタン
-            const suggestBtn = target.closest('.suggest-change-btn');
-            if (suggestBtn) {
-                e.preventDefault();
-                const planDayId = suggestBtn.getAttribute('data-plan-day-id');
-                const date = suggestBtn.getAttribute('data-date');
-                if (date) {
-                    suggestChange(planDayId || '', date);
-                }
-            }
-            
-            // レシピ差し替えボタン
-            const replaceBtn = target.closest('.replace-recipe-btn');
-            if (replaceBtn) {
-                e.preventDefault();
-                const planDayId = replaceBtn.getAttribute('data-plan-day-id');
-                const role = replaceBtn.getAttribute('data-role');
-                const recipeId = replaceBtn.getAttribute('data-recipe-id');
-                const title = replaceBtn.getAttribute('data-title');
-                if (planDayId && role && recipeId && title) {
-                    replaceRecipe(planDayId, role, recipeId, title);
-                }
-            }
-            
-            // 買い物リストタブ切り替え
-            const shoppingTabBtn = target.closest('.shopping-tab-btn');
-            if (shoppingTabBtn) {
-                e.preventDefault();
-                const weekId = shoppingTabBtn.getAttribute('data-week-id');
-                if (weekId) {
-                    switchShoppingTab(weekId);
-                }
-            }
-            
-            // お気に入り追加ボタン
-            const addFavoriteBtn = target.closest('.add-favorite-btn');
-            if (addFavoriteBtn) {
-                e.preventDefault();
-                const recipeId = addFavoriteBtn.getAttribute('data-recipe-id');
-                const recipeTitle = addFavoriteBtn.getAttribute('data-recipe-title');
-                if (recipeId && recipeTitle) {
-                    addToFavorites(recipeId, recipeTitle);
-                }
-            }
-            
-            // レシピ共有ボタン
-            const shareRecipeBtn = target.closest('.share-recipe-btn');
-            if (shareRecipeBtn) {
-                e.preventDefault();
-                const recipeId = shareRecipeBtn.getAttribute('data-recipe-id');
-                const recipeTitle = shareRecipeBtn.getAttribute('data-recipe-title');
-                if (recipeId && recipeTitle) {
-                    shareRecipe(recipeId, recipeTitle);
-                }
-            }
-            
-            // 履歴読み込みボタン
-            const loadHistoryBtn = target.closest('.load-history-btn');
-            if (loadHistoryBtn) {
-                e.preventDefault();
-                const planId = loadHistoryBtn.getAttribute('data-plan-id');
-                if (planId) {
-                    loadHistory(planId);
-                }
-            }
-            
-            // 履歴アーカイブボタン
-            const archiveHistoryBtn = target.closest('.archive-history-btn');
-            if (archiveHistoryBtn) {
-                e.preventDefault();
-                const historyId = archiveHistoryBtn.getAttribute('data-history-id');
-                if (historyId) {
-                    archiveHistory(historyId);
-                }
-            }
-            
-            // お気に入り削除ボタン
-            const removeFavoriteBtn = target.closest('.remove-favorite-btn');
-            if (removeFavoriteBtn) {
-                e.preventDefault();
-                const index = parseInt(removeFavoriteBtn.getAttribute('data-index') || '0');
-                removeFromFavorites(index);
-            }
-            
-            // クリップボードコピーボタン
-            const copyClipboardBtn = target.closest('.copy-clipboard-btn');
-            if (copyClipboardBtn) {
-                e.preventDefault();
-                const url = copyClipboardBtn.getAttribute('data-url');
-                if (url) {
-                    copyToClipboard(url);
-                }
-            }
-        });
-        window.closeRecipeModal = closeRecipeModal;
-        window.closeShoppingModal = closeShoppingModal;
-        
-        // ========================================
-        // 会員登録・ログイン機能
-        // ========================================
-        
-        // 現在のユーザーをローカルストレージから取得
-        function getCurrentUser() {
-            const userJson = localStorage.getItem('aichef_user');
-            return userJson ? JSON.parse(userJson) : null;
+            // .icsファイルを生成してダウンロード
+            alert('カレンダーダウンロード機能は近日実装予定です');
         }
-        
-        // ユーザーをローカルストレージに保存
-        function saveUser(user) {
-            localStorage.setItem('aichef_user', JSON.stringify(user));
-        }
-        
-        // ログアウト
-        function logout() {
-            localStorage.removeItem('aichef_user');
-            alert('ログアウトしました');
-            location.reload();
-        }
-        
-        // 会員登録モーダルを開く
-        function showAuthModal(action = 'register') {
-            const modal = document.getElementById('auth-modal');
-            const title = document.getElementById('auth-modal-title');
-            const form = document.getElementById('auth-form');
-            const nameField = document.getElementById('auth-name');
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const switchLink = document.getElementById('auth-switch-link');
-            
-            if (action === 'login') {
-                title.textContent = 'ログイン';
-                nameField.parentElement.classList.add('hidden');
-                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>ログインして続ける';
-                switchLink.innerHTML = 'アカウントをお持ちでない方は<button onclick="switchToRegister()" class="text-blue-600 hover:underline font-medium">会員登録</button>';
-            } else {
-                title.textContent = '会員登録';
-                nameField.parentElement.classList.remove('hidden');
-                submitBtn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>会員登録して続ける';
-                switchLink.innerHTML = 'すでにアカウントをお持ちの方は<button onclick="switchToLogin()" class="text-blue-600 hover:underline font-medium">ログイン</button>';
-            }
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-        
-        // 会員登録モーダルを閉じる
-        function closeAuthModal() {
-            const modal = document.getElementById('auth-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            
-            // フォームをリセット
-            document.getElementById('auth-form').reset();
-            document.getElementById('auth-error').classList.add('hidden');
-        }
-        
-        // ログインに切り替え
-        function switchToLogin() {
-            showAuthModal('login');
-        }
-        
-        // 会員登録に切り替え
-        function switchToRegister() {
-            showAuthModal('register');
-        }
-        
-        // 会員登録フォーム送信
-        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+
+        // 会員登録フォーム
+        document.getElementById('auth-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            
             const name = document.getElementById('auth-name').value;
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
-            const errorDiv = document.getElementById('auth-error');
-            const errorText = errorDiv.querySelector('p');
-            const title = document.getElementById('auth-modal-title').textContent;
-            const isLogin = title === 'ログイン';
             
-            // バリデーション
-            if (!isLogin && password.length < 8) {
-                errorDiv.classList.remove('hidden');
-                errorText.textContent = 'パスワードは8文字以上で設定してください';
-                return;
-            }
+            const user = {
+                name,
+                email,
+                registered_at: new Date().toISOString()
+            };
             
-            try {
-                // 簡易的な実装：ローカルストレージに保存
-                // 本番環境では必ずサーバーサイドで認証を実装してください
-                const user = {
-                    name: name || email.split('@')[0],
-                    email: email,
-                    registered_at: new Date().toISOString()
-                };
-                
-                saveUser(user);
-                closeAuthModal();
-                
-                alert(isLogin ? 'ログインしました！' : '会員登録が完了しました！');
-                
-                // 印刷を実行（元の処理を続行）
-                window.print();
-                
-            } catch (error) {
-                console.error('認証エラー:', error);
-                errorDiv.classList.remove('hidden');
-                errorText.textContent = 'エラーが発生しました。もう一度お試しください。';
-            }
+            localStorage.setItem('aichef_user', JSON.stringify(user));
+            authModal.classList.remove('active');
+            alert('会員登録が完了しました！');
+            
+            // カレンダーダウンロードを再実行
+            downloadCalendar();
         });
-        
-        // 印刷ボタンのハンドラー
-        function handlePrint() {
-            const user = getCurrentUser();
-            if (!user) {
-                showAuthModal('register');
-            } else {
-                window.print();
-            }
-        }
-        
-        // カレンダーダウンロードのハンドラー
-        function handleDownloadCalendar() {
-            const user = getCurrentUser();
-            if (!user) {
-                showAuthModal('register');
-            } else {
-                downloadCalendar();
-            }
-        }
-        
-        // カレンダーダウンロード機能
-        function downloadCalendar() {
-            if (!calendarData || calendarData.length === 0) {
-                alert('献立データがありません');
-                return;
-            }
-            
-            // iCalendar形式で出力
-            let icsContent = 'BEGIN:VCALENDAR\\nVERSION:2.0\\nPRODID:-//AIシェフ//献立カレンダー//JP\\nCALSCALE:GREGORIAN\\nMETHOD:PUBLISH\\n';
-            
-            calendarData.forEach(day => {
-                const date = day.date.replace(/-/g, '');
-                const dtstart = date + 'T180000'; // 18:00
-                const dtend = date + 'T190000';   // 19:00
-                
-                const mainTitle = (day.main && day.main.title) || '未定';
-                const sideTitle = (day.side && day.side.title) || '未定';
-                const soupTitle = (day.soup && day.soup.title) || '未定';
-                const summary = mainTitle + ' / ' + sideTitle + ' / ' + soupTitle;
-                
-                icsContent += 'BEGIN:VEVENT\\n';
-                icsContent += 'DTSTART:' + dtstart + '\\n';
-                icsContent += 'DTEND:' + dtend + '\\n';
-                icsContent += 'SUMMARY:' + summary + '\\n';
-                icsContent += 'DESCRIPTION:主菜: ' + mainTitle + '\\\\n副菜: ' + sideTitle + '\\\\n汁物: ' + soupTitle + '\\n';
-                icsContent += 'END:VEVENT\\n';
-            });
-            
-            icsContent += 'END:VCALENDAR';
-            
-            // ダウンロード
-            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            const today = new Date().toISOString().split('T')[0];
-            a.href = url;
-            a.download = 'aichef_menu_' + today + '.ics';
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            alert('カレンダーファイルをダウンロードしました！\\n\\nGoogleカレンダーやAppleカレンダーにインポートしてご利用ください。');
-        }
-        
-        window.printShoppingList = printShoppingList;
-        window.trackAdClick = trackAdClick;
-        window.loadHistory = loadHistory;
-        window.archiveHistory = archiveHistory;
-        
-        // 会員登録・ログイン関連
-        window.showAuthModal = showAuthModal;
-        window.closeAuthModal = closeAuthModal;
-        window.switchToLogin = switchToLogin;
-        window.switchToRegister = switchToRegister;
-        window.handlePrint = handlePrint;
-        window.handleDownloadCalendar = handleDownloadCalendar;
-        window.logout = logout;
-        
-        // ドラッグ&ドロップ用のグローバル変数
-        window.handleDragStart = handleDragStart;
-        window.handleDragOver = handleDragOver;
-        window.handleDragLeave = handleDragLeave;
-        window.handleDrop = handleDrop;
-        window.handleDragEnd = handleDragEnd;
-        
-        // 買い物リスト用のグローバル関数
-        window.switchShoppingTab = switchShoppingTab;
-        window.renderShoppingList = renderShoppingList;
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const question = questions[0];
-            addMessage(question.text);
-            showInput(question);
-            
-            // TOPページの広告を読み込み
-            loadAds('top_page');
-        });
-    </script>
-    
-    <!-- AIモーダル -->
-    <div id="ai-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4" style="backdrop-filter: blur(4px);">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4 flex justify-between items-center">
-                <h3 id="ai-modal-title" class="text-xl font-bold text-white"></h3>
-                <button onclick="closeAIModal()" class="text-white hover:text-gray-200 transition-colors">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-            <div id="ai-modal-content" class="p-6 overflow-y-auto" style="max-height: calc(80vh - 80px);">
-                <!-- コンテンツはJavaScriptで動的に挿入 -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- 買い物リストモーダル -->
-    <!-- 献立生成モーダル -->
-    <div id="plan-generation-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4" style="backdrop-filter: blur(4px);">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 px-6 py-4 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-white">
-                    <i class="fas fa-utensils mr-2"></i>
-                    献立作成中
-                </h3>
-            </div>
-            <div id="plan-generation-modal-content" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
-                <!-- コンテンツはJavaScriptで動的に挿入 -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- 会員登録・ログインモーダル -->
-    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4" style="backdrop-filter: blur(4px);">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
-            <div class="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-white">
-                    <i class="fas fa-user-circle mr-2"></i>
-                    <span id="auth-modal-title">会員登録</span>
-                </h3>
-                <button onclick="closeAuthModal()" class="text-white hover:text-gray-200 transition-colors">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-            <div id="auth-modal-content" class="p-6">
-                <p class="text-gray-600 mb-4">
-                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                    印刷・ダウンロード機能をご利用いただくには会員登録が必要です。
-                </p>
-                
-                <form id="auth-form" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">お名前</label>
-                        <input type="text" id="auth-name" required
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               placeholder="山田太郎">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
-                        <input type="email" id="auth-email" required
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               placeholder="example@gmail.com">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
-                        <input type="password" id="auth-password" required
-                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               placeholder="8文字以上">
-                        <p class="text-xs text-gray-500 mt-1">8文字以上で設定してください</p>
-                    </div>
-                    
-                    <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition font-semibold">
-                        <i class="fas fa-user-plus mr-2"></i>
-                        会員登録して続ける
-                    </button>
-                </form>
-                
-                <div id="auth-error" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p class="text-sm text-red-600"></p>
-                </div>
-                
-                <div class="mt-4 text-center">
-                    <p id="auth-switch-link" class="text-sm text-gray-600">
-                        すでにアカウントをお持ちの方は
-                        <button onclick="switchToLogin()" class="text-blue-600 hover:underline font-medium">ログイン</button>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div id="shopping-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4" style="backdrop-filter: blur(4px);">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-white">
-                    <i class="fas fa-shopping-cart mr-2"></i>
-                    買い物リスト
-                </h3>
-                <button onclick="closeShoppingModal()" class="text-white hover:text-gray-200 transition-colors">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-            <div id="shopping-modal-content" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
-                <!-- コンテンツはJavaScriptで動的に挿入 -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- レシピ詳細モーダル -->
-    <div id="recipe-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 p-4" style="backdrop-filter: blur(4px);">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div class="bg-gradient-to-r from-orange-500 to-red-600 px-6 py-4 flex justify-between items-center">
-                <h3 id="recipe-modal-title" class="text-xl font-bold text-white">レシピ詳細</h3>
-                <button onclick="closeRecipeModal()" class="text-white hover:text-gray-200 transition-colors">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-            <div id="recipe-modal-content" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
-                <!-- コンテンツはJavaScriptで動的に挿入 -->
-            </div>
-        </div>
-    </div>
-
-</body>
-</html>
-`;
-
-// ログイン画面HTML
-const loginHTML = `
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ログイン - Aメニュー</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-md w-full">
-        <!-- ロゴ部分 -->
-        <div class="text-center mb-8">
-            <a href="/" class="inline-block">
-                <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl">
-                    <i class="fas fa-utensils text-4xl text-white"></i>
-                </div>
-                <h1 class="text-3xl font-bold text-gray-800">Aメニュー</h1>
-                <p class="text-gray-600">今日の献立、明日の笑顔</p>
-            </a>
-        </div>
-
-        <!-- ログインカード -->
-        <div class="bg-white rounded-2xl shadow-2xl p-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-                <i class="fas fa-sign-in-alt text-indigo-600 mr-2"></i>
-                ログイン
-            </h2>
-
-            <form id="login-form" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        <i class="fas fa-envelope text-indigo-600 mr-2"></i>
-                        メールアドレス
-                    </label>
-                    <input type="email" id="email" required
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                           placeholder="example@email.com">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        <i class="fas fa-lock text-indigo-600 mr-2"></i>
-                        パスワード
-                    </label>
-                    <input type="password" id="password" required
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                           placeholder="••••••••">
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <label class="flex items-center">
-                        <input type="checkbox" id="remember" 
-                               class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                        <span class="ml-2 text-sm text-gray-600">ログイン状態を保持</span>
-                    </label>
-                    <a href="#" class="text-sm text-indigo-600 hover:text-indigo-700 font-semibold">
-                        パスワードを忘れた？
-                    </a>
-                </div>
-
-                <button type="submit" 
-                        class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold py-3 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition transform hover:scale-105 shadow-lg">
-                    <i class="fas fa-sign-in-alt mr-2"></i>
-                    ログイン
-                </button>
-            </form>
-
-            <div class="mt-6 text-center">
-                <p class="text-sm text-gray-600">
-                    アカウントをお持ちでない方は
-                    <a href="/register" class="text-indigo-600 hover:text-indigo-700 font-semibold">
-                        新規登録
-                    </a>
-                </p>
-            </div>
-
-            <div class="mt-6 pt-6 border-t border-gray-200">
-                <a href="/" class="block text-center text-sm text-gray-600 hover:text-gray-800">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    トップページに戻る
-                </a>
-            </div>
-        </div>
-
-        <!-- 管理者ログインへのリンク -->
-        <div class="mt-6 text-center">
-            <a href="/admin/login" class="text-sm text-purple-600 hover:text-purple-700 font-semibold">
-                <i class="fas fa-user-shield mr-2"></i>
-                管理者の方はこちら
-            </a>
-        </div>
-    </div>
-
-    <script>
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const remember = document.getElementById('remember').checked;
-
-            try {
-                // TODO: 実際のAPI呼び出しに置き換え
-                alert('ログイン機能は現在開発中です。\\nメール: ' + email);
-                
-                // 仮のリダイレクト
-                // window.location.href = '/app';
-            } catch (error) {
-                alert('ログインに失敗しました。もう一度お試しください。');
-            }
-        });
+        // 初期化
+        addMessage('こんにちは！AIシェフへようこそ 🍳\\n\\nいくつかの質問に答えるだけで、あなたにぴったりの献立を作成します。\\n\\n準備はいいですか？');
+        nextStep();
     </script>
 </body>
 </html>
-`;
-
-// 管理者ログイン画面HTML
-const adminLoginHTML = `
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理者ログイン - Aメニュー</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-md w-full">
-        <!-- ロゴ部分 -->
-        <div class="text-center mb-8">
-            <a href="/" class="inline-block">
-                <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl border-4 border-white border-opacity-20">
-                    <i class="fas fa-user-shield text-4xl text-white"></i>
-                </div>
-                <h1 class="text-3xl font-bold text-white">Aメニュー</h1>
-                <p class="text-purple-200">管理者専用ページ</p>
-            </a>
-        </div>
-
-        <!-- ログインカード -->
-        <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white border-opacity-20">
-            <h2 class="text-2xl font-bold text-white mb-6 text-center">
-                <i class="fas fa-shield-alt text-purple-400 mr-2"></i>
-                管理者ログイン
-            </h2>
-
-            <form id="admin-login-form" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-semibold text-purple-200 mb-2">
-                        <i class="fas fa-user text-purple-400 mr-2"></i>
-                        管理者ID
-                    </label>
-                    <input type="text" id="admin-id" required
-                           class="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-purple-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                           placeholder="admin">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-purple-200 mb-2">
-                        <i class="fas fa-key text-purple-400 mr-2"></i>
-                        パスワード
-                    </label>
-                    <input type="password" id="admin-password" required
-                           class="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-purple-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                           placeholder="••••••••">
-                </div>
-
-                <button type="submit" 
-                        class="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white font-bold py-3 rounded-lg hover:from-purple-600 hover:to-pink-700 transition transform hover:scale-105 shadow-lg">
-                    <i class="fas fa-sign-in-alt mr-2"></i>
-                    ログイン
-                </button>
-            </form>
-
-            <div class="mt-6 pt-6 border-t border-white border-opacity-20">
-                <a href="/" class="block text-center text-sm text-purple-200 hover:text-white">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    トップページに戻る
-                </a>
-            </div>
-        </div>
-
-        <!-- ユーザーログインへのリンク -->
-        <div class="mt-6 text-center">
-            <a href="/login" class="text-sm text-purple-300 hover:text-white font-semibold">
-                <i class="fas fa-user mr-2"></i>
-                一般ユーザーの方はこちら
-            </a>
-        </div>
-    </div>
-
-    <script>
-        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const adminId = document.getElementById('admin-id').value;
-            const password = document.getElementById('admin-password').value;
-
-            try {
-                // TODO: 実際のAPI呼び出しに置き換え
-                alert('管理者ログイン機能は現在開発中です。\\n管理者ID: ' + adminId);
-                
-                // 仮のリダイレクト
-                // window.location.href = '/admin/dashboard';
-            } catch (error) {
-                alert('ログインに失敗しました。もう一度お試しください。');
-            }
-        });
-    </script>
-</body>
-</html>
-`;
-
-const app = new Hono<{ Bindings: Bindings }>()
-
-// CORS有効化
+  `)
+})
 app.use('/api/*', cors())
 
 // 静的ファイル配信
