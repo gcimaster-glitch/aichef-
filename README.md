@@ -683,6 +683,58 @@ pm2 logs --nostream
   - コミット: `f18054d`
   - デプロイURL: `https://0653eba8.aichef-595.pages.dev`
 
+### 2026-01-07 (機能実装 #10: TOPページ動画背景 & 子供プロフィール & 広告管理)
+- 🎨 **Feature #10a: TOPページヒーローバナー動画背景**
+  - 実装内容: ランディングページのヒーローセクションに動画背景を追加
+  - 元動画: `AdobeStock_415508510.mov`（2.7GB、4K ProRes）
+  - 最適化: 先頭10秒抽出、960×540、H.264 CRF28、音声削除 → **3.3MB**
+  - CSS設定: 全画面背景表示、暗色オーバーレイ（rgba(0,0,0,0.4)）、浮遊ドット効果
+  - レスポンシブ対応: autoplay、muted、loop、playsinline属性
+  - フォールバック: 動画読み込み失敗時はグラデーション背景
+  - コミット: `c101d1d`
+  - デプロイURL: `https://cce920fd.aichef-595.pages.dev`
+
+- 👶 **Feature #10b: 子供個別プロフィール機能（完全実装）**
+  - DB設計: `children_profiles`テーブル作成（child_id, household_id, name, age, dislikes_json, allergies_json, notes）
+  - API実装: GET/POST/PUT/DELETE `/api/children`（CRUD操作完全対応）
+  - フィルタリング統合: 献立生成時に家族全体の嫌いな食材/アレルギーに加えて、全ての子供の嫌いな食材/アレルギーを統合して除外
+  - プロフィールUI: 子供追加ボタン、子供一覧表示、個別の嫌いな食材選択、削除機能
+  - 使用例: 子供1（5歳）がピーマン嫌い、子供2（8歳）が魚嫌い → 両方除外
+  - コミット: `6e15c55`
+  - デプロイURL: `https://5682ffdf.aichef-595.pages.dev`
+
+- 📢 **Feature #10c: 管理者広告管理API（完全実装）**
+  - API実装: 
+    - POST `/api/admin/ads` - 広告作成
+    - PUT `/api/admin/ads/:ad_id` - 広告更新
+    - DELETE `/api/admin/ads/:ad_id` - 広告削除
+    - GET `/api/admin/ads` - 広告一覧（インプレッション数付き）
+  - データ構造: ad_id, page_location, ad_html, is_active, created_at, updated_at
+  - 統計情報: 各広告のインプレッション数を自動集計
+  - 注意: 管理者UIは未実装（API操作のみ可能）
+  - コミット: `6e15c55`
+  - デプロイURL: `https://5682ffdf.aichef-595.pages.dev`
+
+### 2026-01-07 (バグ修正 #8, #9完了)
+- 🔧 **Bug Fix #8: 肉フィルタリングの実装**
+  - 問題: UIの「肉」「豚肉」「牛肉」「鶏肉」選択が機能せず、肉・魚嫌いでもベジタリアン献立にならない
+  - 修正: 日本語→英語マッピングに肉系を追加（'肉':'meat','豚肉':'pork','牛肉':'beef','鶏肉':'chicken'）
+  - フィルター: 全肉嫌いはprimary_proteinがchicken/pork/beefのレシピを除外、タイトルに肉関連キーワードを含むレシピを除外
+  - 特定肉フィルター: 豚肉/牛肉/鶏肉嫌いも個別に除外
+  - テスト結果: 肉・魚両方嫌い設定で30日分の献立生成 → 肉料理0品、魚料理0品、100%ベジタリアン献立 ✅
+  - コミット: `4701193`
+  - デプロイURL: `https://1bbcf258.aichef-595.pages.dev`
+
+- 🔧 **Bug Fix #9: モーダル会員登録・ログイン機能の修正**
+  - 問題: 印刷ボタンクリック→モーダル会員登録→DB保存されない、登録後にログイン不可
+  - 原因: ローカルストレージのみ保存（APIを呼んでいない）
+  - 修正: API連携を実装（`/api/auth/register`, `/api/auth/login`）
+  - レスポンス: session_idを取得し、localStorage に保存
+  - ユーザー情報: DBに正しく保存されるように修正
+  - 期待効果: 登録後に正常にログインでき、印刷機能が再度使える
+  - コミット: `4701193`
+  - デプロイURL: `https://1bbcf258.aichef-595.pages.dev`
+
 ### 2026-01-07 (バグ修正 #5, #6完了)
 - 🔧 **Bug Fix #5: アレルギーフィルタリング強化**
   - 問題: 魚アレルギーなのに魚料理が含まれる（ぶり大根、鯖の竜田揚げ、鮭のムニエル等）
