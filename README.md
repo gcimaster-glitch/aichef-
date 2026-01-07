@@ -98,12 +98,23 @@
    - 寄付者情報の完全管理
    - トップページフッターに「子ども食堂を支援する」リンク追加
 
-### 🚧 **実装予定（Phase G以降）**
+### 🚧 **Phase G: システム統合とUX改善（進行中）**
 
-16. **プロフィール編集機能**
-   - 名前・メールアドレス変更
-   - パスワード変更
-   - 家族情報編集
+#### ✅ **Phase G Step 1: プロフィール編集機能（完了）**
+   - メールアドレス・家族のニックネーム編集
+   - パスワード変更（SHA-256ハッシュ化）
+   - 家族人数・子どもの年齢編集
+   - 予算・調理時間の変更
+   - 嫌いな食材・アレルギー情報の更新
+   - API実装（GET /api/profile、PUT /api/profile/update）
+   - ダッシュボードからのアクセス
+
+#### 🚧 **Phase G Step 2-3: 今後の実装予定**
+   - 献立履歴・お気に入り機能の強化
+   - 通知・アラート機能（トースト通知）
+   - ローディング状態の改善
+
+### 🚧 **実装予定（Phase H以降）**
 
 17. **管理者管理画面の拡充**
    - ユーザー管理
@@ -115,13 +126,14 @@
 ## 🌐 公開URL
 
 - **本番環境**: https://aichefs.net
-- **最新デプロイ**: https://41d38d74.aichef-595.pages.dev
-- **ユーザーログイン**: https://41d38d74.aichef-595.pages.dev/login
-- **会員登録**: https://41d38d74.aichef-595.pages.dev/register
-- **ユーザーダッシュボード**: https://41d38d74.aichef-595.pages.dev/dashboard
-- **管理者ログイン**: https://41d38d74.aichef-595.pages.dev/admin/login
-- **子ども食堂寄付ページ**: https://41d38d74.aichef-595.pages.dev/donation 🆕
-- **管理者寄付ダッシュボード**: https://41d38d74.aichef-595.pages.dev/admin/donations 🆕
+- **最新デプロイ**: https://d41fbc87.aichef-595.pages.dev
+- **ユーザーログイン**: https://d41fbc87.aichef-595.pages.dev/login
+- **会員登録**: https://d41fbc87.aichef-595.pages.dev/register
+- **ユーザーダッシュボード**: https://d41fbc87.aichef-595.pages.dev/dashboard
+- **プロフィール編集**: https://d41fbc87.aichef-595.pages.dev/profile 🆕
+- **管理者ログイン**: https://d41fbc87.aichef-595.pages.dev/admin/login
+- **子ども食堂寄付ページ**: https://d41fbc87.aichef-595.pages.dev/donation
+- **管理者寄付ダッシュボード**: https://d41fbc87.aichef-595.pages.dev/admin/donations
 - **GitHub**: https://github.com/[username]/webapp
 
 ---
@@ -393,7 +405,39 @@ pm2 logs --nostream
 
 ## 📜 更新履歴
 
-### 2026-01-07 (Phase F完了) 🆕
+### 2026-01-07 (Phase G Step 1完了) 🆕
+- ✅ **Phase G Step 1: プロフィール編集機能実装**
+  - 基本情報編集
+    - メールアドレス変更
+    - 家族のニックネーム編集
+  - パスワード変更機能
+    - SHA-256ハッシュ化
+    - パスワード確認（クライアント側バリデーション）
+    - 変更後は再ログイン必須
+  - 家族構成編集
+    - 家族人数（1〜10人）
+    - 子どもの年齢（複数・カンマ区切り）
+  - 予算・調理時間編集
+    - 1人あたりの予算（300円〜1500円・6段階）
+    - 調理時間の上限（15分〜60分・4段階）
+  - 好き嫌い・アレルギー編集
+    - 嫌いな食材（20種類から複数選択）
+    - アレルギー（7大アレルゲンから複数選択）
+  - API実装
+    - `GET /api/profile` - プロフィール取得
+    - `PUT /api/profile/update` - プロフィール更新
+  - UI/UX
+    - 美しいフォームデザイン（Tailwind CSS）
+    - チェックボックスによる直感的な選択
+    - リアルタイムバリデーション
+    - 成功・エラーメッセージ表示
+  - ダッシュボード連携
+    - ヘッダーに「プロフィール編集」リンク追加
+    - タブ切り替えでアクセス可能
+  - ルーティング: `/profile`
+  - E2Eテスト完了（100%検出率）
+
+### 2026-01-07 (Phase F完了)
 - ✅ **Phase F: 管理者寄付ダッシュボード実装**
   - リアルタイム統計表示
     - 累計寄付金額
