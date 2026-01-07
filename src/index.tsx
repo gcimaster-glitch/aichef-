@@ -3950,7 +3950,7 @@ const appHtml = `<!DOCTYPE html>
 
         // レシピリンクのイベントデリゲーション
         document.addEventListener('click', (e) => {
-            const target = e.target as HTMLElement;
+            const target = e.target;
             const recipeLink = target.closest('.recipe-link');
             if (recipeLink) {
                 e.preventDefault();
