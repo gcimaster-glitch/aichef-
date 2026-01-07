@@ -298,6 +298,9 @@ const USER_DASHBOARD_HTML = `
             </div>
             <div class="flex items-center gap-4">
                 <span id="user-name" class="text-gray-700"></span>
+                <a href="/profile" class="text-sm text-purple-600 hover:underline">
+                    <i class="fas fa-user-edit mr-1"></i>プロフィール編集
+                </a>
                 <button onclick="logout()" class="text-sm text-red-600 hover:underline">
                     <i class="fas fa-sign-out-alt mr-1"></i>ログアウト
                 </button>
@@ -5577,6 +5580,154 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   }
 
   // ========================================
+  // プロフィールAPI
+  // ========================================
+
+  // GET /api/profile - プロフィール取得
+  if (pathname === "/api/profile" && req.method === "GET") {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    
+    // トークンからhousehold_idを取得（簡易実装：tokenがhousehold_idそのもの）
+    const household_id = token;
+
+    // household情報を取得
+    const household = await env.DB.prepare(`
+      SELECT 
+        household_id,
+        title,
+        email,
+        members_count,
+        budget_tier_per_person,
+        cooking_time_limit_min,
+        children_ages_json,
+        dislikes_json,
+        allergies_standard_json,
+        created_at
+      FROM households
+      WHERE household_id = ?
+    `).bind(household_id).first();
+
+    if (!household) {
+      return json({ error: 'Household not found' }, 404);
+    }
+
+    return json(household);
+  }
+
+  // PUT /api/profile/update - プロフィール更新
+  if (pathname === "/api/profile/update" && req.method === "PUT") {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.substring(7);
+    const household_id = token;
+
+    const body = await readJson(req);
+    const {
+      email,
+      title,
+      members_count,
+      budget_tier_per_person,
+      cooking_time_limit_min,
+      children_ages_json,
+      dislikes_json,
+      allergies_standard_json,
+      new_password
+    } = body;
+
+    // バリデーション
+    if (!email || !title || !members_count) {
+      return json({ error: '必須項目を入力してください' }, 400);
+    }
+
+    // パスワード変更がある場合はハッシュ化
+    let password_hash = null;
+    if (new_password) {
+      // SHA-256でハッシュ化（簡易実装）
+      const encoder = new TextEncoder();
+      const data = encoder.encode(new_password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      password_hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // プロフィール更新
+    try {
+      if (password_hash) {
+        // パスワード変更あり
+        await env.DB.prepare(`
+          UPDATE households
+          SET 
+            email = ?,
+            title = ?,
+            members_count = ?,
+            budget_tier_per_person = ?,
+            cooking_time_limit_min = ?,
+            children_ages_json = ?,
+            dislikes_json = ?,
+            allergies_standard_json = ?,
+            password_hash = ?,
+            updated_at = datetime('now')
+          WHERE household_id = ?
+        `).bind(
+          email,
+          title,
+          members_count,
+          budget_tier_per_person,
+          cooking_time_limit_min,
+          children_ages_json || '[]',
+          dislikes_json || '[]',
+          allergies_standard_json || '[]',
+          password_hash,
+          household_id
+        ).run();
+      } else {
+        // パスワード変更なし
+        await env.DB.prepare(`
+          UPDATE households
+          SET 
+            email = ?,
+            title = ?,
+            members_count = ?,
+            budget_tier_per_person = ?,
+            cooking_time_limit_min = ?,
+            children_ages_json = ?,
+            dislikes_json = ?,
+            allergies_standard_json = ?,
+            updated_at = datetime('now')
+          WHERE household_id = ?
+        `).bind(
+          email,
+          title,
+          members_count,
+          budget_tier_per_person,
+          cooking_time_limit_min,
+          children_ages_json || '[]',
+          dislikes_json || '[]',
+          allergies_standard_json || '[]',
+          household_id
+        ).run();
+      }
+
+      return json({ 
+        success: true, 
+        message: 'プロフィールを更新しました'
+      });
+
+    } catch (error: any) {
+      console.error('プロフィール更新エラー:', error);
+      return json({ error: 'プロフィールの更新に失敗しました' }, 500);
+    }
+  }
+
+  // ========================================
   // 寄付API（子ども食堂支援）
   // ========================================
   
@@ -7001,6 +7152,18 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   }
 
   // ========================================
+  // /profile：プロフィール編集画面
+  // ========================================
+  if (pathname === "/profile") {
+    return new Response(PROFILE_HTML, {
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store'
+      }
+    });
+  }
+
+  // ========================================
   // /dashboard：ユーザーダッシュボード
   // ========================================
   if (pathname === "/dashboard") {
@@ -7022,6 +7185,390 @@ app.all("*", async (c) => {
     return json({ error: { message: e?.message ?? "Internal Error" } }, 500);
   }
 });
+
+// ========================================
+// プロフィール編集ページ HTML
+// ========================================
+const PROFILE_HTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロフィール編集 - AICHEFS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 min-h-screen">
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="/dashboard" class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    <i class="fas fa-utensils mr-2"></i>AICHEFS
+                </a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="/dashboard" class="text-gray-600 hover:text-purple-600 transition-colors">
+                    <i class="fas fa-home mr-2"></i>ダッシュボード
+                </a>
+                <button onclick="logout()" class="text-gray-600 hover:text-purple-600 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>ログアウト
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">
+                    <i class="fas fa-user-edit text-purple-600 mr-3"></i>
+                    プロフィール編集
+                </h1>
+            </div>
+
+            <!-- ローディング表示 -->
+            <div id="loading" class="text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                <p class="mt-4 text-gray-600">プロフィールを読み込み中...</p>
+            </div>
+
+            <!-- プロフィールフォーム -->
+            <div id="profile-form" class="hidden">
+                <!-- 基本情報 -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-info-circle text-purple-600 mr-2"></i>
+                        基本情報
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
+                            <input type="email" id="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="your-email@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">家族のニックネーム</label>
+                            <input type="text" id="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="例: 田中家">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 家族構成 -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-users text-purple-600 mr-2"></i>
+                        家族構成
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">家族人数</label>
+                            <input type="number" id="members_count" min="1" max="10" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">子どもの年齢（複数可・カンマ区切り）</label>
+                            <input type="text" id="children_ages" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="例: 5, 8, 12">
+                            <p class="mt-1 text-sm text-gray-500">子どもがいない場合は空欄</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 予算・調理時間 -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-yen-sign text-purple-600 mr-2"></i>
+                        予算・調理時間
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">1人あたりの予算（1食分）</label>
+                            <select id="budget_tier_per_person" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="300">300円（節約志向）</option>
+                                <option value="500">500円（標準）</option>
+                                <option value="800">800円（ゆとり）</option>
+                                <option value="1000">1000円（充実）</option>
+                                <option value="1200">1200円（贅沢）</option>
+                                <option value="1500">1500円（プレミアム）</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">調理時間の上限</label>
+                            <select id="cooking_time_limit_min" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="15">15分（超時短）</option>
+                                <option value="30">30分（標準）</option>
+                                <option value="45">45分（ゆっくり）</option>
+                                <option value="60">60分（じっくり）</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 好き嫌い・アレルギー -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-exclamation-triangle text-purple-600 mr-2"></i>
+                        好き嫌い・アレルギー
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">嫌いな食材（複数選択可）</label>
+                            <div id="dislikes-container" class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                <!-- JavaScript で動的生成 -->
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">アレルギー（複数選択可）</label>
+                            <div id="allergies-container" class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                <!-- JavaScript で動的生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- パスワード変更（オプション） -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-lock text-purple-600 mr-2"></i>
+                        パスワード変更（変更する場合のみ入力）
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">新しいパスワード</label>
+                            <input type="password" id="new_password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="8文字以上">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">パスワード確認</label>
+                            <input type="password" id="confirm_password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="もう一度入力">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 保存ボタン -->
+                <div class="flex items-center space-x-4">
+                    <button onclick="saveProfile()" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 px-8 rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                        <i class="fas fa-save mr-2"></i>
+                        変更を保存
+                    </button>
+                    <a href="/dashboard" class="px-8 py-4 border-2 border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-50 transition-colors">
+                        キャンセル
+                    </a>
+                </div>
+            </div>
+
+            <!-- エラーメッセージ -->
+            <div id="error-message" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span id="error-text"></span>
+            </div>
+
+            <!-- 成功メッセージ -->
+            <div id="success-message" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+                <i class="fas fa-check-circle mr-2"></i>
+                <span id="success-text"></span>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script>
+        let household_id = null;
+
+        // 嫌いな食材の選択肢
+        const dislikesOptions = [
+            '貝類', 'エビ', 'カニ', 'イカ', 'タコ', '魚', '肉', '豚肉', '牛肉', '鶏肉',
+            '卵', '乳製品', 'ナス', 'ピーマン', 'トマト', 'キノコ', '海藻', '豆腐', '納豆', 'レバー'
+        ];
+
+        // アレルギーの選択肢（7大アレルゲン）
+        const allergiesOptions = [
+            '卵', '乳', '小麦', 'エビ', 'カニ', 'そば', 'ピーナッツ'
+        ];
+
+        // ページ読み込み時にプロフィールを取得
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                // プロフィール取得
+                const response = await axios.get('/api/profile', {
+                    headers: { 'Authorization': \`Bearer \${token}\` }
+                });
+
+                const profile = response.data;
+                household_id = profile.household_id;
+
+                // フォームに値をセット
+                document.getElementById('email').value = profile.email || '';
+                document.getElementById('title').value = profile.title || '';
+                document.getElementById('members_count').value = profile.members_count || 1;
+                document.getElementById('budget_tier_per_person').value = profile.budget_tier_per_person || 500;
+                document.getElementById('cooking_time_limit_min').value = profile.cooking_time_limit_min || 30;
+
+                // 子どもの年齢
+                const childrenAges = JSON.parse(profile.children_ages_json || '[]');
+                document.getElementById('children_ages').value = childrenAges.join(', ');
+
+                // 嫌いな食材のチェックボックス生成
+                const dislikesContainer = document.getElementById('dislikes-container');
+                const currentDislikes = JSON.parse(profile.dislikes_json || '[]');
+                dislikesOptions.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center';
+                    div.innerHTML = \`
+                        <input type="checkbox" id="dislike-\${item}" value="\${item}" class="mr-2 w-4 h-4 text-purple-600 focus:ring-purple-500" \${currentDislikes.includes(item) ? 'checked' : ''}>
+                        <label for="dislike-\${item}" class="text-sm text-gray-700">\${item}</label>
+                    \`;
+                    dislikesContainer.appendChild(div);
+                });
+
+                // アレルギーのチェックボックス生成
+                const allergiesContainer = document.getElementById('allergies-container');
+                const currentAllergies = JSON.parse(profile.allergies_standard_json || '[]');
+                allergiesOptions.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center';
+                    div.innerHTML = \`
+                        <input type="checkbox" id="allergy-\${item}" value="\${item}" class="mr-2 w-4 h-4 text-red-600 focus:ring-red-500" \${currentAllergies.includes(item) ? 'checked' : ''}>
+                        <label for="allergy-\${item}" class="text-sm text-gray-700">\${item}</label>
+                    \`;
+                    allergiesContainer.appendChild(div);
+                });
+
+                // ローディング非表示、フォーム表示
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('profile-form').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('プロフィール取得エラー:', error);
+                showError('プロフィールの読み込みに失敗しました。再度ログインしてください。');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            }
+        });
+
+        // プロフィール保存
+        async function saveProfile() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                // バリデーション
+                const email = document.getElementById('email').value.trim();
+                const title = document.getElementById('title').value.trim();
+                const members_count = parseInt(document.getElementById('members_count').value);
+                const new_password = document.getElementById('new_password').value;
+                const confirm_password = document.getElementById('confirm_password').value;
+
+                if (!email || !title || !members_count) {
+                    showError('必須項目を入力してください。');
+                    return;
+                }
+
+                if (new_password && new_password !== confirm_password) {
+                    showError('パスワードが一致しません。');
+                    return;
+                }
+
+                if (new_password && new_password.length < 8) {
+                    showError('パスワードは8文字以上で入力してください。');
+                    return;
+                }
+
+                // 子どもの年齢をパース
+                const childrenAgesInput = document.getElementById('children_ages').value.trim();
+                const children_ages = childrenAgesInput ? childrenAgesInput.split(',').map(age => parseInt(age.trim())).filter(age => !isNaN(age)) : [];
+
+                // 嫌いな食材を収集
+                const dislikes = [];
+                dislikesOptions.forEach(item => {
+                    if (document.getElementById(\`dislike-\${item}\`).checked) {
+                        dislikes.push(item);
+                    }
+                });
+
+                // アレルギーを収集
+                const allergies = [];
+                allergiesOptions.forEach(item => {
+                    if (document.getElementById(\`allergy-\${item}\`).checked) {
+                        allergies.push(item);
+                    }
+                });
+
+                // リクエストボディ作成
+                const requestBody = {
+                    email,
+                    title,
+                    members_count,
+                    budget_tier_per_person: parseInt(document.getElementById('budget_tier_per_person').value),
+                    cooking_time_limit_min: parseInt(document.getElementById('cooking_time_limit_min').value),
+                    children_ages_json: JSON.stringify(children_ages),
+                    dislikes_json: JSON.stringify(dislikes),
+                    allergies_standard_json: JSON.stringify(allergies)
+                };
+
+                // パスワード変更がある場合のみ追加
+                if (new_password) {
+                    requestBody.new_password = new_password;
+                }
+
+                // API呼び出し
+                const response = await axios.put(\`/api/profile/update\`, requestBody, {
+                    headers: { 'Authorization': \`Bearer \${token}\` }
+                });
+
+                showSuccess('プロフィールを更新しました！');
+                
+                // パスワード変更した場合は再ログインを促す
+                if (new_password) {
+                    setTimeout(() => {
+                        alert('パスワードが変更されました。再度ログインしてください。');
+                        localStorage.removeItem('auth_token');
+                        window.location.href = '/login';
+                    }, 1500);
+                } else {
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                }
+
+            } catch (error) {
+                console.error('プロフィール更新エラー:', error);
+                showError(error.response?.data?.error || 'プロフィールの更新に失敗しました。');
+            }
+        }
+
+        // ログアウト
+        function logout() {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login';
+        }
+
+        // エラーメッセージ表示
+        function showError(message) {
+            document.getElementById('error-text').textContent = message;
+            document.getElementById('error-message').classList.remove('hidden');
+            document.getElementById('success-message').classList.add('hidden');
+        }
+
+        // 成功メッセージ表示
+        function showSuccess(message) {
+            document.getElementById('success-text').textContent = message;
+            document.getElementById('success-message').classList.remove('hidden');
+            document.getElementById('error-message').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
+`;
 
 // ========================================
 // 子ども食堂寄付LP HTML
