@@ -5370,7 +5370,23 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       const minUsageInAvailable = usageCount.get(available[0].recipe_id) || 0;
       const leastUsed = available.filter(r => (usageCount.get(r.recipe_id) || 0) === minUsageInAvailable);
       
-      return leastUsed[Math.floor(Math.random() * leastUsed.length)];
+      // ✅ 改善：popularity による重み付け選択（低い popularity は選ばれにくく）
+      // popularity 3 → 重み 30%、popularity 5 → 重み 50%、popularity 8 → 重み 80%
+      const weightedSelection = (recipes: any[]) => {
+        const weights = recipes.map(r => (r.popularity || 5) * 10);
+        const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+        let random = Math.random() * totalWeight;
+        
+        for (let i = 0; i < recipes.length; i++) {
+          random -= weights[i];
+          if (random <= 0) {
+            return recipes[i];
+          }
+        }
+        return recipes[recipes.length - 1];
+      };
+      
+      return weightedSelection(leastUsed);
     };
     
     // カレー系のレシピ判定（より厳密に）
@@ -5451,7 +5467,22 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       const minUsageInAvailable = usageCount.get(available[0].recipe_id) || 0;
       const leastUsed = available.filter(r => (usageCount.get(r.recipe_id) || 0) === minUsageInAvailable);
       
-      return leastUsed[Math.floor(Math.random() * leastUsed.length)];
+      // ✅ 改善：popularity による重み付け選択（低い popularity は選ばれにくく）
+      const weightedSelection = (recipes: any[]) => {
+        const weights = recipes.map(r => (r.popularity || 5) * 10);
+        const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+        let random = Math.random() * totalWeight;
+        
+        for (let i = 0; i < recipes.length; i++) {
+          random -= weights[i];
+          if (random <= 0) {
+            return recipes[i];
+          }
+        }
+        return recipes[recipes.length - 1];
+      };
+      
+      return weightedSelection(leastUsed);
     };
     
     // レシピをシャッフル
