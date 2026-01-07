@@ -125,15 +125,18 @@
 
 ## 🌐 公開URL
 
-- **本番環境**: https://aichefs.net
-- **最新デプロイ**: https://d41fbc87.aichef-595.pages.dev
-- **ユーザーログイン**: https://d41fbc87.aichef-595.pages.dev/login
-- **会員登録**: https://d41fbc87.aichef-595.pages.dev/register
-- **ユーザーダッシュボード**: https://d41fbc87.aichef-595.pages.dev/dashboard
-- **プロフィール編集**: https://d41fbc87.aichef-595.pages.dev/profile 🆕
-- **管理者ログイン**: https://d41fbc87.aichef-595.pages.dev/admin/login
-- **子ども食堂寄付ページ**: https://d41fbc87.aichef-595.pages.dev/donation
-- **管理者寄付ダッシュボード**: https://d41fbc87.aichef-595.pages.dev/admin/donations
+- **🌟 本番環境（正式）**: https://aichefs.net/
+- **Cloudflare Pages デフォルト**: https://aichef-595.pages.dev/
+- **最新デプロイURL**: https://d41fbc87.aichef-595.pages.dev/
+
+### 主要ページ
+- **ユーザーログイン**: https://aichefs.net/login
+- **会員登録**: https://aichefs.net/register
+- **ユーザーダッシュボード**: https://aichefs.net/dashboard
+- **プロフィール編集**: https://aichefs.net/profile 🆕
+- **管理者ログイン**: https://aichefs.net/admin/login
+- **子ども食堂寄付ページ**: https://aichefs.net/donation
+- **管理者寄付ダッシュボード**: https://aichefs.net/admin/donations
 - **GitHub**: https://github.com/[username]/webapp
 
 ---
