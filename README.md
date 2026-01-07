@@ -140,7 +140,7 @@
 
 - **🌟 本番環境（正式）**: https://aichefs.net/
 - **Cloudflare Pages デフォルト**: https://aichef-595.pages.dev/
-- **最新デプロイURL**: https://ed8db4f2.aichef-595.pages.dev/
+- **最新デプロイURL**: https://16bd164f.aichef-595.pages.dev/
 
 ### 主要ページ
 - **ユーザーログイン**: https://aichefs.net/login
@@ -421,7 +421,18 @@ pm2 logs --nostream
 
 ## 📜 更新履歴
 
-### 2026-01-07 (バグ修正) 🔧
+### 2026-01-07 (バグ修正 #2) 🔧
+- 🐛 **緊急バグ修正: SQLクエリのエラーハンドリング強化**
+  - 問題: 献立生成API（`POST /api/plans/generate`）で500エラーが発生
+  - 原因: レシピが0件の場合に `WHERE recipe_id IN ()` というSQL構文エラーが発生
+  - 修正内容:
+    - `filterRecipesByIngredients`関数にレシピ空チェックを追加
+    - レシピが0件の場合は早期リターンして空配列を返す
+    - SQL IN句に空の配列を渡すことを防止
+  - 影響範囲: 献立生成機能（/app ページ）
+  - デプロイURL: https://16bd164f.aichef-595.pages.dev
+
+### 2026-01-07 (バグ修正)
 - 🐛 **緊急バグ修正: モーダル要素のnullチェック追加**
   - 問題: 献立生成時に `ReferenceError: content is not defined` エラーが発生
   - 原因: モーダル要素（`plan-generation-modal-content`）が存在しない場合の対処が不足
