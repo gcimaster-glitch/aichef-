@@ -4355,8 +4355,6 @@ const appHtml = `<!DOCTYPE html>
                         showRecipeDetail(recipeId, recipeTitle);
                     }
                 }
-                    }
-                }
                 
                 // 献立説明ボタン
                 const explainBtn = target.closest('.explain-menu-btn');
