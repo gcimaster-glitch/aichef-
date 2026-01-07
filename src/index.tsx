@@ -4015,49 +4015,6 @@ const appHtml = `<!DOCTYPE html>
             showAuthModal('register');
         }
         
-        // 会員登録フォーム送信
-        document.getElementById('auth-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('auth-name').value;
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const errorDiv = document.getElementById('auth-error');
-            const errorText = errorDiv.querySelector('p');
-            const title = document.getElementById('auth-modal-title').textContent;
-            const isLogin = title === 'ログイン';
-            
-            // バリデーション
-            if (!isLogin && password.length < 8) {
-                errorDiv.classList.remove('hidden');
-                errorText.textContent = 'パスワードは8文字以上で設定してください';
-                return;
-            }
-            
-            try {
-                // 簡易的な実装：ローカルストレージに保存
-                // 本番環境では必ずサーバーサイドで認証を実装してください
-                const user = {
-                    name: name || email.split('@')[0],
-                    email: email,
-                    registered_at: new Date().toISOString()
-                };
-                
-                saveUser(user);
-                closeAuthModal();
-                
-                alert(isLogin ? 'ログインしました！' : '会員登録が完了しました！');
-                
-                // 印刷を実行（元の処理を続行）
-                window.print();
-                
-            } catch (error) {
-                console.error('認証エラー:', error);
-                errorDiv.classList.remove('hidden');
-                errorText.textContent = 'エラーが発生しました。もう一度お試しください。';
-            }
-        });
-        
         // 印刷ボタンのハンドラー
         function handlePrint() {
             const user = getCurrentUser();
@@ -4153,6 +4110,47 @@ const appHtml = `<!DOCTYPE html>
             
             // TOPページの広告を読み込み
             loadAds('top_page');
+            
+            // 会員登録フォーム送信
+            const authForm = document.getElementById('auth-form');
+            if (authForm) {
+                authForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const name = document.getElementById('auth-name').value;
+                    const email = document.getElementById('auth-email').value;
+                    const password = document.getElementById('auth-password').value;
+                    const errorDiv = document.getElementById('auth-error');
+                    const errorText = errorDiv.querySelector('p');
+                    const title = document.getElementById('auth-modal-title').textContent;
+                    const isLogin = title === 'ログイン';
+                    
+                    // バリデーション
+                    if (!isLogin && password.length < 8) {
+                        errorDiv.classList.remove('hidden');
+                        errorText.textContent = 'パスワードは8文字以上で設定してください';
+                        return;
+                    }
+                    
+                    // ユーザー情報を保存（現在はローカルストレージのみ）
+                    const user = {
+                        name: name || 'ゲスト',
+                        email: email,
+                        household_id: 'household-' + Date.now()
+                    };
+                    
+                    saveUser(user);
+                    
+                    // エラーをクリア
+                    errorDiv.classList.add('hidden');
+                    
+                    // モーダルを閉じる
+                    closeAuthModal();
+                    
+                    // 印刷機能を実行
+                    handlePrint();
+                });
+            }
             
             // イベントデリゲーション設定
             document.addEventListener('click', (e) => {
