@@ -2007,11 +2007,18 @@ const appHtml = `<!DOCTYPE html>
                             <span>\${progress}% 完了</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: \${progress}%"></div>
+                            <div id="progress-bar-\${appState.step}" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
                         </div>
                     </div>
                 \`;
                 messagesEl.innerHTML = progressHtml;
+                // プログレスバーの幅を動的に設定
+                setTimeout(() => {
+                    const progressBar = document.getElementById('progress-bar-' + appState.step);
+                    if (progressBar) {
+                        progressBar.style.width = progress + '%';
+                    }
+                }, 10);
                 
                 addMessage(question.text);
                 showInput(question);
@@ -2052,11 +2059,18 @@ const appHtml = `<!DOCTYPE html>
                             <span>\${progress}% 完了</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: \${progress}%"></div>
+                            <div id="progress-bar-\${appState.step}" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
                         </div>
                     </div>
                 \`;
                 messagesEl.innerHTML = progressHtml;
+                // プログレスバーの幅を動的に設定
+                setTimeout(() => {
+                    const progressBar = document.getElementById('progress-bar-' + appState.step);
+                    if (progressBar) {
+                        progressBar.style.width = progress + '%';
+                    }
+                }, 10);
                 
                 addMessage(question.text);
                 showInput(question);
