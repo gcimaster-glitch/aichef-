@@ -323,6 +323,28 @@ const ADMIN_DASHBOARD_HTML = `
         </div>
     </main>
 
+    <!-- ユーザー詳細モーダル -->
+    <div id="user-detail-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-bold">
+                        <i class="fas fa-user-circle mr-2"></i>ユーザー詳細
+                    </h3>
+                    <button onclick="closeUserModal()" class="text-white hover:text-gray-200 text-2xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="user-detail-content" class="p-6">
+                <div class="flex items-center justify-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 管理者認証チェック
         const adminToken = localStorage.getItem('admin_token');
@@ -369,9 +391,13 @@ const ADMIN_DASHBOARD_HTML = `
         }
 
         // ユーザー一覧読み込み
-        async function refreshUsers() {
+        async function refreshUsers(searchQuery = '') {
             try {
-                const res = await axios.get('/api/admin/users', {
+                const url = searchQuery 
+                    ? '/api/admin/users?search=' + encodeURIComponent(searchQuery)
+                    : '/api/admin/users';
+                    
+                const res = await axios.get(url, {
                     headers: { 'Authorization': 'Bearer ' + adminToken }
                 });
                 const users = res.data.users || [];
@@ -382,28 +408,171 @@ const ADMIN_DASHBOARD_HTML = `
                     return;
                 }
                 
-                tbody.innerHTML = users.slice(0, 20).map(u => \`
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 text-sm text-gray-900">\${u.household_id?.substring(0, 8)}...</td>
-                        <td class="px-6 py-4 text-sm text-gray-900">\${u.name || '-'}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">\${u.email || '-'}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">\${new Date(u.created_at).toLocaleDateString('ja-JP')}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">\${u.plan_count || 0}</td>
-                        <td class="px-6 py-4 text-sm">
-                            <button onclick="viewUser('\${u.household_id}')" class="text-blue-600 hover:text-blue-800">
-                                <i class="fas fa-eye"></i> 詳細
-                            </button>
-                        </td>
-                    </tr>
-                \`).join('');
+                tbody.innerHTML = users.slice(0, 20).map(u => 
+                    '<tr class="hover:bg-gray-50">' +
+                        '<td class="px-6 py-4 text-sm text-gray-900">' + (u.household_id?.substring(0, 8) || '') + '...</td>' +
+                        '<td class="px-6 py-4 text-sm text-gray-900">' + (u.name || '-') + '</td>' +
+                        '<td class="px-6 py-4 text-sm text-gray-600">' + (u.email || '-') + '</td>' +
+                        '<td class="px-6 py-4 text-sm text-gray-600">' + new Date(u.created_at).toLocaleDateString('ja-JP') + '</td>' +
+                        '<td class="px-6 py-4 text-sm text-gray-600">' + (u.plan_count || 0) + '</td>' +
+                        '<td class="px-6 py-4 text-sm">' +
+                            '<button onclick="viewUser(\'' + u.household_id + '\')" class="text-blue-600 hover:text-blue-800">' +
+                                '<i class="fas fa-eye"></i> 詳細' +
+                            '</button>' +
+                        '</td>' +
+                    '</tr>'
+                ).join('');
             } catch (error) {
                 console.error('Users load error:', error);
             }
         }
+        
+        // 検索機能
+        let searchTimeout;
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('user-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        refreshUsers(e.target.value);
+                    }, 500);
+                });
+            }
+        });
+        }
 
-        function viewUser(householdId) {
-            alert('ユーザー詳細: ' + householdId);
-            // TODO: ユーザー詳細モーダル実装
+        async function viewUser(householdId) {
+            const modal = document.getElementById('user-detail-modal');
+            const content = document.getElementById('user-detail-content');
+            modal.classList.remove('hidden');
+            
+            // ローディング表示
+            content.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-4xl text-indigo-600 mb-4"></i><p class="text-gray-600">ユーザー詳細を読み込み中...</p></div>';
+            
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/users/' + householdId, {
+                    headers: { 'Authorization': 'Bearer ' + adminToken }
+                });
+                const data = await response.json();
+                const user = data.user;
+                
+                // 嫌いな食材とアレルギー情報をパース
+                const dislikes = user.dislikes_json ? JSON.parse(user.dislikes_json) : [];
+                const allergies = user.allergies_json ? JSON.parse(user.allergies_json) : { standard: [], free_text: [] };
+                
+                // ユーザー詳細HTMLを組み立て
+                let html = '<div class="bg-white rounded-lg shadow-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">';
+                html += '<div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 flex justify-between items-center">';
+                html += '<h2 class="text-2xl font-bold"><i class="fas fa-user-circle mr-2"></i>ユーザー詳細</h2>';
+                html += '<button onclick="closeUserModal()" class="text-white hover:text-gray-200 transition"><i class="fas fa-times text-2xl"></i></button>';
+                html += '</div>';
+                html += '<div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">';
+                
+                // 基本情報
+                html += '<div class="bg-gray-50 rounded-lg p-4">';
+                html += '<h3 class="text-lg font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2"><i class="fas fa-info-circle text-indigo-600 mr-2"></i>基本情報</h3>';
+                html += '<div class="space-y-3">';
+                html += '<div class="flex justify-between"><span class="text-gray-600">世帯ID:</span><span class="font-semibold text-gray-800">' + user.household_id + '</span></div>';
+                html += '<div class="flex justify-between"><span class="text-gray-600">名前:</span><span class="font-semibold text-gray-800">' + (user.name || '未設定') + '</span></div>';
+                html += '<div class="flex justify-between"><span class="text-gray-600">メールアドレス:</span><span class="font-semibold text-gray-800">' + (user.email || '未設定') + '</span></div>';
+                html += '<div class="flex justify-between"><span class="text-gray-600">家族構成:</span><span class="font-semibold text-gray-800">' + user.title + '</span></div>';
+                html += '<div class="flex justify-between"><span class="text-gray-600">人数:</span><span class="font-semibold text-gray-800">' + user.members_count + '人</span></div>';
+                html += '<div class="flex justify-between"><span class="text-gray-600">登録日:</span><span class="font-semibold text-gray-800">' + new Date(user.created_at).toLocaleDateString('ja-JP') + '</span></div>';
+                html += '<div class="flex justify-between"><span class="text-gray-600">予算:</span><span class="font-semibold text-gray-800">¥' + user.budget_tier_per_person + '/人</span></div>';
+                html += '<div class="flex justify-between"><span class="text-gray-600">調理時間:</span><span class="font-semibold text-gray-800">' + user.cooking_time_limit_min + '分以内</span></div>';
+                html += '</div></div>';
+                
+                // 統計情報
+                html += '<div class="bg-gray-50 rounded-lg p-4">';
+                html += '<h3 class="text-lg font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2"><i class="fas fa-chart-line text-indigo-600 mr-2"></i>統計情報</h3>';
+                html += '<div class="space-y-3">';
+                html += '<div class="flex justify-between"><span class="text-gray-600">作成献立数:</span><span class="font-semibold text-indigo-600">' + (data.stats ? data.stats.total_plans : 0) + '件</span></div>';
+                html += '<div class="flex justify-between"><span class="text-gray-600">お気に入り数:</span><span class="font-semibold text-pink-600">' + (data.stats ? data.stats.total_favorites : 0) + '件</span></div>';
+                html += '<div class="flex justify-between"><span class="text-gray-600">寄付回数:</span><span class="font-semibold text-green-600">' + (data.stats ? data.stats.total_donations : 0) + '回</span></div>';
+                html += '<div class="flex justify-between"><span class="text-gray-600">寄付総額:</span><span class="font-semibold text-green-600">¥' + (data.stats && data.stats.total_donation_amount ? data.stats.total_donation_amount.toLocaleString() : '0') + '</span></div>';
+                html += '</div></div>';
+                
+                // 嫌いな食材
+                html += '<div class="bg-gray-50 rounded-lg p-4">';
+                html += '<h3 class="text-lg font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2"><i class="fas fa-ban text-red-600 mr-2"></i>嫌いな食材</h3>';
+                html += '<div class="flex flex-wrap gap-2">';
+                if (dislikes.length > 0) {
+                    dislikes.forEach(function(item) {
+                        html += '<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">' + item + '</span>';
+                    });
+                } else {
+                    html += '<span class="text-gray-500">設定なし</span>';
+                }
+                html += '</div></div>';
+                
+                // アレルギー情報
+                html += '<div class="bg-gray-50 rounded-lg p-4">';
+                html += '<h3 class="text-lg font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2"><i class="fas fa-exclamation-triangle text-orange-600 mr-2"></i>アレルギー</h3>';
+                html += '<div class="space-y-2">';
+                html += '<div><span class="text-gray-600 font-semibold">7大アレルゲン:</span>';
+                html += '<div class="flex flex-wrap gap-2 mt-2">';
+                if (allergies.standard && allergies.standard.length > 0) {
+                    allergies.standard.forEach(function(item) {
+                        html += '<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">' + item + '</span>';
+                    });
+                } else {
+                    html += '<span class="text-gray-500">設定なし</span>';
+                }
+                html += '</div></div>';
+                html += '<div><span class="text-gray-600 font-semibold">その他:</span>';
+                html += '<div class="flex flex-wrap gap-2 mt-2">';
+                if (allergies.free_text && allergies.free_text.length > 0) {
+                    allergies.free_text.forEach(function(item) {
+                        html += '<span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">' + item + '</span>';
+                    });
+                } else {
+                    html += '<span class="text-gray-500">設定なし</span>';
+                }
+                html += '</div></div></div></div>';
+                
+                // 最近の献立
+                html += '<div class="md:col-span-2 bg-gray-50 rounded-lg p-4">';
+                html += '<h3 class="text-lg font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2"><i class="fas fa-history text-indigo-600 mr-2"></i>最近の献立</h3>';
+                html += '<div class="space-y-2">';
+                if (data.plans && data.plans.length > 0) {
+                    data.plans.forEach(function(plan) {
+                        html += '<div class="flex justify-between items-center bg-white p-3 rounded-lg hover:shadow-md transition">';
+                        html += '<div><span class="font-semibold text-gray-800">' + (plan.cuisine_style || '和食') + ' - ' + plan.plan_days + '日分</span>';
+                        html += '<span class="text-gray-500 text-sm ml-2">' + new Date(plan.created_at).toLocaleDateString('ja-JP') + '</span></div>';
+                        html += '<span class="text-sm text-gray-600">' + (plan.status === 'active' ? '使用中' : '完了') + '</span></div>';
+                    });
+                } else {
+                    html += '<span class="text-gray-500">献立履歴がありません</span>';
+                }
+                html += '</div></div>';
+                
+                // メールマガジン
+                html += '<div class="md:col-span-2 bg-gray-50 rounded-lg p-4">';
+                html += '<h3 class="text-lg font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2"><i class="fas fa-envelope text-indigo-600 mr-2"></i>メールマガジン購読状況</h3>';
+                html += '<div class="flex items-center gap-4"><span class="text-gray-600">ステータス:</span>';
+                html += '<span class="font-semibold ' + (data.newsletter && data.newsletter.status === 'active' ? 'text-green-600' : 'text-gray-500') + '">';
+                html += (data.newsletter && data.newsletter.status === 'active' ? '購読中' : '未購読') + '</span>';
+                if (data.newsletter && data.newsletter.subscribed_at) {
+                    html += '<span class="text-gray-500 text-sm">購読開始: ' + new Date(data.newsletter.subscribed_at).toLocaleDateString('ja-JP') + '</span>';
+                }
+                html += '</div></div>';
+                
+                html += '</div>';
+                html += '<div class="bg-gray-100 p-4 flex justify-end">';
+                html += '<button onclick="closeUserModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition">閉じる</button>';
+                html += '</div></div>';
+                
+                content.innerHTML = html;
+            } catch (error) {
+                console.error('User detail error:', error);
+                content.innerHTML = '<div class="bg-white rounded-lg shadow-lg p-6 max-w-md"><div class="text-center"><i class="fas fa-exclamation-triangle text-4xl text-red-600 mb-4"></i><p class="text-gray-800 font-semibold mb-4">ユーザー詳細の読み込みに失敗しました</p><button onclick="closeUserModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition">閉じる</button></div></div>';
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-detail-modal').classList.add('hidden');
         }
 
         function logout() {
@@ -8515,7 +8684,10 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   // GET /api/admin/users - ユーザー一覧
   if (pathname === "/api/admin/users" && req.method === "GET") {
     try {
-      const users = await env.DB.prepare(`
+      const url = new URL(req.url);
+      const search = url.searchParams.get("search") || "";
+      
+      let query = `
         SELECT 
           h.household_id,
           h.title,
@@ -8527,14 +8699,123 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         FROM households h
         LEFT JOIN users u ON h.household_id = u.household_id
         LEFT JOIN meal_plan_history mp ON h.household_id = mp.household_id
-        GROUP BY h.household_id
-        ORDER BY h.created_at DESC
-        LIMIT 100
-      `).all();
+      `;
+      
+      const bindings = [];
+      if (search) {
+        query += ` WHERE u.name LIKE ? OR u.email LIKE ? OR h.title LIKE ?`;
+        const searchPattern = `%${search}%`;
+        bindings.push(searchPattern, searchPattern, searchPattern);
+      }
+      
+      query += ` GROUP BY h.household_id ORDER BY h.created_at DESC LIMIT 100`;
+      
+      const users = await env.DB.prepare(query).bind(...bindings).all();
       
       return json({ users: users.results || [] });
     } catch (error: any) {
       console.error('Admin users error:', error);
+      return json({ error: { message: error.message } }, 500);
+    }
+  }
+  
+  // GET /api/admin/users/:household_id - ユーザー詳細
+  if (pathname.match(/^\/api\/admin\/users\/[^/]+$/) && req.method === "GET") {
+    const household_id = pathname.split("/").pop();
+    
+    try {
+      // 基本情報
+      const user = await env.DB.prepare(`
+        SELECT 
+          h.household_id,
+          h.title,
+          h.members_count,
+          h.budget_tier_per_person,
+          h.cooking_time_limit_min,
+          h.dislikes_json,
+          h.allergies_json,
+          h.created_at,
+          u.name,
+          u.email
+        FROM households h
+        LEFT JOIN users u ON h.household_id = u.household_id
+        WHERE h.household_id = ?
+      `).bind(household_id).first();
+      
+      if (!user) {
+        return json({ error: { message: "User not found" } }, 404);
+      }
+      
+      // 献立履歴
+      const plans = await env.DB.prepare(`
+        SELECT 
+          plan_id,
+          start_date,
+          months,
+          created_at
+        FROM meal_plan_history
+        WHERE household_id = ?
+        ORDER BY created_at DESC
+        LIMIT 10
+      `).bind(household_id).all();
+      
+      // お気に入りレシピ
+      const favorites = await env.DB.prepare(`
+        SELECT 
+          r.recipe_id,
+          r.title,
+          fr.created_at
+        FROM favorite_recipes fr
+        JOIN recipes r ON fr.recipe_id = r.recipe_id
+        WHERE fr.household_id = ?
+        ORDER BY fr.created_at DESC
+        LIMIT 10
+      `).bind(household_id).all();
+      
+      // 寄付履歴
+      const donations = await env.DB.prepare(`
+        SELECT 
+          donation_id,
+          amount,
+          unit_count,
+          status,
+          created_at
+        FROM donations
+        WHERE household_id = ?
+        ORDER BY created_at DESC
+        LIMIT 5
+      `).bind(household_id).all();
+      
+      // メルマガ購読状態
+      const newsletter = await env.DB.prepare(`
+        SELECT 
+          subscriber_id,
+          email,
+          status,
+          subscribed_at
+        FROM newsletter_subscribers
+        WHERE household_id = ?
+        LIMIT 1
+      `).bind(household_id).first();
+      
+      // 統計
+      const stats = {
+        total_plans: plans.results?.length || 0,
+        total_favorites: favorites.results?.length || 0,
+        total_donations: donations.results?.length || 0,
+        total_donation_amount: donations.results?.reduce((sum, d) => sum + (d.amount || 0), 0) || 0
+      };
+      
+      return json({
+        user,
+        plans: plans.results || [],
+        favorites: favorites.results || [],
+        donations: donations.results || [],
+        newsletter,
+        stats
+      });
+    } catch (error: any) {
+      console.error('Admin user detail error:', error);
       return json({ error: { message: error.message } }, 500);
     }
   }
