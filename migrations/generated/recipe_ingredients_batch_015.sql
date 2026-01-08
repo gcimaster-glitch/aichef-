@@ -2,278 +2,278 @@
 -- Records 1401 to 1492
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0173', 'ing_miso', 30, 'g');
+('soup_0173', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0173', 'ing_dashi', 400, 'ml');
+('soup_0173', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0174', 'ing_shimeji', 100, 'g');
+('soup_0174', 'veg_shimeji', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0174', 'ing_miso', 30, 'g');
+('soup_0174', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0174', 'ing_dashi', 400, 'ml');
+('soup_0174', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0175', 'ing_enoki', 100, 'g');
+('soup_0175', 'veg_enoki', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0175', 'ing_miso', 30, 'g');
+('soup_0175', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0175', 'ing_dashi', 400, 'ml');
+('soup_0175', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0176', 'ing_pork', 250, 'g');
+('soup_0176', 'meat_pork', 250, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0177', 'ing_tofu', 200, 'g');
+('soup_0177', 'tofu_firm', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0177', 'ing_miso', 30, 'g');
+('soup_0177', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0177', 'ing_dashi', 400, 'ml');
+('soup_0177', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0178', 'ing_eggplant', 150, 'g');
+('soup_0178', 'veg_eggplant', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0178', 'ing_aburaage', 50, 'g');
+('soup_0178', 'tofu_fried', 50, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0178', 'ing_miso', 30, 'g');
+('soup_0178', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0178', 'ing_dashi', 400, 'ml');
+('soup_0178', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0179', 'ing_cabbage', 200, 'g');
+('soup_0179', 'veg_cabbage', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0179', 'ing_miso', 30, 'g');
+('soup_0179', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0179', 'ing_dashi', 400, 'ml');
+('soup_0179', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_018', 'ing_oil', 15, 'ml');
+('soup_018', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_018', 'ing_salt', 2, 'g');
+('soup_018', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0180', 'ing_onion', 150, 'g');
+('soup_0180', 'veg_onion', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0180', 'ing_potato', 200, 'g');
+('soup_0180', 'veg_potato', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0180', 'ing_negi', 50, 'g');
+('soup_0180', 'veg_onion', 50, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0180', 'ing_miso', 30, 'g');
+('soup_0180', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0180', 'ing_dashi', 400, 'ml');
+('soup_0180', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0181', 'ing_oil', 15, 'ml');
+('soup_0181', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0181', 'ing_salt', 2, 'g');
+('soup_0181', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0182', 'ing_oil', 15, 'ml');
+('soup_0182', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0182', 'ing_salt', 2, 'g');
+('soup_0182', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0183', 'ing_oil', 15, 'ml');
+('soup_0183', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0183', 'ing_salt', 2, 'g');
+('soup_0183', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0184', 'ing_oil', 15, 'ml');
+('soup_0184', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0184', 'ing_salt', 2, 'g');
+('soup_0184', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0185', 'ing_egg', 2, 'piece');
+('soup_0185', 'egg', 2, 'piece');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0186', 'ing_oil', 15, 'ml');
+('soup_0186', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0186', 'ing_salt', 2, 'g');
+('soup_0186', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0187', 'ing_oil', 15, 'ml');
+('soup_0187', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0187', 'ing_salt', 2, 'g');
+('soup_0187', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0188', 'ing_oil', 15, 'ml');
+('soup_0188', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0188', 'ing_salt', 2, 'g');
+('soup_0188', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0189', 'ing_oil', 15, 'ml');
+('soup_0189', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0189', 'ing_salt', 2, 'g');
+('soup_0189', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_019', 'ing_oil', 15, 'ml');
+('soup_019', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_019', 'ing_salt', 2, 'g');
+('soup_019', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0190', 'ing_oil', 15, 'ml');
+('soup_0190', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0190', 'ing_salt', 2, 'g');
+('soup_0190', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0191', 'ing_tomato', 150, 'g');
+('soup_0191', 'veg_tomato', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0192', 'ing_oil', 15, 'ml');
+('soup_0192', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0192', 'ing_salt', 2, 'g');
+('soup_0192', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0193', 'ing_cabbage', 200, 'g');
+('soup_0193', 'veg_cabbage', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0194', 'ing_chinese_cabbage', 200, 'g');
+('soup_0194', 'veg_napa_cabbage', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0195', 'ing_spinach', 150, 'g');
+('soup_0195', 'veg_spinach', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0196', 'ing_daikon', 200, 'g');
+('soup_0196', 'veg_daikon', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0196', 'ing_aburaage', 50, 'g');
+('soup_0196', 'tofu_fried', 50, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0196', 'ing_miso', 30, 'g');
+('soup_0196', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0196', 'ing_dashi', 400, 'ml');
+('soup_0196', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0197', 'ing_komatsuna', 150, 'g');
+('soup_0197', 'veg_komatsuna', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0197', 'ing_miso', 30, 'g');
+('soup_0197', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0197', 'ing_dashi', 400, 'ml');
+('soup_0197', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0198', 'ing_moyashi', 150, 'g');
+('soup_0198', 'veg_moyashi', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0198', 'ing_miso', 30, 'g');
+('soup_0198', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0198', 'ing_dashi', 400, 'ml');
+('soup_0198', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0199', 'ing_shimeji', 100, 'g');
+('soup_0199', 'veg_shimeji', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0199', 'ing_miso', 30, 'g');
+('soup_0199', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0199', 'ing_dashi', 400, 'ml');
+('soup_0199', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_020', 'ing_oil', 15, 'ml');
+('soup_020', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_020', 'ing_salt', 2, 'g');
+('soup_020', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0200', 'ing_enoki', 100, 'g');
+('soup_0200', 'veg_enoki', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0200', 'ing_miso', 30, 'g');
+('soup_0200', 'seasoning_miso', 30, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_0200', 'ing_dashi', 400, 'ml');
+('soup_0200', 'seasoning_dashi', 400, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_021', 'ing_oil', 15, 'ml');
+('soup_021', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_021', 'ing_salt', 2, 'g');
+('soup_021', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_022', 'ing_oil', 15, 'ml');
+('soup_022', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_022', 'ing_salt', 2, 'g');
+('soup_022', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_023', 'ing_beef', 250, 'g');
+('soup_023', 'meat_beef', 250, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_023', 'ing_oil', 15, 'ml');
+('soup_023', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_023', 'ing_salt', 2, 'g');
+('soup_023', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_024', 'ing_oil', 15, 'ml');
+('soup_024', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_024', 'ing_salt', 2, 'g');
+('soup_024', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_025', 'ing_chicken', 300, 'g');
+('soup_025', 'meat_chicken', 300, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_025', 'ing_oil', 15, 'ml');
+('soup_025', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_025', 'ing_salt', 2, 'g');
+('soup_025', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_026', 'ing_oil', 15, 'ml');
+('soup_026', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_026', 'ing_salt', 2, 'g');
+('soup_026', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_027', 'ing_oil', 15, 'ml');
+('soup_027', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_027', 'ing_salt', 2, 'g');
+('soup_027', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_028', 'ing_egg', 2, 'piece');
+('soup_028', 'egg', 2, 'piece');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_029', 'ing_oil', 15, 'ml');
+('soup_029', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_029', 'ing_salt', 2, 'g');
+('soup_029', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_030', 'ing_oil', 15, 'ml');
+('soup_030', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('soup_030', 'ing_salt', 2, 'g');
+('soup_030', 'seasoning_salt', 2, 'g');
 

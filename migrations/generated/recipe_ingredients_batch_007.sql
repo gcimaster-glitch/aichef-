@@ -2,302 +2,302 @@
 -- Records 601 to 700
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0346', 'ing_tofu', 200, 'g');
+('main_0346', 'tofu_firm', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0347', 'ing_oil', 15, 'ml');
+('main_0347', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0347', 'ing_salt', 2, 'g');
+('main_0347', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0348', 'ing_oil', 15, 'ml');
+('main_0348', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0348', 'ing_salt', 2, 'g');
+('main_0348', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0349', 'ing_oil', 15, 'ml');
+('main_0349', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0349', 'ing_salt', 2, 'g');
+('main_0349', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_035', 'ing_oil', 10, 'ml');
+('main_035', 'seasoning_oil', 10, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_035', 'ing_salt', 2, 'g');
+('main_035', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0350', 'ing_pork', 250, 'g');
+('main_0350', 'meat_pork', 250, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0351', 'ing_shrimp', 150, 'g');
+('main_0351', 'seafood_shrimp', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0352', 'ing_shrimp', 150, 'g');
+('main_0352', 'seafood_shrimp', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0353', 'ing_chicken', 300, 'g');
+('main_0353', 'meat_chicken', 300, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0354', 'ing_chicken', 300, 'g');
+('main_0354', 'meat_chicken', 300, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0355', 'ing_oil', 15, 'ml');
+('main_0355', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0355', 'ing_salt', 2, 'g');
+('main_0355', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0356', 'ing_oil', 15, 'ml');
+('main_0356', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0356', 'ing_salt', 2, 'g');
+('main_0356', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0357', 'ing_oil', 15, 'ml');
+('main_0357', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0357', 'ing_salt', 2, 'g');
+('main_0357', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0358', 'ing_oil', 15, 'ml');
+('main_0358', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0358', 'ing_salt', 2, 'g');
+('main_0358', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0359', 'ing_oil', 15, 'ml');
+('main_0359', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0359', 'ing_salt', 2, 'g');
+('main_0359', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_036', 'ing_chicken', 300, 'g');
+('main_036', 'meat_chicken', 300, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0360', 'ing_oil', 15, 'ml');
+('main_0360', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0360', 'ing_salt', 2, 'g');
+('main_0360', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0361', 'ing_oil', 15, 'ml');
+('main_0361', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0361', 'ing_salt', 2, 'g');
+('main_0361', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0362', 'ing_chicken', 300, 'g');
+('main_0362', 'meat_chicken', 300, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0362', 'ing_oil', 15, 'ml');
+('main_0362', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0362', 'ing_soy_sauce', 15, 'ml');
+('main_0362', 'seasoning_soy_sauce', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0363', 'ing_pork', 250, 'g');
+('main_0363', 'meat_pork', 250, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0363', 'ing_oil', 15, 'ml');
+('main_0363', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0363', 'ing_soy_sauce', 15, 'ml');
+('main_0363', 'seasoning_soy_sauce', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0364', 'ing_beef', 250, 'g');
+('main_0364', 'meat_beef', 250, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0364', 'ing_oil', 15, 'ml');
+('main_0364', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0364', 'ing_soy_sauce', 15, 'ml');
+('main_0364', 'seasoning_soy_sauce', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0365', 'ing_egg', 2, 'piece');
+('main_0365', 'egg', 2, 'piece');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0365', 'ing_oil', 15, 'ml');
+('main_0365', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0365', 'ing_soy_sauce', 15, 'ml');
+('main_0365', 'seasoning_soy_sauce', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0366', 'ing_oil', 15, 'ml');
+('main_0366', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0366', 'ing_salt', 2, 'g');
+('main_0366', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0367', 'ing_flour', 50, 'g');
+('main_0367', 'grain_flour', 50, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0367', 'ing_oil', 200, 'ml');
+('main_0367', 'seasoning_oil', 200, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0367', 'ing_soy_sauce', 15, 'ml');
+('main_0367', 'seasoning_soy_sauce', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0368', 'ing_pork', 250, 'g');
+('main_0368', 'meat_pork', 250, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0369', 'ing_chicken', 300, 'g');
+('main_0369', 'meat_chicken', 300, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_037', 'ing_pork', 250, 'g');
+('main_037', 'meat_pork', 250, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0370', 'ing_fish', 200, 'g');
+('main_0370', 'fish_white', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0371', 'ing_tofu', 200, 'g');
+('main_0371', 'tofu_firm', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0372', 'ing_oil', 15, 'ml');
+('main_0372', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0372', 'ing_salt', 2, 'g');
+('main_0372', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0373', 'ing_oil', 15, 'ml');
+('main_0373', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0373', 'ing_salt', 2, 'g');
+('main_0373', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0374', 'ing_oil', 15, 'ml');
+('main_0374', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0374', 'ing_salt', 2, 'g');
+('main_0374', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0375', 'ing_pork', 250, 'g');
+('main_0375', 'meat_pork', 250, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0376', 'ing_shrimp', 150, 'g');
+('main_0376', 'seafood_shrimp', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0377', 'ing_shrimp', 150, 'g');
+('main_0377', 'seafood_shrimp', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0378', 'ing_chicken', 300, 'g');
+('main_0378', 'meat_chicken', 300, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0379', 'ing_chicken', 300, 'g');
+('main_0379', 'meat_chicken', 300, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_038', 'ing_daikon', 200, 'g');
+('main_038', 'veg_daikon', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0380', 'ing_oil', 15, 'ml');
+('main_0380', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0380', 'ing_salt', 2, 'g');
+('main_0380', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0381', 'ing_oil', 15, 'ml');
+('main_0381', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0381', 'ing_salt', 2, 'g');
+('main_0381', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0382', 'ing_oil', 15, 'ml');
+('main_0382', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0382', 'ing_salt', 2, 'g');
+('main_0382', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0383', 'ing_oil', 15, 'ml');
+('main_0383', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0383', 'ing_salt', 2, 'g');
+('main_0383', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0384', 'ing_oil', 15, 'ml');
+('main_0384', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0384', 'ing_salt', 2, 'g');
+('main_0384', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0385', 'ing_oil', 15, 'ml');
+('main_0385', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0385', 'ing_salt', 2, 'g');
+('main_0385', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0386', 'ing_oil', 15, 'ml');
+('main_0386', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0386', 'ing_salt', 2, 'g');
+('main_0386', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0387', 'ing_chicken', 300, 'g');
+('main_0387', 'meat_chicken', 300, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0387', 'ing_oil', 15, 'ml');
+('main_0387', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0387', 'ing_soy_sauce', 15, 'ml');
+('main_0387', 'seasoning_soy_sauce', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0388', 'ing_pork', 250, 'g');
+('main_0388', 'meat_pork', 250, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0388', 'ing_oil', 15, 'ml');
+('main_0388', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0388', 'ing_soy_sauce', 15, 'ml');
+('main_0388', 'seasoning_soy_sauce', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0389', 'ing_beef', 250, 'g');
+('main_0389', 'meat_beef', 250, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0389', 'ing_oil', 15, 'ml');
+('main_0389', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0389', 'ing_soy_sauce', 15, 'ml');
+('main_0389', 'seasoning_soy_sauce', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_039', 'ing_oil', 10, 'ml');
+('main_039', 'seasoning_oil', 10, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_039', 'ing_salt', 2, 'g');
+('main_039', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0390', 'ing_egg', 2, 'piece');
+('main_0390', 'egg', 2, 'piece');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0390', 'ing_oil', 15, 'ml');
+('main_0390', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0390', 'ing_soy_sauce', 15, 'ml');
+('main_0390', 'seasoning_soy_sauce', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0391', 'ing_oil', 15, 'ml');
+('main_0391', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0391', 'ing_salt', 2, 'g');
+('main_0391', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0392', 'ing_flour', 50, 'g');
+('main_0392', 'grain_flour', 50, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0392', 'ing_oil', 200, 'ml');
+('main_0392', 'seasoning_oil', 200, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0392', 'ing_soy_sauce', 15, 'ml');
+('main_0392', 'seasoning_soy_sauce', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0393', 'ing_pork', 250, 'g');
+('main_0393', 'meat_pork', 250, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0394', 'ing_chicken', 300, 'g');
+('main_0394', 'meat_chicken', 300, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0395', 'ing_fish', 200, 'g');
+('main_0395', 'fish_white', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('main_0396', 'ing_chicken', 300, 'g');
+('main_0396', 'meat_chicken', 300, 'g');
 

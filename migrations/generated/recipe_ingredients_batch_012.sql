@@ -2,302 +2,302 @@
 -- Records 1101 to 1200
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0254', 'ing_salt', 2, 'g');
+('side_0254', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0255', 'ing_soy_sauce', 30, 'ml');
+('side_0255', 'seasoning_soy_sauce', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0255', 'ing_sugar', 15, 'g');
+('side_0255', 'seasoning_sugar', 15, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0255', 'ing_sake', 15, 'ml');
+('side_0255', 'seasoning_sake', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0256', 'ing_lettuce', 100, 'g');
+('side_0256', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0256', 'ing_dressing', 30, 'ml');
+('side_0256', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0257', 'ing_lettuce', 100, 'g');
+('side_0257', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0257', 'ing_dressing', 30, 'ml');
+('side_0257', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0258', 'ing_lettuce', 100, 'g');
+('side_0258', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0258', 'ing_dressing', 30, 'ml');
+('side_0258', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0259', 'ing_lettuce', 100, 'g');
+('side_0259', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0259', 'ing_dressing', 30, 'ml');
+('side_0259', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_026', 'ing_oil', 15, 'ml');
+('side_026', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_026', 'ing_salt', 2, 'g');
+('side_026', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0260', 'ing_tofu', 200, 'g');
+('side_0260', 'tofu_firm', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0260', 'ing_lettuce', 100, 'g');
+('side_0260', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0260', 'ing_dressing', 30, 'ml');
+('side_0260', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0261', 'ing_spinach', 150, 'g');
+('side_0261', 'veg_spinach', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0262', 'ing_komatsuna', 150, 'g');
+('side_0262', 'veg_komatsuna', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0263', 'ing_moyashi', 150, 'g');
+('side_0263', 'veg_moyashi', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0264', 'ing_cucumber', 100, 'g');
+('side_0264', 'veg_cucumber', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0265', 'ing_tomato', 150, 'g');
+('side_0265', 'veg_tomato', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0265', 'ing_lettuce', 100, 'g');
+('side_0265', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0265', 'ing_dressing', 30, 'ml');
+('side_0265', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0266', 'ing_lettuce', 100, 'g');
+('side_0266', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0266', 'ing_dressing', 30, 'ml');
+('side_0266', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0267', 'ing_lettuce', 100, 'g');
+('side_0267', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0267', 'ing_dressing', 30, 'ml');
+('side_0267', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0268', 'ing_lettuce', 100, 'g');
+('side_0268', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0268', 'ing_dressing', 30, 'ml');
+('side_0268', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0269', 'ing_lettuce', 100, 'g');
+('side_0269', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0269', 'ing_dressing', 30, 'ml');
+('side_0269', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_027', 'ing_tofu', 200, 'g');
+('side_027', 'tofu_firm', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_027', 'ing_oil', 15, 'ml');
+('side_027', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_027', 'ing_salt', 2, 'g');
+('side_027', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0270', 'ing_daikon', 200, 'g');
+('side_0270', 'veg_daikon', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0270', 'ing_lettuce', 100, 'g');
+('side_0270', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0270', 'ing_dressing', 30, 'ml');
+('side_0270', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0271', 'ing_cabbage', 200, 'g');
+('side_0271', 'veg_cabbage', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0272', 'ing_chinese_cabbage', 200, 'g');
+('side_0272', 'veg_napa_cabbage', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0273', 'ing_cucumber', 100, 'g');
+('side_0273', 'veg_cucumber', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0274', 'ing_eggplant', 150, 'g');
+('side_0274', 'veg_eggplant', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0275', 'ing_green_pepper', 100, 'g');
+('side_0275', 'veg_green_pepper', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0276', 'ing_oil', 15, 'ml');
+('side_0276', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0276', 'ing_salt', 2, 'g');
+('side_0276', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0277', 'ing_oil', 15, 'ml');
+('side_0277', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0277', 'ing_salt', 2, 'g');
+('side_0277', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0278', 'ing_oil', 15, 'ml');
+('side_0278', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0278', 'ing_salt', 2, 'g');
+('side_0278', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0279', 'ing_broccoli', 150, 'g');
+('side_0279', 'veg_broccoli', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0279', 'ing_lettuce', 100, 'g');
+('side_0279', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0279', 'ing_dressing', 30, 'ml');
+('side_0279', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_028', 'ing_tofu', 200, 'g');
+('side_028', 'tofu_firm', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0280', 'ing_cauliflower', 150, 'g');
+('side_0280', 'veg_cauliflower', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0280', 'ing_lettuce', 100, 'g');
+('side_0280', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0280', 'ing_dressing', 30, 'ml');
+('side_0280', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0281', 'ing_bacon', 100, 'g');
+('side_0281', 'meat_bacon', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0281', 'ing_asparagus', 100, 'g');
+('side_0281', 'veg_asparagus', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0282', 'ing_oil', 15, 'ml');
+('side_0282', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0282', 'ing_salt', 2, 'g');
+('side_0282', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0283', 'ing_oil', 15, 'ml');
+('side_0283', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0283', 'ing_salt', 2, 'g');
+('side_0283', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0284', 'ing_oil', 15, 'ml');
+('side_0284', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0284', 'ing_salt', 2, 'g');
+('side_0284', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0285', 'ing_oil', 15, 'ml');
+('side_0285', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0285', 'ing_salt', 2, 'g');
+('side_0285', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0286', 'ing_egg', 2, 'piece');
+('side_0286', 'egg', 2, 'piece');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0286', 'ing_oil', 10, 'ml');
+('side_0286', 'seasoning_oil', 10, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0286', 'ing_salt', 2, 'g');
+('side_0286', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0287', 'ing_egg', 2, 'piece');
+('side_0287', 'egg', 2, 'piece');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0287', 'ing_oil', 10, 'ml');
+('side_0287', 'seasoning_oil', 10, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0287', 'ing_salt', 2, 'g');
+('side_0287', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0288', 'ing_oil', 15, 'ml');
+('side_0288', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0288', 'ing_salt', 2, 'g');
+('side_0288', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0289', 'ing_egg', 2, 'piece');
+('side_0289', 'egg', 2, 'piece');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_029', 'ing_moyashi', 150, 'g');
+('side_029', 'veg_moyashi', 150, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_029', 'ing_oil', 15, 'ml');
+('side_029', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_029', 'ing_soy_sauce', 15, 'ml');
+('side_029', 'seasoning_soy_sauce', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0290', 'ing_oil', 15, 'ml');
+('side_0290', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0290', 'ing_salt', 2, 'g');
+('side_0290', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0291', 'ing_soy_sauce', 30, 'ml');
+('side_0291', 'seasoning_soy_sauce', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0291', 'ing_sugar', 15, 'g');
+('side_0291', 'seasoning_sugar', 15, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0291', 'ing_sake', 15, 'ml');
+('side_0291', 'seasoning_sake', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0292', 'ing_daikon', 200, 'g');
+('side_0292', 'veg_daikon', 200, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0293', 'ing_oil', 15, 'ml');
+('side_0293', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0293', 'ing_salt', 2, 'g');
+('side_0293', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0294', 'ing_oil', 15, 'ml');
+('side_0294', 'seasoning_oil', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0294', 'ing_salt', 2, 'g');
+('side_0294', 'seasoning_salt', 2, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0295', 'ing_soy_sauce', 30, 'ml');
+('side_0295', 'seasoning_soy_sauce', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0295', 'ing_sugar', 15, 'g');
+('side_0295', 'seasoning_sugar', 15, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0295', 'ing_sake', 15, 'ml');
+('side_0295', 'seasoning_sake', 15, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0296', 'ing_lettuce', 100, 'g');
+('side_0296', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0296', 'ing_dressing', 30, 'ml');
+('side_0296', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0297', 'ing_lettuce', 100, 'g');
+('side_0297', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0297', 'ing_dressing', 30, 'ml');
+('side_0297', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0298', 'ing_lettuce', 100, 'g');
+('side_0298', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0298', 'ing_dressing', 30, 'ml');
+('side_0298', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0299', 'ing_lettuce', 100, 'g');
+('side_0299', 'veg_lettuce', 100, 'g');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_0299', 'ing_dressing', 30, 'ml');
+('side_0299', 'seasoning_dressing', 30, 'ml');
 
 INSERT OR IGNORE INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit) VALUES
-('side_030', 'ing_oil', 15, 'ml');
+('side_030', 'seasoning_oil', 15, 'ml');
 
