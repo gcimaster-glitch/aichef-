@@ -1153,6 +1153,13 @@ const USER_DASHBOARD_HTML = `
             await loadHistory();
             await loadFavorites();
             await loadDonations();
+            await checkQuickMode();
+            
+            // 家族タブが選択されている場合は家族メンバーを読み込む
+            if (window.location.hash === '#family') {
+                switchTab('family');
+                await loadFamilyMembers();
+            }
         }
         
         // 履歴読み込み
@@ -1283,19 +1290,182 @@ const USER_DASHBOARD_HTML = `
         
         // タブ切り替え
         function switchTab(tab) {
-            ['history', 'favorites', 'donations', 'profile'].forEach(t => {
-                document.getElementById(\`content-\${t}\`).classList.add('hidden');
-                document.getElementById(\`tab-\${t}\`).classList.remove('border-b-2', 'border-purple-600', 'text-purple-600');
-                document.getElementById(\`tab-\${t}\`).classList.add('text-gray-600');
+            ['history', 'favorites', 'donations', 'profile', 'family'].forEach(t => {
+                document.getElementById('content-' + t).classList.add('hidden');
+                document.getElementById('tab-' + t).classList.remove('border-b-2', 'border-purple-600', 'text-purple-600');
+                document.getElementById('tab-' + t).classList.add('text-gray-600');
             });
             
-            document.getElementById(\`content-\${tab}\`).classList.remove('hidden');
-            document.getElementById(\`tab-\${tab}\`).classList.add('border-b-2', 'border-purple-600', 'text-purple-600');
-            document.getElementById(\`tab-\${tab}\`).classList.remove('text-gray-600');
+            document.getElementById('content-' + tab).classList.remove('hidden');
+            document.getElementById('tab-' + tab).classList.add('border-b-2', 'border-purple-600', 'text-purple-600');
+            document.getElementById('tab-' + tab).classList.remove('text-gray-600');
+            
+            // 家族タブが選択されたら家族メンバーを読み込む
+            if (tab === 'family') {
+                loadFamilyMembers();
+            }
+        }
         }
         
         function showHistoryTab() { switchTab('history'); }
         function showFavoritesTab() { switchTab('favorites'); }
+        function showFamilyTab() { switchTab('family'); }
+        
+        // ワンクリック献立生成
+        async function quickGeneratePlan() {
+            if (!confirm('保存済みの設定で献立を生成します。よろしいですか？')) return;
+            
+            try {
+                const response = await fetch('/api/preferences/quick-generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ household_id: household_id })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('献立を生成しました！カレンダーページで確認できます。');
+                    // TODO: カレンダーページへリダイレクト
+                } else {
+                    alert('エラー: ' + (data.error || '献立生成に失敗しました'));
+                }
+            } catch (error) {
+                console.error('Quick generate error:', error);
+                alert('エラーが発生しました');
+            }
+        }
+        
+        // 家族メンバー追加
+        async function addFamilyMember() {
+            const name = document.getElementById('family-name').value.trim();
+            const email = document.getElementById('family-email').value.trim();
+            const relationship = document.getElementById('family-relationship').value;
+            const notificationTime = document.getElementById('family-notification-time').value;
+            
+            if (!name || !email) {
+                alert('名前とメールアドレスを入力してください');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/family-members/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        household_id: household_id,
+                        name: name,
+                        email: email,
+                        relationship: relationship,
+                        notification_time: notificationTime
+                    })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('家族メンバーを追加しました');
+                    document.getElementById('family-name').value = '';
+                    document.getElementById('family-email').value = '';
+                    await loadFamilyMembers();
+                } else {
+                    alert('エラー: ' + (data.error || 'メンバー追加に失敗しました'));
+                }
+            } catch (error) {
+                console.error('Add family member error:', error);
+                alert('エラーが発生しました');
+            }
+        }
+        
+        // 家族メンバー一覧読み込み
+        async function loadFamilyMembers() {
+            try {
+                const response = await fetch('/api/family-members/' + household_id);
+                const data = await response.json();
+                
+                const listEl = document.getElementById('family-members-list');
+                if (data.members && data.members.length > 0) {
+                    listEl.innerHTML = data.members.map(function(m) {
+                        const statusBadge = m.is_notification_enabled === 1 
+                            ? '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"><i class="fas fa-bell mr-1"></i>通知ON</span>'
+                            : '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800"><i class="fas fa-bell-slash mr-1"></i>通知OFF</span>';
+                        
+                        return '<div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">' +
+                            '<div class="flex justify-between items-start">' +
+                                '<div>' +
+                                    '<h3 class="font-bold text-gray-800">' + m.name + '</h3>' +
+                                    '<p class="text-sm text-gray-600 mt-1"><i class="fas fa-envelope mr-1"></i>' + m.email + '</p>' +
+                                    '<p class="text-sm text-gray-600"><i class="fas fa-user-friends mr-1"></i>' + m.relationship + '</p>' +
+                                    '<p class="text-sm text-gray-600"><i class="fas fa-clock mr-1"></i>通知時刻: ' + m.notification_time + '</p>' +
+                                '</div>' +
+                                '<div class="flex flex-col gap-2">' +
+                                    statusBadge +
+                                    '<button onclick="toggleNotification(' + m.member_id + ')" class="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 bg-blue-50 rounded">切り替え</button>' +
+                                    '<button onclick="deleteFamilyMember(' + m.member_id + ')" class="text-xs text-red-600 hover:text-red-800 px-2 py-1 bg-red-50 rounded">削除</button>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                    }).join('');
+                } else {
+                    listEl.innerHTML = '<p class="text-gray-500 text-center py-8">メンバーを追加してください</p>';
+                }
+            } catch (error) {
+                console.error('Load family members error:', error);
+            }
+        }
+        
+        // 通知ON/OFF切り替え
+        async function toggleNotification(memberId) {
+            try {
+                const response = await fetch('/api/family-members/' + memberId + '/toggle', {
+                    method: 'PUT'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    await loadFamilyMembers();
+                } else {
+                    alert('エラー: ' + (data.error || '切り替えに失敗しました'));
+                }
+            } catch (error) {
+                console.error('Toggle notification error:', error);
+                alert('エラーが発生しました');
+            }
+        }
+        
+        // 家族メンバー削除
+        async function deleteFamilyMember(memberId) {
+            if (!confirm('このメンバーを削除してもよろしいですか？')) return;
+            
+            try {
+                const response = await fetch('/api/family-members/' + memberId, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('メンバーを削除しました');
+                    await loadFamilyMembers();
+                } else {
+                    alert('エラー: ' + (data.error || '削除に失敗しました'));
+                }
+            } catch (error) {
+                console.error('Delete family member error:', error);
+                alert('エラーが発生しました');
+            }
+        }
+        
+        // ユーザー設定を確認してワンクリックカードを表示
+        async function checkQuickMode() {
+            try {
+                const response = await fetch('/api/preferences/' + household_id);
+                const data = await response.json();
+                
+                if (data.is_quick_mode_enabled === 1) {
+                    document.getElementById('quick-mode-card').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Check quick mode error:', error);
+            }
+        }
         
         // 履歴詳細表示
         async function viewHistory(history_id) {
