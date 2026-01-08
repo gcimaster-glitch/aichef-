@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お支払い完了 - AICHEFS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-2xl mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-xl p-12 text-center">
+            <!-- アニメーション成功アイコン -->
+            <div class="mb-8">
+                <div class="mx-auto w-24 h-24 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-check-circle text-6xl text-green-600"></i>
+                </div>
+            </div>
+
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">
+                お支払いありがとうございます！
+            </h1>
+            
+            <p class="text-gray-600 text-lg mb-8">
+                決済が正常に完了しました。<br>
+                AIシェフのすべての機能をお楽しみください。
+            </p>
+
+            <div class="bg-blue-50 rounded-xl p-6 mb-8">
+                <h2 class="font-bold text-gray-800 mb-3 flex items-center justify-center">
+                    <i class="fas fa-envelope text-blue-600 mr-2"></i>
+                    確認メールを送信しました
+                </h2>
+                <p class="text-gray-600 text-sm">
+                    ご登録のメールアドレス宛に、決済完了の確認メールをお送りしました。<br>
+                    メールが届かない場合は、迷惑メールフォルダをご確認ください。
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <a href="/dashboard" class="block w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition shadow-lg">
+                    <i class="fas fa-home mr-2"></i>
+                    ダッシュボードへ
+                </a>
+                
+                <a href="/legal" class="text-gray-600 hover:text-purple-600 text-sm">
+                    特定商取引法に基づく表示
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
