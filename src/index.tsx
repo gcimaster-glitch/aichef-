@@ -6927,6 +6927,255 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     }
   }
   
+  // ========================================
+  // メールマガジンAPI
+  // ========================================
+  
+  // POST /api/newsletter/subscribe - メールマガジン購読登録
+  if (pathname === "/api/newsletter/subscribe" && req.method === "POST") {
+    const body = await readJson(req);
+    
+    if (!body.email) {
+      return badRequest("email is required");
+    }
+    
+    // メールアドレスの検証
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(body.email)) {
+      return badRequest("Invalid email format");
+    }
+    
+    try {
+      const subscriber_id = 'sub_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+      const verification_token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      
+      // 既存購読者チェック
+      const existing = await env.DB.prepare(
+        'SELECT subscriber_id, status FROM newsletter_subscribers WHERE email = ?'
+      ).bind(body.email).first();
+      
+      if (existing) {
+        if (existing.status === 'active') {
+          return json({ 
+            message: 'すでに購読登録されています',
+            already_subscribed: true
+          });
+        } else {
+          // 再購読
+          await env.DB.prepare(`
+            UPDATE newsletter_subscribers 
+            SET status = 'active', 
+                unsubscribed_at = NULL,
+                subscribed_at = CURRENT_TIMESTAMP,
+                verification_token = ?
+            WHERE email = ?
+          `).bind(verification_token, body.email).run();
+          
+          return json({ 
+            success: true,
+            message: 'メールマガジンの購読を再開しました'
+          });
+        }
+      }
+      
+      // 新規購読者登録
+      await env.DB.prepare(`
+        INSERT INTO newsletter_subscribers (
+          subscriber_id, email, household_id, name, verification_token
+        ) VALUES (?, ?, ?, ?, ?)
+      `).bind(
+        subscriber_id,
+        body.email,
+        body.household_id || null,
+        body.name || null,
+        verification_token
+      ).run();
+      
+      // ウェルカムメール送信（Resend使用）
+      if (env.RESEND_API_KEY) {
+        try {
+          const resendResponse = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: 'AICHEFS <noreply@aichefs.net>',
+              to: [body.email],
+              subject: '【AICHEFS】メールマガジンのご登録ありがとうございます',
+              html: `
+                <!DOCTYPE html>
+                <html lang="ja">
+                <head>
+                  <meta charset="UTF-8">
+                  <title>Welcome to AICHEFS Newsletter</title>
+                </head>
+                <body style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+                    <h1 style="margin: 0; font-size: 28px;">🍽️ AICHEFS</h1>
+                    <p style="margin: 10px 0 0 0; font-size: 16px;">メールマガジン</p>
+                  </div>
+                  
+                  <div style="background-color: white; padding: 40px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                    <h2 style="color: #1f2937; margin-top: 0;">ご登録ありがとうございます！</h2>
+                    
+                    <p>\${body.name ? body.name + ' 様' : 'お客様'}</p>
+                    
+                    <p>
+                      AICHEFSメールマガジンにご登録いただき、ありがとうございます。<br>
+                      今後、以下の情報をお届けします：
+                    </p>
+                    
+                    <ul style="line-height: 2;">
+                      <li>📅 季節のおすすめ献立</li>
+                      <li>🍳 簡単レシピのご紹介</li>
+                      <li>💡 献立作成のヒントやコツ</li>
+                      <li>🎁 新機能のお知らせ</li>
+                    </ul>
+                    
+                    <div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin: 30px 0;">
+                      <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                        <strong>配信頻度：</strong>月2回程度<br>
+                        <strong>次回配信予定：</strong>毎月1日・15日
+                      </p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                      <a href="https://aichefs.net/app" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: bold;">
+                        献立を作成する
+                      </a>
+                    </div>
+                    
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #9ca3af; font-size: 12px;">
+                      <p>配信停止をご希望の場合は、<a href="https://aichefs.net/unsubscribe?token=\${verification_token}" style="color: #667eea;">こちら</a>からお手続きください。</p>
+                      <p style="margin-top: 12px;">© 2026 AICHEFS. All rights reserved.</p>
+                    </div>
+                  </div>
+                </body>
+                </html>
+              `,
+            }),
+          });
+          
+          if (!resendResponse.ok) {
+            console.error('ウェルカムメール送信失敗:', await resendResponse.text());
+          }
+        } catch (emailError) {
+          console.error('ウェルカムメール送信エラー:', emailError);
+          // メール送信失敗してもsubscribe自体は成功とする
+        }
+      }
+      
+      return json({ 
+        success: true,
+        subscriber_id,
+        message: 'メールマガジンの購読を開始しました'
+      });
+    } catch (error: any) {
+      console.error('Newsletter subscribe error:', error);
+      return new Response(JSON.stringify({
+        error: 'Failed to subscribe',
+        details: error.message
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+  
+  // POST /api/newsletter/unsubscribe - メールマガジン購読解除
+  if (pathname === "/api/newsletter/unsubscribe" && req.method === "POST") {
+    const body = await readJson(req);
+    
+    if (!body.email && !body.token) {
+      return badRequest("email or token is required");
+    }
+    
+    try {
+      let query = 'UPDATE newsletter_subscribers SET status = ?, unsubscribed_at = CURRENT_TIMESTAMP WHERE ';
+      let bindValue;
+      
+      if (body.token) {
+        query += 'verification_token = ?';
+        bindValue = body.token;
+      } else {
+        query += 'email = ?';
+        bindValue = body.email;
+      }
+      
+      const result = await env.DB.prepare(query).bind('unsubscribed', bindValue).run();
+      
+      if (result.meta.changes === 0) {
+        return badRequest("購読者が見つかりません");
+      }
+      
+      return json({ 
+        success: true,
+        message: 'メールマガジンの購読を解除しました'
+      });
+    } catch (error: any) {
+      console.error('Newsletter unsubscribe error:', error);
+      return new Response(JSON.stringify({
+        error: 'Failed to unsubscribe',
+        details: error.message
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+  
+  // GET /api/newsletter/subscribers - 購読者一覧（管理者用）
+  if (pathname === "/api/newsletter/subscribers" && req.method === "GET") {
+    // TODO: 管理者認証チェック
+    
+    const url = new URL(req.url);
+    const status = url.searchParams.get("status") || "active";
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "50");
+    const offset = (page - 1) * limit;
+    
+    try {
+      const subscribers = await env.DB.prepare(`
+        SELECT 
+          subscriber_id,
+          email,
+          name,
+          status,
+          subscribed_at,
+          unsubscribed_at
+        FROM newsletter_subscribers
+        WHERE status = ?
+        ORDER BY subscribed_at DESC
+        LIMIT ? OFFSET ?
+      `).bind(status, limit, offset).all();
+      
+      const countResult = await env.DB.prepare(
+        'SELECT COUNT(*) as total FROM newsletter_subscribers WHERE status = ?'
+      ).bind(status).first();
+      
+      return json({
+        subscribers: subscribers.results,
+        pagination: {
+          page,
+          limit,
+          total: countResult?.total || 0,
+          total_pages: Math.ceil((countResult?.total || 0) / limit)
+        }
+      });
+    } catch (error: any) {
+      console.error('Newsletter subscribers list error:', error);
+      return new Response(JSON.stringify({
+        error: 'Failed to get subscribers',
+        details: error.message
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+  
   // GET /api/donations/list - 公開された寄付一覧を取得
   if (pathname === "/api/donations/list" && req.method === "GET") {
     const donations = await env.DB.prepare(`
@@ -8400,6 +8649,18 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       }
     });
   }
+  
+  // ========================================
+  // /unsubscribe：メールマガジン購読解除
+  // ========================================
+  if (pathname === "/unsubscribe") {
+    return new Response(UNSUBSCRIBE_HTML, {
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store'
+      }
+    });
+  }
 
   return json({ error: { message: "Not Found" } }, 404);
 }
@@ -9838,6 +10099,164 @@ const ADMIN_DONATION_DASHBOARD_HTML = `
         }
         
         init();
+    </script>
+</body>
+</html>
+`;
+
+// ========================================
+// 購読解除ページ HTML
+// ========================================
+const UNSUBSCRIBE_HTML = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メールマガジン購読解除 - AICHEFS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full">
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <div class="text-center mb-6">
+                <div class="inline-block bg-gradient-to-r from-purple-600 to-pink-600 rounded-full p-4 mb-4">
+                    <i class="fas fa-envelope-open-text text-4xl text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">メールマガジン購読解除</h1>
+                <p class="text-gray-600">AICHEFSメールマガジンの購読を解除します</p>
+            </div>
+            
+            <div id="form-container">
+                <form id="unsubscribe-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            メールアドレス
+                        </label>
+                        <input type="email" id="email" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                               placeholder="your-email@example.com">
+                    </div>
+                    
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+                        <p class="text-sm text-gray-700">
+                            <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                            購読を解除すると、今後メールマガジンが届かなくなります。
+                        </p>
+                    </div>
+                    
+                    <div id="error-message" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                        <p class="text-sm text-red-700"></p>
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 rounded-lg hover:shadow-lg transition">
+                        購読を解除する
+                    </button>
+                    
+                    <a href="/" class="block text-center text-sm text-gray-600 hover:text-purple-600 transition">
+                        <i class="fas fa-arrow-left mr-1"></i>トップページに戻る
+                    </a>
+                </form>
+            </div>
+            
+            <div id="success-container" class="hidden text-center">
+                <div class="inline-block bg-green-100 rounded-full p-4 mb-4">
+                    <i class="fas fa-check-circle text-5xl text-green-600"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">購読解除が完了しました</h2>
+                <p class="text-gray-600 mb-6">今後、メールマガジンは配信されません。<br>ご利用ありがとうございました。</p>
+                
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-4">
+                    <p class="text-sm text-gray-700">
+                        <i class="fas fa-lightbulb text-blue-600"></i>
+                        いつでも再度ご登録いただけます
+                    </p>
+                </div>
+                
+                <a href="/" class="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold px-6 py-3 rounded-lg hover:shadow-lg transition">
+                    <i class="fas fa-home mr-2"></i>トップページへ
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // URLパラメータからtokenを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        // tokenがある場合は自動購読解除
+        if (token) {
+            autoUnsubscribe(token);
+        }
+        
+        async function autoUnsubscribe(token) {
+            try {
+                const response = await fetch('/api/newsletter/unsubscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess();
+                } else {
+                    showError(data.message || '購読解除に失敗しました');
+                }
+            } catch (error) {
+                console.error('Unsubscribe error:', error);
+                showError('通信エラーが発生しました');
+            }
+        }
+        
+        document.getElementById('unsubscribe-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const errorEl = document.getElementById('error-message');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            errorEl.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>処理中...';
+            
+            try {
+                const response = await fetch('/api/newsletter/unsubscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess();
+                } else {
+                    showError(data.message || '購読解除に失敗しました');
+                }
+            } catch (error) {
+                console.error('Unsubscribe error:', error);
+                showError('通信エラーが発生しました');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '購読を解除する';
+            }
+        });
+        
+        function showSuccess() {
+            document.getElementById('form-container').classList.add('hidden');
+            document.getElementById('success-container').classList.remove('hidden');
+        }
+        
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.querySelector('p').textContent = message;
+            errorEl.classList.remove('hidden');
+        }
     </script>
 </body>
 </html>
