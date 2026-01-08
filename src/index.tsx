@@ -1146,26 +1146,39 @@ const USER_DASHBOARD_HTML = `
         
         // 初期化
         async function init() {
-            // セッション確認
-            const session_id = localStorage.getItem('session_id');
-            const user = localStorage.getItem('user');
+            // セッション確認（統一されたキー名を使用）
+            const auth_token = localStorage.getItem('auth_token');
+            const userJson = localStorage.getItem('aichef_user');
             
-            if (!session_id || !user) {
-                window.location.href = '/login';
+            if (!auth_token || !userJson) {
+                // 未ログインの場合はログインページへ
+                window.location.href = '/';
                 return;
             }
             
-            userData = JSON.parse(user);
+            userData = JSON.parse(userJson);
             household_id = userData.household_id;
-            document.getElementById('user-name').textContent = userData.name;
-            document.getElementById('profile-name').value = userData.name;
-            document.getElementById('profile-email').value = userData.email;
+            
+            // ユーザー名とプロフィール情報を表示
+            if (document.getElementById('user-name')) {
+                document.getElementById('user-name').textContent = userData.name || '未設定';
+            }
+            if (document.getElementById('profile-name')) {
+                document.getElementById('profile-name').value = userData.name || '';
+            }
+            if (document.getElementById('profile-email')) {
+                document.getElementById('profile-email').value = userData.email || '';
+            }
             
             // データ読み込み
-            await loadHistory();
-            await loadFavorites();
-            await loadDonations();
-            await checkQuickMode();
+            try {
+                await loadHistory();
+                await loadFavorites();
+                await loadDonations();
+                await checkQuickMode();
+            } catch (error) {
+                console.error('Dashboard init error:', error);
+            }
             
             // 家族タブが選択されている場合は家族メンバーを読み込む
             if (window.location.hash === '#family') {
@@ -1508,6 +1521,10 @@ const USER_DASHBOARD_HTML = `
         function logout() {
             localStorage.removeItem('session_id');
             localStorage.removeItem('user');
+            localStorage.removeItem('aichef_user');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('household_id');
+            localStorage.removeItem('email');
             window.location.href = '/';
         }
         
@@ -1929,6 +1946,10 @@ const appHtml = `<!DOCTYPE html>
                     <span id="plan-title">1ヶ月分の献立</span>
                 </h2>
                 <div class="flex gap-2 flex-wrap">
+                    <button onclick="window.location.href='/dashboard'" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition flex items-center gap-2 text-sm font-semibold shadow-md">
+                        <i class="fas fa-home"></i>
+                        マイページ
+                    </button>
                     <button onclick="showHistory()" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition flex items-center gap-2 text-sm">
                         <i class="fas fa-history"></i>
                         履歴
@@ -4947,11 +4968,21 @@ const appHtml = `<!DOCTYPE html>
         // ユーザーをローカルストレージに保存
         function saveUser(user) {
             localStorage.setItem('aichef_user', JSON.stringify(user));
+            // household_idとemailも個別に保存（献立作成などで使用）
+            if (user.household_id) {
+                localStorage.setItem('household_id', user.household_id);
+            }
+            if (user.email) {
+                localStorage.setItem('email', user.email);
+            }
         }
         
         // ログアウト
         function logout() {
             localStorage.removeItem('aichef_user');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('household_id');
+            localStorage.removeItem('email');
             alert('ログアウトしました');
             location.reload();
         }
