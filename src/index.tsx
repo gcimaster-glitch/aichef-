@@ -290,12 +290,82 @@ const ADMIN_DASHBOARD_HTML = `
 
         <!-- 寄付管理タブ -->
         <div id="content-donations" class="tab-content hidden">
+            <!-- 寄付統計カード -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100 text-sm font-medium mb-1">寄付総額</p>
+                            <p class="text-3xl font-bold" id="donation-total-amount">¥0</p>
+                        </div>
+                        <i class="fas fa-yen-sign text-5xl text-green-200 opacity-50"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100 text-sm font-medium mb-1">寄付件数</p>
+                            <p class="text-3xl font-bold" id="donation-total-count">0</p>
+                        </div>
+                        <i class="fas fa-hand-holding-heart text-5xl text-blue-200 opacity-50"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-100 text-sm font-medium mb-1">今月の寄付</p>
+                            <p class="text-3xl font-bold" id="donation-month-amount">¥0</p>
+                        </div>
+                        <i class="fas fa-calendar-alt text-5xl text-purple-200 opacity-50"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-pink-500 to-pink-600 text-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-pink-100 text-sm font-medium mb-1">今月の件数</p>
+                            <p class="text-3xl font-bold" id="donation-month-count">0</p>
+                        </div>
+                        <i class="fas fa-heart text-5xl text-pink-200 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 寄付一覧テーブル -->
             <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-6">
-                    <i class="fas fa-heart text-red-600 mr-2"></i>寄付一覧
-                </h3>
-                <div id="donations-list">
-                    <p class="text-gray-500 text-center py-8">読み込み中...</p>
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">
+                        <i class="fas fa-heart text-red-600 mr-2"></i>寄付一覧
+                    </h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="donation-search" placeholder="寄付者名・メールで検索..." class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button onclick="refreshDonations()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-sync-alt mr-2"></i>更新
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">寄付ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">寄付者</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">金額</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">証明書番号</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日付</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donations-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500">読み込み中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -360,9 +430,17 @@ const ADMIN_DASHBOARD_HTML = `
                 el.classList.add('border-transparent', 'text-gray-600');
             });
             
-            document.getElementById(\`content-\${tab}\`).classList.remove('hidden');
-            document.getElementById(\`tab-\${tab}\`).classList.add('border-blue-500', 'text-blue-600');
-            document.getElementById(\`tab-\${tab}\`).classList.remove('border-transparent', 'text-gray-600');
+            document.getElementById('content-' + tab).classList.remove('hidden');
+            document.getElementById('tab-' + tab).classList.add('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-' + tab).classList.remove('border-transparent', 'text-gray-600');
+            
+            // タブごとのデータ読み込み
+            if (tab === 'users') {
+                refreshUsers();
+            } else if (tab === 'donations') {
+                loadDonationStats();
+                refreshDonations();
+            }
         }
 
         // 統計データ読み込み
@@ -574,6 +652,80 @@ const ADMIN_DASHBOARD_HTML = `
         function closeUserModal() {
             document.getElementById('user-detail-modal').classList.add('hidden');
         }
+        
+        // 寄付統計を読み込む
+        async function loadDonationStats() {
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const response = await fetch('/api/admin/donations/stats', {
+                    headers: { 'Authorization': 'Bearer ' + adminToken }
+                });
+                const data = await response.json();
+                
+                document.getElementById('donation-total-amount').textContent = '¥' + data.total_amount.toLocaleString();
+                document.getElementById('donation-total-count').textContent = data.total_count.toLocaleString();
+                document.getElementById('donation-month-amount').textContent = '¥' + data.month_amount.toLocaleString();
+                document.getElementById('donation-month-count').textContent = data.month_count.toLocaleString();
+            } catch (error) {
+                console.error('Donation stats error:', error);
+            }
+        }
+        
+        // 寄付一覧を読み込む
+        async function refreshDonations() {
+            try {
+                const adminToken = localStorage.getItem('admin_token');
+                const search = document.getElementById('donation-search').value;
+                const url = '/api/admin/donations' + (search ? '?search=' + encodeURIComponent(search) : '');
+                
+                const response = await fetch(url, {
+                    headers: { 'Authorization': 'Bearer ' + adminToken }
+                });
+                const data = await response.json();
+                
+                const tbody = document.getElementById('donations-table-body');
+                if (data.donations.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">寄付データがありません</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                data.donations.forEach(function(donation) {
+                    const statusBadge = donation.status === 'completed' 
+                        ? '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">完了</span>'
+                        : '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">保留</span>';
+                    
+                    html += '<tr class="hover:bg-gray-50">';
+                    html += '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">' + donation.donation_id + '</td>';
+                    html += '<td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">' + donation.donor_name + '</div><div class="text-sm text-gray-500">' + donation.donor_email + '</div></td>';
+                    html += '<td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">¥' + donation.amount.toLocaleString() + '</td>';
+                    html += '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">' + (donation.certificate_number || '-') + '</td>';
+                    html += '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">' + new Date(donation.created_at).toLocaleDateString('ja-JP') + '</td>';
+                    html += '<td class="px-6 py-4 whitespace-nowrap">' + statusBadge + '</td>';
+                    html += '<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">';
+                    html += '<button onclick="viewDonation(' + donation.donation_id + ')" class="text-blue-600 hover:text-blue-900 mr-3"><i class="fas fa-eye mr-1"></i>詳細</button>';
+                    if (donation.certificate_number) {
+                        html += '<button onclick="downloadCertificate(\'' + donation.certificate_number + '\')" class="text-green-600 hover:text-green-900"><i class="fas fa-download mr-1"></i>証明書</button>';
+                    }
+                    html += '</td></tr>';
+                });
+                
+                tbody.innerHTML = html;
+            } catch (error) {
+                console.error('Donations load error:', error);
+                document.getElementById('donations-table-body').innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-red-500">エラーが発生しました</td></tr>';
+            }
+        }
+        
+        // 寄付詳細を表示（TODO: 実装）
+        function viewDonation(donationId) {
+            alert('寄付詳細機能は実装予定です (ID: ' + donationId + ')');
+        }
+        
+        // 証明書ダウンロード（TODO: 実装）
+        function downloadCertificate(certificateNumber) {
+            alert('証明書ダウンロード機能は実装予定です (証明書番号: ' + certificateNumber + ')');
+        }
 
         function logout() {
             localStorage.removeItem('admin_token');
@@ -583,6 +735,14 @@ const ADMIN_DASHBOARD_HTML = `
         // 初期化
         loadStats();
         refreshUsers();
+        
+        // 検索イベントリスナー
+        document.getElementById('donation-search').addEventListener('input', function() {
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(function() {
+                refreshDonations();
+            }, 500);
+        });
     </script>
 </body>
 </html>
@@ -7562,7 +7722,10 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   if (pathname === "/api/admin/donations" && req.method === "GET") {
     // TODO: 管理者認証チェック
     
-    const donations = await env.DB.prepare(`
+    const url = new URL(req.url);
+    const search = url.searchParams.get("search") || "";
+    
+    let query = `
       SELECT 
         d.donation_id,
         d.household_id,
@@ -7579,11 +7742,69 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         dc.certificate_number
       FROM donations d
       LEFT JOIN donation_certificates dc ON d.donation_id = dc.donation_id
-      ORDER BY d.created_at DESC
-      LIMIT 100
-    `).all();
+    `;
+    
+    if (search) {
+      query += ` WHERE d.donor_name LIKE ? OR d.donor_email LIKE ?`;
+    }
+    
+    query += ` ORDER BY d.created_at DESC LIMIT 100`;
+    
+    const donations = search 
+      ? await env.DB.prepare(query).bind(`%${search}%`, `%${search}%`).all()
+      : await env.DB.prepare(query).all();
     
     return json({ donations: donations.results || [] });
+  }
+  
+  // GET /api/admin/donations/stats - 寄付統計情報
+  if (pathname === "/api/admin/donations/stats" && req.method === "GET") {
+    // TODO: 管理者認証チェック
+    
+    try {
+      // 寄付総額と件数
+      const totalStats = await env.DB.prepare(`
+        SELECT 
+          COUNT(*) as total_count,
+          COALESCE(SUM(amount), 0) as total_amount
+        FROM donations
+        WHERE status = 'completed'
+      `).first();
+      
+      // 今月の寄付統計
+      const monthStats = await env.DB.prepare(`
+        SELECT 
+          COUNT(*) as month_count,
+          COALESCE(SUM(amount), 0) as month_amount
+        FROM donations
+        WHERE status = 'completed'
+          AND created_at >= date('now', 'start of month')
+      `).first();
+      
+      // 過去7日間の寄付推移
+      const dailyStats = await env.DB.prepare(`
+        SELECT 
+          DATE(created_at) as date,
+          COUNT(*) as count,
+          COALESCE(SUM(amount), 0) as amount
+        FROM donations
+        WHERE status = 'completed'
+          AND created_at >= date('now', '-7 days')
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+      `).all();
+      
+      return json({
+        total_count: totalStats?.total_count || 0,
+        total_amount: totalStats?.total_amount || 0,
+        month_count: monthStats?.month_count || 0,
+        month_amount: monthStats?.month_amount || 0,
+        daily_stats: dailyStats.results || []
+      });
+    } catch (error) {
+      console.error("Donation stats error:", error);
+      return json({ error: "Failed to fetch donation stats" }, { status: 500 });
+    }
   }
 
   // ========================================
