@@ -983,6 +983,16 @@ const USER_DASHBOARD_HTML = `
                 </a>
             </div>
             
+            <!-- ワンクリック献立生成 -->
+            <div id="quick-mode-card" class="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-6 text-white shadow-xl hidden">
+                <i class="fas fa-bolt text-4xl mb-4"></i>
+                <h2 class="text-2xl font-bold mb-2">ワンクリック献立</h2>
+                <p class="mb-4 opacity-90">保存済み設定で即座に生成</p>
+                <button onclick="quickGeneratePlan()" class="bg-white text-orange-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
+                    <i class="fas fa-magic mr-2"></i>生成する
+                </button>
+            </div>
+            
             <!-- 履歴 -->
             <div class="bg-gradient-to-br from-green-500 to-teal-500 rounded-2xl p-6 text-white shadow-xl">
                 <i class="fas fa-history text-4xl mb-4"></i>
@@ -1006,12 +1016,15 @@ const USER_DASHBOARD_HTML = `
         
         <!-- タブナビゲーション -->
         <div class="bg-white rounded-lg shadow-sm mb-6">
-            <div class="border-b border-gray-200 flex">
-                <button onclick="switchTab('history')" id="tab-history" class="px-6 py-3 font-semibold border-b-2 border-purple-600 text-purple-600">
+            <div class="border-b border-gray-200 flex overflow-x-auto">
+                <button onclick="switchTab('history')" id="tab-history" class="px-6 py-3 font-semibold border-b-2 border-purple-600 text-purple-600 whitespace-nowrap">
                     <i class="fas fa-history mr-2"></i>履歴
                 </button>
-                <button onclick="switchTab('favorites')" id="tab-favorites" class="px-6 py-3 font-semibold text-gray-600 hover:text-purple-600">
+                <button onclick="switchTab('favorites')" id="tab-favorites" class="px-6 py-3 font-semibold text-gray-600 hover:text-purple-600 whitespace-nowrap">
                     <i class="fas fa-heart mr-2"></i>お気に入り
+                </button>
+                <button onclick="switchTab('family')" id="tab-family" class="px-6 py-3 font-semibold text-gray-600 hover:text-purple-600 whitespace-nowrap">
+                    <i class="fas fa-users mr-2"></i>家族設定
                 </button>
                 <button onclick="switchTab('donations')" id="tab-donations" class="px-6 py-3 font-semibold text-gray-600 hover:text-purple-600">
                     <i class="fas fa-heart mr-2"></i>寄付履歴
@@ -1058,6 +1071,59 @@ const USER_DASHBOARD_HTML = `
                     <input type="email" id="profile-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg" disabled>
                 </div>
                 <p class="text-sm text-gray-500">※ プロフィール編集機能は近日公開予定です</p>
+            </div>
+        </div>
+        
+        <!-- 家族設定タブ -->
+        <div id="content-family" class="hidden bg-white rounded-lg shadow-sm p-6">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                    <i class="fas fa-users text-purple-600 mr-2"></i>家族メンバー管理
+                </h2>
+                <p class="text-gray-600">家族のメールアドレスを登録すると、毎日「今日の晩ご飯」が自動で通知されます。</p>
+            </div>
+            
+            <!-- 家族メンバー追加フォーム -->
+            <div class="bg-purple-50 rounded-lg p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-user-plus mr-2"></i>メンバーを追加
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">お名前 <span class="text-red-500">*</span></label>
+                        <input type="text" id="family-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="例: 田中 花子">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス <span class="text-red-500">*</span></label>
+                        <input type="email" id="family-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="例: hanako@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">続柄</label>
+                        <select id="family-relationship" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="spouse">配偶者</option>
+                            <option value="child">子供</option>
+                            <option value="parent">親</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">通知時刻</label>
+                        <input type="time" id="family-notification-time" value="15:00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                </div>
+                <button onclick="addFamilyMember()" class="mt-4 bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-semibold transition">
+                    <i class="fas fa-plus mr-2"></i>追加する
+                </button>
+            </div>
+            
+            <!-- 家族メンバー一覧 -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-list mr-2"></i>登録済みメンバー
+                </h3>
+                <div id="family-members-list" class="space-y-3">
+                    <p class="text-gray-500 text-center py-8">メンバーを追加してください</p>
+                </div>
             </div>
         </div>
     </main>
@@ -9313,6 +9379,247 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         'cache-control': 'no-store'
       }
     });
+  }
+  
+  // ========================================
+  // User Preferences API
+  // ========================================
+  
+  // POST /api/preferences/save - ユーザー設定保存
+  if (pathname === "/api/preferences/save" && req.method === "POST") {
+    const body = await readJson(req);
+    const { household_id, cuisine_style, plan_days, budget_tier, cooking_time_limit } = body;
+    
+    if (!household_id) {
+      return badRequest("Missing household_id");
+    }
+    
+    try {
+      // 既存の設定を確認
+      const existing = await env.DB.prepare(`
+        SELECT preference_id FROM user_preferences WHERE household_id = ?
+      `).bind(household_id).first();
+      
+      if (existing) {
+        // 更新
+        await env.DB.prepare(`
+          UPDATE user_preferences 
+          SET is_quick_mode_enabled = 1,
+              saved_cuisine_style = ?,
+              saved_plan_days = ?,
+              saved_budget_tier = ?,
+              saved_cooking_time_limit = ?,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE household_id = ?
+        `).bind(cuisine_style, plan_days, budget_tier, cooking_time_limit, household_id).run();
+      } else {
+        // 新規作成
+        await env.DB.prepare(`
+          INSERT INTO user_preferences 
+            (household_id, is_quick_mode_enabled, saved_cuisine_style, saved_plan_days, 
+             saved_budget_tier, saved_cooking_time_limit)
+          VALUES (?, 1, ?, ?, ?, ?)
+        `).bind(household_id, cuisine_style, plan_days, budget_tier, cooking_time_limit).run();
+      }
+      
+      return json({ success: true, message: "設定を保存しました" });
+    } catch (error) {
+      console.error("Save preferences error:", error);
+      return json({ error: "Failed to save preferences" }, { status: 500 });
+    }
+  }
+  
+  // GET /api/preferences/:household_id - ユーザー設定取得
+  if (pathname.startsWith("/api/preferences/") && req.method === "GET") {
+    const household_id = pathname.split("/")[3];
+    
+    if (!household_id) {
+      return badRequest("Missing household_id");
+    }
+    
+    try {
+      const preferences = await env.DB.prepare(`
+        SELECT * FROM user_preferences WHERE household_id = ?
+      `).bind(household_id).first();
+      
+      if (!preferences) {
+        return json({ 
+          is_quick_mode_enabled: 0,
+          saved_cuisine_style: '和食',
+          saved_plan_days: 7,
+          saved_budget_tier: null,
+          saved_cooking_time_limit: null
+        });
+      }
+      
+      return json(preferences);
+    } catch (error) {
+      console.error("Get preferences error:", error);
+      return json({ error: "Failed to get preferences" }, { status: 500 });
+    }
+  }
+  
+  // POST /api/preferences/quick-generate - ワンクリック献立生成
+  if (pathname === "/api/preferences/quick-generate" && req.method === "POST") {
+    const body = await readJson(req);
+    const { household_id } = body;
+    
+    if (!household_id) {
+      return badRequest("Missing household_id");
+    }
+    
+    try {
+      // 保存された設定を取得
+      const preferences = await env.DB.prepare(`
+        SELECT * FROM user_preferences WHERE household_id = ?
+      `).bind(household_id).first();
+      
+      if (!preferences || !preferences.is_quick_mode_enabled) {
+        return json({ error: "Quick mode not enabled" }, { status: 400 });
+      }
+      
+      // 世帯情報を取得
+      const household = await env.DB.prepare(`
+        SELECT * FROM households WHERE household_id = ?
+      `).bind(household_id).first();
+      
+      if (!household) {
+        return json({ error: "Household not found" }, { status: 404 });
+      }
+      
+      // 献立生成処理（既存のロジックを再利用）
+      // この部分は後で実装します - とりあえず保存された設定を返す
+      return json({
+        success: true,
+        preferences: {
+          cuisine_style: preferences.saved_cuisine_style,
+          plan_days: preferences.saved_plan_days,
+          budget_tier: preferences.saved_budget_tier,
+          cooking_time_limit: preferences.saved_cooking_time_limit
+        },
+        household: household
+      });
+    } catch (error) {
+      console.error("Quick generate error:", error);
+      return json({ error: "Failed to generate meal plan" }, { status: 500 });
+    }
+  }
+  
+  // ========================================
+  // Family Members API
+  // ========================================
+  
+  // POST /api/family-members/add - 家族メンバー追加
+  if (pathname === "/api/family-members/add" && req.method === "POST") {
+    const body = await readJson(req);
+    const { household_id, name, email, relationship, notification_time } = body;
+    
+    if (!household_id || !name || !email) {
+      return badRequest("Missing required fields");
+    }
+    
+    try {
+      // 既存メンバーチェック
+      const existing = await env.DB.prepare(`
+        SELECT member_id FROM family_members 
+        WHERE household_id = ? AND email = ?
+      `).bind(household_id, email).first();
+      
+      if (existing) {
+        return json({ error: "このメールアドレスは既に登録されています" }, { status: 400 });
+      }
+      
+      // メンバー追加
+      const result = await env.DB.prepare(`
+        INSERT INTO family_members 
+          (household_id, name, email, relationship, notification_time, is_notification_enabled, status)
+        VALUES (?, ?, ?, ?, ?, 1, 'active')
+      `).bind(household_id, name, email, relationship || 'family', notification_time || '15:00').run();
+      
+      return json({ 
+        success: true, 
+        member_id: result.meta.last_row_id,
+        message: "家族メンバーを追加しました" 
+      });
+    } catch (error) {
+      console.error("Add family member error:", error);
+      return json({ error: "Failed to add family member" }, { status: 500 });
+    }
+  }
+  
+  // GET /api/family-members/:household_id - 家族メンバー一覧
+  if (pathname.startsWith("/api/family-members/") && req.method === "GET") {
+    const household_id = pathname.split("/")[3];
+    
+    if (!household_id) {
+      return badRequest("Missing household_id");
+    }
+    
+    try {
+      const members = await env.DB.prepare(`
+        SELECT 
+          member_id, name, email, relationship, 
+          is_notification_enabled, notification_time, 
+          status, created_at
+        FROM family_members 
+        WHERE household_id = ?
+        ORDER BY created_at ASC
+      `).bind(household_id).all();
+      
+      return json({ members: members.results || [] });
+    } catch (error) {
+      console.error("Get family members error:", error);
+      return json({ error: "Failed to get family members" }, { status: 500 });
+    }
+  }
+  
+  // PUT /api/family-members/:member_id/toggle - 通知ON/OFF切り替え
+  if (pathname.match(/^\/api\/family-members\/\d+\/toggle$/) && req.method === "PUT") {
+    const member_id = pathname.split("/")[3];
+    
+    try {
+      // 現在の状態を取得
+      const member = await env.DB.prepare(`
+        SELECT is_notification_enabled FROM family_members WHERE member_id = ?
+      `).bind(member_id).first();
+      
+      if (!member) {
+        return json({ error: "Member not found" }, { status: 404 });
+      }
+      
+      // トグル
+      const newStatus = member.is_notification_enabled === 1 ? 0 : 1;
+      await env.DB.prepare(`
+        UPDATE family_members 
+        SET is_notification_enabled = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE member_id = ?
+      `).bind(newStatus, member_id).run();
+      
+      return json({ 
+        success: true, 
+        is_notification_enabled: newStatus,
+        message: newStatus === 1 ? "通知を有効にしました" : "通知を無効にしました"
+      });
+    } catch (error) {
+      console.error("Toggle notification error:", error);
+      return json({ error: "Failed to toggle notification" }, { status: 500 });
+    }
+  }
+  
+  // DELETE /api/family-members/:member_id - メンバー削除
+  if (pathname.match(/^\/api\/family-members\/\d+$/) && req.method === "DELETE") {
+    const member_id = pathname.split("/")[3];
+    
+    try {
+      await env.DB.prepare(`
+        DELETE FROM family_members WHERE member_id = ?
+      `).bind(member_id).run();
+      
+      return json({ success: true, message: "メンバーを削除しました" });
+    } catch (error) {
+      console.error("Delete family member error:", error);
+      return json({ error: "Failed to delete family member" }, { status: 500 });
+    }
   }
 
   return json({ error: { message: "Not Found" } }, 404);
