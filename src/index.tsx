@@ -5846,7 +5846,8 @@ app.use('/api/*', cors())
 // 静的ファイル配信
 app.use('/static/*', serveStatic({ root: './public' }))
 app.use('/images/*', serveStatic({ root: './public' }))
-app.use('/landing.html', serveStatic({ path: './public/landing.html' }))
+app.use('/*.html', serveStatic({ root: './public' }))
+app.use('/payment/*', serveStatic({ root: './public' }))
 
 // ========================================
 // ユーティリティ関数
