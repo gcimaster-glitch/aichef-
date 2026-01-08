@@ -356,6 +356,9 @@ const USER_DASHBOARD_HTML = `
                 <button onclick="switchTab('favorites')" id="tab-favorites" class="px-6 py-3 font-semibold text-gray-600 hover:text-purple-600">
                     <i class="fas fa-heart mr-2"></i>お気に入り
                 </button>
+                <button onclick="switchTab('donations')" id="tab-donations" class="px-6 py-3 font-semibold text-gray-600 hover:text-purple-600">
+                    <i class="fas fa-heart mr-2"></i>寄付履歴
+                </button>
                 <button onclick="switchTab('profile')" id="tab-profile" class="px-6 py-3 font-semibold text-gray-600 hover:text-purple-600">
                     <i class="fas fa-user mr-2"></i>プロフィール
                 </button>
@@ -374,6 +377,15 @@ const USER_DASHBOARD_HTML = `
             <h2 class="text-2xl font-bold text-gray-800 mb-6">お気に入りレシピ</h2>
             <div id="favorites-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <p class="text-gray-500">お気に入りを読み込み中...</p>
+            </div>
+        </div>
+        
+        <div id="content-donations" class="hidden bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                <i class="fas fa-heart text-red-500 mr-2"></i>寄付履歴
+            </h2>
+            <div id="donations-list" class="space-y-4">
+                <p class="text-gray-500">寄付履歴を読み込み中...</p>
             </div>
         </div>
         
@@ -417,6 +429,7 @@ const USER_DASHBOARD_HTML = `
             // データ読み込み
             await loadHistory();
             await loadFavorites();
+            await loadDonations();
         }
         
         // 履歴読み込み
@@ -489,9 +502,65 @@ const USER_DASHBOARD_HTML = `
             }
         }
         
+        // 寄付履歴読み込み
+        async function loadDonations() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    return;
+                }
+
+                const response = await fetch('/api/donations/my-history', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await response.json();
+                
+                const listEl = document.getElementById('donations-list');
+                if (data.donations && data.donations.length > 0) {
+                    listEl.innerHTML = data.donations.map(d => {
+                        const date = new Date(d.created_at).toLocaleDateString('ja-JP');
+                        const statusText = d.status === 'completed' ? '完了' : d.status === 'pending' ? '保留中' : d.status;
+                        const statusColor = d.status === 'completed' ? 'text-green-600' : 'text-yellow-600';
+                        
+                        return '<div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">' +
+                            '<div class="flex justify-between items-start">' +
+                                '<div class="flex-1">' +
+                                    '<div class="flex items-center gap-2 mb-2">' +
+                                        '<h3 class="font-bold text-lg text-gray-800">¥' + d.amount.toLocaleString() + '</h3>' +
+                                        '<span class="text-xs px-2 py-1 rounded ' + statusColor + ' bg-opacity-10">' + statusText + '</span>' +
+                                    '</div>' +
+                                    '<p class="text-sm text-gray-600 mb-1">' +
+                                        '<i class="fas fa-certificate mr-1 text-purple-600"></i>証明書番号: ' + d.certificate_number +
+                                    '</p>' +
+                                    '<p class="text-sm text-gray-600 mb-1">' +
+                                        '<i class="far fa-calendar mr-1"></i>寄付日: ' + date +
+                                    '</p>' +
+                                    '<p class="text-sm text-gray-600">' +
+                                        '<i class="fas fa-coins mr-1"></i>支援単位: ' + d.unit_count + '口' +
+                                    '</p>' +
+                                    (d.message ? '<p class="text-sm text-gray-500 mt-2 italic">' + d.message + '</p>' : '') +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                    }).join('');
+                } else {
+                    listEl.innerHTML = '<div class="text-center py-8">' +
+                        '<i class="fas fa-heart text-gray-300 text-6xl mb-4"></i>' +
+                        '<p class="text-gray-500">まだ寄付履歴がありません</p>' +
+                        '<p class="text-sm text-gray-400 mt-2">AICHEFSを応援して、献立作成を快適に！</p>' +
+                        '<a href="/donate" class="inline-block mt-4 bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition">' +
+                            '<i class="fas fa-heart mr-2"></i>寄付をする' +
+                        '</a>' +
+                    '</div>';
+                }
+            } catch (error) {
+                console.error('Donations load error:', error);
+            }
+        }
+        
         // タブ切り替え
         function switchTab(tab) {
-            ['history', 'favorites', 'profile'].forEach(t => {
+            ['history', 'favorites', 'donations', 'profile'].forEach(t => {
                 document.getElementById(\`content-\${t}\`).classList.add('hidden');
                 document.getElementById(\`tab-\${t}\`).classList.remove('border-b-2', 'border-purple-600', 'text-purple-600');
                 document.getElementById(\`tab-\${t}\`).classList.add('text-gray-600');
@@ -6629,6 +6698,38 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     return json({ stats: stats || {} });
   }
   
+  // GET /api/donations/my-history - ユーザー別寄付履歴を取得
+  if (pathname === "/api/donations/my-history" && req.method === "GET") {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    
+    const token = authHeader.substring(7);
+    const household_id = token; // tokenをhousehold_idとして使用
+    
+    const donations = await env.DB.prepare(`
+      SELECT 
+        d.donation_id,
+        d.donor_name,
+        d.donor_email,
+        d.amount,
+        d.unit_count,
+        d.message,
+        d.status,
+        d.payment_method,
+        d.created_at,
+        dc.certificate_number,
+        dc.issue_date
+      FROM donations d
+      LEFT JOIN donation_certificates dc ON d.donation_id = dc.donation_id
+      WHERE d.household_id = ?
+      ORDER BY d.created_at DESC
+    `).bind(household_id).all();
+    
+    return json({ donations: donations.results || [] });
+  }
+  
   // GET /api/donations/certificate/:donation_id - 寄付証明書を取得
   if (pathname.match(/^\/api\/donations\/certificate\/[^/]+$/) && req.method === "GET") {
     const donation_id = pathname.split("/").pop();
@@ -8980,13 +9081,27 @@ const DONATION_LP_HTML = `
             buttonText.classList.add('hidden');
             buttonSpinner.classList.remove('hidden');
             
+            // ログインユーザーのhousehold_idを取得
+            const authToken = localStorage.getItem('auth_token');
+            const userStr = localStorage.getItem('user');
+            let household_id = null;
+            if (authToken && userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    household_id = user.household_id || authToken; // household_idまたはトークンをIDとして使用
+                } catch (e) {
+                    console.error('ユーザー情報の解析エラー:', e);
+                }
+            }
+            
             const formData = {
                 donor_name: document.getElementById('donor_name').value,
                 donor_email: document.getElementById('donor_email').value,
                 donor_phone: document.getElementById('donor_phone').value || null,
                 unit_count: parseInt(document.getElementById('unit_count').value),
                 message: document.getElementById('message').value || null,
-                is_public: document.getElementById('is_public').checked ? 1 : 0
+                is_public: document.getElementById('is_public').checked ? 1 : 0,
+                household_id: household_id  // ログインユーザーのIDを追加
             };
             
             try {
