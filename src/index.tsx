@@ -838,6 +838,8 @@ const appHtml = `<!DOCTYPE html>
     <title>Aメニュー - 毎日の献立を考える負担から解放</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* 印刷用スタイル */
         @media print {
@@ -1254,10 +1256,29 @@ const appHtml = `<!DOCTYPE html>
                         <i class="fas fa-print"></i>
                         印刷する
                     </button>
-                    <button onclick="handleDownloadCalendar()" class="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-2">
-                        <i class="fas fa-download"></i>
-                        ダウンロード
-                    </button>
+                    <div class="relative">
+                        <button onclick="toggleDownloadMenu()" class="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-2">
+                            <i class="fas fa-download"></i>
+                            ダウンロード
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div id="download-menu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-50 border border-gray-200">
+                            <button onclick="downloadAsPDF()" class="w-full text-left px-4 py-3 hover:bg-purple-50 transition flex items-center gap-3 border-b border-gray-100">
+                                <i class="fas fa-file-pdf text-red-500"></i>
+                                <div>
+                                    <div class="font-semibold text-gray-800">PDF形式</div>
+                                    <div class="text-xs text-gray-500">印刷向け</div>
+                                </div>
+                            </button>
+                            <button onclick="handleDownloadCalendar()" class="w-full text-left px-4 py-3 hover:bg-purple-50 transition flex items-center gap-3">
+                                <i class="fas fa-calendar text-purple-500"></i>
+                                <div>
+                                    <div class="font-semibold text-gray-800">カレンダー形式</div>
+                                    <div class="text-xs text-gray-500">Google/Appleカレンダー</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
                     <div id="user-info" class="hidden px-4 py-2 bg-gray-100 rounded-lg flex items-center gap-2">
                         <i class="fas fa-user-circle text-gray-600"></i>
                         <a href="/dashboard" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
@@ -3210,6 +3231,9 @@ const appHtml = `<!DOCTYPE html>
         }
         
         function showShoppingListModal(data) {
+            // データを保存（PDF生成用）
+            currentShoppingData = data;
+            
             const modal = document.getElementById('shopping-modal');
             const content = document.getElementById('shopping-modal-content');
             
@@ -3305,6 +3329,9 @@ const appHtml = `<!DOCTYPE html>
             
             html += \`
                 <div class="mt-6 flex gap-2 justify-end print:hidden">
+                    <button onclick="downloadShoppingListPDF()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                        <i class="fas fa-file-pdf"></i> PDFダウンロード
+                    </button>
                     <button onclick="printShoppingList()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
                         <i class="fas fa-print"></i> 印刷
                     </button>
@@ -3391,6 +3418,118 @@ const appHtml = `<!DOCTYPE html>
         
         function printShoppingList() {
             window.print();
+        }
+        
+        // 買い物リストPDFダウンロード
+        let currentShoppingData = null; // 買い物リストデータを保持
+        
+        async function downloadShoppingListPDF() {
+            if (!currentShoppingData) {
+                alert('買い物リストデータがありません');
+                return;
+            }
+            
+            // ローディング表示
+            const loadingToast = document.createElement('div');
+            loadingToast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3';
+            loadingToast.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div><span>買い物リストPDFを生成中...</span>';
+            document.body.appendChild(loadingToast);
+            
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                doc.setFont('helvetica');
+                
+                // タイトル
+                doc.setFontSize(18);
+                doc.text('買い物リスト', 105, 20, { align: 'center' });
+                
+                // 期間情報
+                doc.setFontSize(10);
+                const periodInfo = currentShoppingData.startDate && currentShoppingData.endDate
+                    ? currentShoppingData.startDate + ' ~ ' + currentShoppingData.endDate
+                    : '期間不明';
+                doc.text('期間: ' + periodInfo, 105, 27, { align: 'center' });
+                doc.text('人数: ' + (currentShoppingData.membersCount || 2) + '人分', 105, 32, { align: 'center' });
+                doc.text('合計: ' + currentShoppingData.totalItems + '品目', 105, 37, { align: 'center' });
+                
+                let y = 48;
+                
+                // カテゴリ別リスト
+                const categories = Object.keys(currentShoppingData.shoppingList || {});
+                
+                categories.forEach((category, catIndex) => {
+                    const items = currentShoppingData.shoppingList[category] || [];
+                    
+                    if (items.length === 0) return;
+                    
+                    // ページ分割チェック
+                    if (y > 250) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    
+                    // カテゴリ名
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(category, 15, y);
+                    y += 6;
+                    
+                    // アイテム
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'normal');
+                    
+                    items.forEach((item, index) => {
+                        if (y > 270) {
+                            doc.addPage();
+                            y = 20;
+                        }
+                        
+                        // チェックボックス風
+                        doc.rect(17, y - 3, 3, 3);
+                        
+                        // アイテム名と数量
+                        const text = item.ingredient_name + ' ... ' + item.quantity;
+                        doc.text(text, 22, y);
+                        
+                        y += 5;
+                    });
+                    
+                    y += 3; // カテゴリ間の余白
+                });
+                
+                // フッター
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150);
+                    doc.text('AICHEFS - AI献立 買い物リスト', 105, 287, { align: 'center' });
+                    doc.text('Page ' + i + ' of ' + pageCount, 195, 287, { align: 'right' });
+                }
+                
+                // ダウンロード
+                const filename = 'aichef_shopping_' + new Date().toISOString().split('T')[0] + '.pdf';
+                doc.save(filename);
+                
+                // 成功メッセージ
+                document.body.removeChild(loadingToast);
+                const successToast = document.createElement('div');
+                successToast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3';
+                successToast.innerHTML = '<i class="fas fa-check-circle"></i><span>買い物リストPDFをダウンロードしました！</span>';
+                document.body.appendChild(successToast);
+                setTimeout(() => document.body.removeChild(successToast), 3000);
+                
+            } catch (error) {
+                console.error('買い物リストPDF生成エラー:', error);
+                document.body.removeChild(loadingToast);
+                alert('PDFの生成に失敗しました。もう一度お試しください。');
+            }
         }
         
         // ========================================
@@ -4229,7 +4368,129 @@ const appHtml = `<!DOCTYPE html>
             alert('カレンダーファイルをダウンロードしました！\\n\\nGoogleカレンダーやAppleカレンダーにインポートしてご利用ください。');
         }
         
+        // ダウンロードメニューの表示/非表示
+        function toggleDownloadMenu() {
+            const menu = document.getElementById('download-menu');
+            menu.classList.toggle('hidden');
+        }
+        
+        // メニュー外クリックで閉じる
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('download-menu');
+            const btn = e.target.closest('button');
+            if (menu && !menu.contains(e.target) && (!btn || btn.textContent.indexOf('ダウンロード') === -1)) {
+                menu.classList.add('hidden');
+            }
+        });
+        
+        // PDF生成関数
+        async function downloadAsPDF() {
+            if (!calendarData || calendarData.length === 0) {
+                alert('献立データがありません');
+                return;
+            }
+            
+            // メニューを閉じる
+            document.getElementById('download-menu').classList.add('hidden');
+            
+            // ローディング表示
+            const loadingToast = document.createElement('div');
+            loadingToast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3';
+            loadingToast.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div><span>PDFを生成中...</span>';
+            document.body.appendChild(loadingToast);
+            
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                // 日本語フォント設定（簡易版 - ブラウザのデフォルトフォント使用）
+                doc.setFont('helvetica');
+                
+                // タイトル
+                const title = document.getElementById('plan-title').textContent || '献立カレンダー';
+                doc.setFontSize(20);
+                doc.text(title, 105, 20, { align: 'center' });
+                
+                // 作成日
+                const today = new Date().toLocaleDateString('ja-JP');
+                doc.setFontSize(10);
+                doc.text('作成日: ' + today, 105, 28, { align: 'center' });
+                
+                // 献立一覧
+                let y = 40;
+                doc.setFontSize(12);
+                
+                calendarData.forEach((day, index) => {
+                    // ページ分割チェック
+                    if (y > 260) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    
+                    // 日付
+                    const date = new Date(day.date).toLocaleDateString('ja-JP', { 
+                        month: 'long', 
+                        day: 'numeric',
+                        weekday: 'short'
+                    });
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(date, 15, y);
+                    
+                    // レシピ
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(10);
+                    
+                    const mainTitle = (day.main && day.main.title) || '未定';
+                    const sideTitle = (day.side && day.side.title) || '未定';
+                    const soupTitle = (day.soup && day.soup.title) || '未定';
+                    
+                    doc.text('主菜: ' + mainTitle, 20, y + 5);
+                    doc.text('副菜: ' + sideTitle, 20, y + 10);
+                    doc.text('汁物: ' + soupTitle, 20, y + 15);
+                    
+                    // 区切り線
+                    doc.setDrawColor(200, 200, 200);
+                    doc.line(15, y + 18, 195, y + 18);
+                    
+                    y += 23;
+                });
+                
+                // フッター
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150);
+                    doc.text('AICHEFS - AI献立カレンダー', 105, 287, { align: 'center' });
+                    doc.text('Page ' + i + ' of ' + pageCount, 195, 287, { align: 'right' });
+                }
+                
+                // ダウンロード
+                const filename = 'aichef_menu_' + new Date().toISOString().split('T')[0] + '.pdf';
+                doc.save(filename);
+                
+                // 成功メッセージ
+                document.body.removeChild(loadingToast);
+                const successToast = document.createElement('div');
+                successToast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3';
+                successToast.innerHTML = '<i class="fas fa-check-circle"></i><span>PDFをダウンロードしました！</span>';
+                document.body.appendChild(successToast);
+                setTimeout(() => document.body.removeChild(successToast), 3000);
+                
+            } catch (error) {
+                console.error('PDF生成エラー:', error);
+                document.body.removeChild(loadingToast);
+                alert('PDFの生成に失敗しました。もう一度お試しください。');
+            }
+        }
+        
         window.printShoppingList = printShoppingList;
+        window.downloadShoppingListPDF = downloadShoppingListPDF;
         window.trackAdClick = trackAdClick;
         window.loadHistory = loadHistory;
         window.archiveHistory = archiveHistory;
@@ -4241,6 +4502,8 @@ const appHtml = `<!DOCTYPE html>
         window.switchToRegister = switchToRegister;
         window.handlePrint = handlePrint;
         window.handleDownloadCalendar = handleDownloadCalendar;
+        window.downloadAsPDF = downloadAsPDF;
+        window.toggleDownloadMenu = toggleDownloadMenu;
         window.logout = logout;
         
         // ドラッグ&ドロップ用のグローバル変数
