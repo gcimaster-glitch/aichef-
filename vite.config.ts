@@ -6,7 +6,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [
     build({
-      exclude: ['/static/*', '/images/*', '/landing.html', '/pricing.html', '/legal.html', '/payment/*']
+      exclude: ['/static/*', '/images/*', '/landing.html', '/about.html', '/pricing.html', '/legal.html', '/payment/*']
     }),
     devServer({
       adapter,
