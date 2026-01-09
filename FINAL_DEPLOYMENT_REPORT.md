@@ -7,16 +7,21 @@
 
 ## 🌐 **本番URL**
 
-### **最新デプロイメント**
+### **カスタムドメイン（最新）**
 ```
-https://89e34449.aichef-595.pages.dev
+https://aichefs.net
 ```
 
 ### **主要ページ（すべて正常動作）**
-- 🏠 **ランディングページ**: https://89e34449.aichef-595.pages.dev/
-- 💝 **企画背景**: https://89e34449.aichef-595.pages.dev/about.html
-- 💳 **寄付・プラン**: https://89e34449.aichef-595.pages.dev/pricing.html
-- 📄 **特定商取引法**: https://89e34449.aichef-595.pages.dev/legal.html
+- 🏠 **ランディングページ**: https://aichefs.net/
+- 💝 **企画背景**: https://aichefs.net/about.html
+- 💳 **寄付・プラン**: https://aichefs.net/pricing.html
+- 📄 **特定商取引法**: https://aichefs.net/legal.html
+
+### **過去のデプロイメント（参考）**
+- https://0f7f641b.aichef-595.pages.dev (最新)
+- https://89e34449.aichef-595.pages.dev
+- https://7217dcba.aichef-595.pages.dev
 
 ---
 
