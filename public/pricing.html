@@ -75,12 +75,9 @@
                     <select id="donation-amount" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
                         <option value="1000">1,000円</option>
                         <option value="3000" selected>3,000円</option>
-                        <option value="5000">5,000円 (一時的に利用不可)</option>
+                        <option value="5000">5,000円</option>
                         <option value="10000">10,000円</option>
                     </select>
-                    <p class="mt-2 text-sm text-red-600">
-                        ⚠️ ¥5,000は設定調整中のため、一時的にご利用いただけません。¥1,000、¥3,000、¥10,000をご利用ください。
-                    </p>
                 </div>
 
                 <button onclick="startDonation()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition shadow-lg">
@@ -189,12 +186,6 @@
             if (!info) return;
 
             const amount = parseInt(document.getElementById('donation-amount').value);
-            
-            // ¥5,000の場合は警告を表示
-            if (amount === 5000) {
-                alert('申し訳ございません。¥5,000の寄付は現在設定調整中のため、一時的にご利用いただけません。\n\n¥1,000、¥3,000、または¥10,000をご選択ください。');
-                return;
-            }
             
             try {
                 const response = await fetch('/api/payment/donation', {
