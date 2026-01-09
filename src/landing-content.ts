@@ -288,7 +288,12 @@ export const LANDING_HTML = `<!DOCTYPE html>
                 <span style="font-weight: 700; font-size: 1.2rem;">AICHEFS</span>
                 <span style="font-weight: 400; font-size: 0.9rem; opacity: 0.8;">AIシェフ</span>
             </a>
-            <a href="/app" class="nav-button">今すぐ始める</a>
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="/about.html" style="text-decoration: none; color: #4b5563; font-weight: 600; transition: color 0.3s ease;" onmouseover="this.style.color='#667eea'" onmouseout="this.style.color='#4b5563'">
+                    <i class="fas fa-info-circle" style="margin-right: 0.25rem;"></i>企画背景
+                </a>
+                <a href="/app" class="nav-button">今すぐ始める</a>
+            </div>
         </div>
     </nav>
 
@@ -588,6 +593,28 @@ export const LANDING_HTML = `<!DOCTYPE html>
                         </button>
                     </div>
                     <p id="newsletter-message" style="margin-top:0.5rem;font-size:0.875rem;"></p>
+                </div>
+                
+                <!-- サービス情報 -->
+                <div>
+                    <h3 style="font-size:1.5rem;font-weight:700;margin-bottom:1rem;">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        サービス情報
+                    </h3>
+                    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                        <a href="/about.html" style="color:white;text-decoration:none;opacity:0.8;transition:opacity 0.2s;display:flex;align-items:center;gap:0.5rem;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                            <i class="fas fa-heart"></i>
+                            企画背景・私たちの想い
+                        </a>
+                        <a href="/pricing.html" style="color:white;text-decoration:none;opacity:0.8;transition:opacity 0.2s;display:flex;align-items:center;gap:0.5rem;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                            <i class="fas fa-hand-holding-heart"></i>
+                            応援寄付・プラン選択
+                        </a>
+                        <a href="/legal.html" style="color:white;text-decoration:none;opacity:0.8;transition:opacity 0.2s;display:flex;align-items:center;gap:0.5rem;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                            <i class="fas fa-file-contract"></i>
+                            特定商取引法に基づく表示
+                        </a>
+                    </div>
                 </div>
                 
                 <!-- お問い合わせ -->

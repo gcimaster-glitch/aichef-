@@ -21,6 +21,7 @@ export function getStripeClient(env: any): Stripe {
 /**
  * 寄付用Checkout Sessionを作成
  * Stripe APIを直接HTTPで呼び出し
+ * Price IDを使用して決済を作成
  */
 export async function createDonationCheckout(
   stripe: Stripe,
@@ -29,6 +30,21 @@ export async function createDonationCheckout(
   email: string,
   amount: number = 1000
 ): Promise<string> {
+  // 金額に応じたPrice IDをマッピング
+  const priceIdMap: { [key: number]: string } = {
+    1000: env.STRIPE_PRICE_ID_1000,
+    2000: env.STRIPE_PRICE_ID_1000, // 2000円は1000円のPrice IDを使用（要修正）
+    3000: env.STRIPE_PRICE_ID_3000,
+    5000: env.STRIPE_PRICE_ID_5000,
+    10000: env.STRIPE_PRICE_ID_10000,
+  };
+
+  const priceId = priceIdMap[amount];
+  
+  if (!priceId) {
+    throw new Error(`Price ID not configured for amount: ${amount}`);
+  }
+
   const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
     method: 'POST',
     headers: {
@@ -37,18 +53,21 @@ export async function createDonationCheckout(
     },
     body: new URLSearchParams({
       'mode': 'payment',
-      'line_items[0][price_data][currency]': 'jpy',
-      'line_items[0][price_data][product_data][name]': 'AIシェフ応援寄付',
-      'line_items[0][price_data][product_data][description]': '寄付いただくことで、AIシェフを無料でご利用いただけます。',
-      'line_items[0][price_data][unit_amount]': amount.toString(),
+      'line_items[0][price]': priceId,
       'line_items[0][quantity]': '1',
       'customer_email': email,
       'success_url': `${env.APP_URL || 'https://aichefs.net'}/payment/success.html?session_id={CHECKOUT_SESSION_ID}`,
       'cancel_url': `${env.APP_URL || 'https://aichefs.net'}/payment/cancel.html`,
       'metadata[household_id]': householdId,
       'metadata[payment_type]': 'donation',
+      'metadata[amount]': amount.toString(),
     }).toString(),
   });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`Stripe API Error: ${error.error?.message || 'Unknown error'}`);
+  }
 
   const session = await response.json();
   return session.url || '';
@@ -90,6 +109,11 @@ export async function createSubscriptionCheckout(
       'metadata[payment_type]': 'subscription',
     }).toString(),
   });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`Stripe API Error: ${error.error?.message || 'Unknown error'}`);
+  }
 
   const session = await response.json();
   return session.url || '';
