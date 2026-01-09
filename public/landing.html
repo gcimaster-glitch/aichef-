@@ -270,6 +270,13 @@
             background: #764ba2;
             transform: scale(1.05);
         }
+        
+        /* 寄付金額ボタンのホバー効果 */
+        .donation-amount-btn:hover {
+            border-color: #667eea !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
+        }
     </style>
 </head>
 <body>
@@ -447,6 +454,104 @@
     <!-- 広告枠（フッター上） -->
     <div id="ad-bottom" class="ad-container" style="display:flex;justify-content:center;padding:40px 0;background:#f9fafb;"></div>
 
+    <!-- 寄付CTAセクション -->
+    <section id="donation" style="background:#fff8f0;padding:80px 20px;">
+        <div style="max-width:900px;margin:0 auto;">
+            <div style="text-align:center;margin-bottom:3rem;">
+                <div style="display:inline-block;background:linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);color:white;padding:8px 20px;border-radius:20px;font-size:0.9rem;font-weight:600;margin-bottom:1.5rem;">
+                    <i class="fas fa-heart mr-2"></i>
+                    応援プログラム
+                </div>
+                <h2 style="font-size:2.5rem;font-weight:700;color:#1a202c;margin-bottom:1rem;">
+                    寄付で応援して、<br class="md:hidden">ずっと無料で使える
+                </h2>
+                <p style="font-size:1.2rem;color:#4b5563;line-height:1.8;">
+                    AICHEFS AIシェフは、すべての機能が完全無料です。<br>
+                    あなたの寄付が、このサービスを支え、より多くの方に献立の悩みから解放される機会を提供します。
+                </p>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:2rem;margin-bottom:3rem;">
+                <!-- 寄付の特典1 -->
+                <div style="background:white;padding:2rem;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);text-align:center;">
+                    <div style="font-size:3rem;margin-bottom:1rem;">
+                        <i class="fas fa-infinity" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i>
+                    </div>
+                    <h3 style="font-size:1.3rem;font-weight:700;color:#1a202c;margin-bottom:0.5rem;">全機能 永久無料</h3>
+                    <p style="color:#6b7280;line-height:1.6;">
+                        1,000円以上のご寄付で、すべての機能を制限なく、<strong>期限なし</strong>でご利用いただけます。
+                    </p>
+                </div>
+                
+                <!-- 寄付の特典2 -->
+                <div style="background:white;padding:2rem;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);text-align:center;">
+                    <div style="font-size:3rem;margin-bottom:1rem;">
+                        <i class="fas fa-sparkles" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i>
+                    </div>
+                    <h3 style="font-size:1.3rem;font-weight:700;color:#1a202c;margin-bottom:0.5rem;">新機能を優先体験</h3>
+                    <p style="color:#6b7280;line-height:1.6;">
+                        寄付者様には、新機能やプレミアムレシピを一般公開より<strong>早く</strong>お届けします。
+                    </p>
+                </div>
+                
+                <!-- 寄付の特典3 -->
+                <div style="background:white;padding:2rem;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);text-align:center;">
+                    <div style="font-size:3rem;margin-bottom:1rem;">
+                        <i class="fas fa-handshake" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i>
+                    </div>
+                    <h3 style="font-size:1.3rem;font-weight:700;color:#1a202c;margin-bottom:0.5rem;">サービス存続をサポート</h3>
+                    <p style="color:#6b7280;line-height:1.6;">
+                        あなたの支援が、運営コストを支え、<strong>持続可能</strong>なサービス提供を実現します。
+                    </p>
+                </div>
+            </div>
+            
+            <!-- 寄付金額の選択肢 -->
+            <div style="background:white;padding:2.5rem;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.1);">
+                <h3 style="font-size:1.5rem;font-weight:700;color:#1a202c;margin-bottom:1.5rem;text-align:center;">
+                    <i class="fas fa-gift mr-2" style="color:#ef4444;"></i>
+                    応援金額を選ぶ
+                </h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:1rem;margin-bottom:2rem;">
+                    <button onclick="selectDonationAmount(1000)" class="donation-amount-btn" style="padding:1.5rem 1rem;background:#f3f4f6;border:2px solid #e5e7eb;border-radius:12px;font-size:1.2rem;font-weight:700;color:#1a202c;cursor:pointer;transition:all 0.3s ease;">
+                        ¥1,000
+                    </button>
+                    <button onclick="selectDonationAmount(3000)" class="donation-amount-btn" style="padding:1.5rem 1rem;background:#f3f4f6;border:2px solid #e5e7eb;border-radius:12px;font-size:1.2rem;font-weight:700;color:#1a202c;cursor:pointer;transition:all 0.3s ease;">
+                        ¥3,000
+                    </button>
+                    <button onclick="selectDonationAmount(5000)" class="donation-amount-btn" style="padding:1.5rem 1rem;background:#f3f4f6;border:2px solid #e5e7eb;border-radius:12px;font-size:1.2rem;font-weight:700;color:#1a202c;cursor:pointer;transition:all 0.3s ease;">
+                        <div style="background:linear-gradient(135deg, #f59e0b, #ef4444);color:white;padding:2px 8px;border-radius:8px;font-size:0.7rem;margin-bottom:4px;">おすすめ</div>
+                        ¥5,000
+                    </button>
+                    <button onclick="selectDonationAmount(10000)" class="donation-amount-btn" style="padding:1.5rem 1rem;background:#f3f4f6;border:2px solid #e5e7eb;border-radius:12px;font-size:1.2rem;font-weight:700;color:#1a202c;cursor:pointer;transition:all 0.3s ease;">
+                        ¥10,000
+                    </button>
+                </div>
+                <div style="text-align:center;">
+                    <a href="/pricing.html" id="donate-link" style="display:inline-block;padding:18px 48px;background:linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);color:white;font-size:1.2rem;font-weight:700;border-radius:50px;text-decoration:none;transition:all 0.3s ease;box-shadow:0 10px 30px rgba(239,68,68,0.3);" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 15px 40px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 10px 30px rgba(239,68,68,0.3)'">
+                        <i class="fas fa-heart mr-2"></i>
+                        寄付で応援する
+                    </a>
+                    <p style="margin-top:1rem;font-size:0.9rem;color:#6b7280;">
+                        <i class="fas fa-lock mr-1"></i>
+                        Stripe決済で安全にお支払い
+                    </p>
+                </div>
+            </div>
+            
+            <!-- 寄付者の声（将来的に追加可能） -->
+            <div style="margin-top:3rem;text-align:center;padding:2rem;background:rgba(102, 126, 234, 0.05);border-radius:16px;">
+                <p style="font-size:1.1rem;color:#4b5563;font-style:italic;line-height:1.8;">
+                    「毎日の献立作りから解放されて、家族との時間が増えました。<br>
+                    このサービスを続けてほしいので、喜んで応援します！」
+                </p>
+                <p style="margin-top:1rem;font-size:0.9rem;color:#6b7280;font-weight:600;">
+                    - 寄付者様の声
+                </p>
+            </div>
+        </div>
+    </section>
+
     <!-- CTAセクション -->
     <section style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;text-align:center;padding:80px 20px;">
         <h2 style="font-size:2.5rem;font-weight:700;margin-bottom:1rem;">
@@ -551,6 +656,33 @@
 
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
     <script>
+        // 寄付金額選択
+        let selectedDonationAmount = 5000; // デフォルト金額
+        
+        function selectDonationAmount(amount) {
+            selectedDonationAmount = amount;
+            
+            // すべてのボタンをリセット
+            document.querySelectorAll('.donation-amount-btn').forEach(btn => {
+                btn.style.background = '#f3f4f6';
+                btn.style.color = '#1a202c';
+                btn.style.borderColor = '#e5e7eb';
+                btn.style.transform = 'scale(1)';
+            });
+            
+            // 選択されたボタンをハイライト
+            event.target.closest('button').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            event.target.closest('button').style.color = 'white';
+            event.target.closest('button').style.borderColor = '#667eea';
+            event.target.closest('button').style.transform = 'scale(1.05)';
+            
+            // 寄付ページへ遷移時にamountをクエリパラメータで渡す
+            const donateLink = document.getElementById('donate-link');
+            if (donateLink) {
+                donateLink.href = '/pricing.html?amount=' + amount;
+            }
+        }
+        
         // 広告読み込み
         async function loadAds() {
             try {
