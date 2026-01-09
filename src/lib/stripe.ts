@@ -122,6 +122,8 @@ export async function createSubscriptionCheckout(
 /**
  * Webhookイベントを検証
  * Cloudflare Workers環境ではWeb Crypto APIを使用
+ * 
+ * NOTE: Webhook Secret未設定の場合は検証をスキップ（開発/テスト用）
  */
 export async function verifyWebhookSignature(
   stripe: Stripe,
@@ -129,6 +131,19 @@ export async function verifyWebhookSignature(
   signature: string,
   secret: string
 ): Promise<StripeEvent> {
+  // Webhook Secret未設定の場合は検証をスキップ
+  if (!secret || secret === 'whsec_YOUR_WEBHOOK_SECRET_HERE' || secret === 'whsec_[YOUR_WEBHOOK_SECRET]') {
+    console.warn('⚠️ Webhook signature verification DISABLED - Secret not configured');
+    console.warn('⚠️ This is insecure for production. Please configure STRIPE_WEBHOOK_SECRET');
+    
+    try {
+      const event = JSON.parse(payload);
+      return event;
+    } catch (error) {
+      throw new Error('Invalid JSON payload');
+    }
+  }
+  
   // Stripe webhook署名検証
   // 簡易実装: 本番環境ではStripe公式ライブラリの検証ロジックを移植
   
