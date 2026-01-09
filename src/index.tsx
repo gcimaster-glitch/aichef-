@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { serveStatic } from 'hono/cloudflare-workers'
 import { LANDING_HTML } from './landing-content'
+import { ABOUT_HTML, PRICING_HTML, LEGAL_HTML } from './static-html'
 import { explainMenuChoice, suggestMenuAdjustment } from './openai-helper'
 import { 
   getStripeClient, 
@@ -5877,7 +5878,6 @@ app.use('/api/*', cors())
 // 静的ファイル配信
 app.use('/static/*', serveStatic({ root: './public' }))
 app.use('/images/*', serveStatic({ root: './public' }))
-app.use('/*.html', serveStatic({ root: './public' }))
 app.use('/payment/*', serveStatic({ root: './public' }))
 
 // ========================================
@@ -5981,6 +5981,23 @@ function buildPeriodByDays(start_date: string, days: number) {
 async function route(req: Request, env: Bindings): Promise<Response> {
   const url = new URL(req.url);
   const { pathname } = url;
+
+  // ページルート（HTMLを直接返す）
+  if (pathname === "/about" || pathname === "/about.html") {
+    return new Response(ABOUT_HTML, {
+      headers: { 'content-type': 'text/html; charset=utf-8' }
+    });
+  }
+  if (pathname === "/pricing" || pathname === "/pricing.html") {
+    return new Response(PRICING_HTML, {
+      headers: { 'content-type': 'text/html; charset=utf-8' }
+    });
+  }
+  if (pathname === "/legal" || pathname === "/legal.html") {
+    return new Response(LEGAL_HTML, {
+      headers: { 'content-type': 'text/html; charset=utf-8' }
+    });
+  }
 
   // ヘルスチェック
   if (pathname === "/api/health") {
