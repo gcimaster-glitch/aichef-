@@ -6247,15 +6247,15 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     let mainRecipes, sideRecipes, soupRecipes;
     try {
       const allMainRecipes = await env.DB.prepare(
-        `SELECT * FROM recipes WHERE role='main' ${combinedFilter} ORDER BY RANDOM()`
+        `SELECT * FROM recipes WHERE role='main' AND popularity >= 5 ${combinedFilter} ORDER BY RANDOM()`
       ).all();
       
       const allSideRecipes = await env.DB.prepare(
-        `SELECT * FROM recipes WHERE role='side' ${combinedFilter} ORDER BY RANDOM()`
+        `SELECT * FROM recipes WHERE role='side' AND popularity >= 5 ${combinedFilter} ORDER BY RANDOM()`
       ).all();
       
       const allSoupRecipes = await env.DB.prepare(
-        `SELECT * FROM recipes WHERE role='soup' ${combinedFilter} ORDER BY RANDOM()`
+        `SELECT * FROM recipes WHERE role='soup' AND popularity >= 5 ${combinedFilter} ORDER BY RANDOM()`
       ).all();
 
       mainRecipes = (allMainRecipes.results ?? []) as any[];
@@ -8254,6 +8254,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         FROM recipes
         WHERE role = 'main' 
         AND recipe_id != ?
+        AND popularity >= 5
         ORDER BY RANDOM()
         LIMIT 3
       `).bind(currentMain?.recipe_id || '').all();
