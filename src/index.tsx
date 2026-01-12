@@ -6035,8 +6035,11 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     const allergiesStd = JSON.stringify((body.allergies as any)?.standard ?? []);
     const allergiesFree = JSON.stringify((body.allergies as any)?.free_text ?? []);
     
-    // budget_distributionは文字列として扱う
-    const budgetDistribution = (body.budget_distribution as string) || 'average';
+    // budget_distributionはaverage/swing/customのみ許可
+    // オブジェクトが渡された場合は'custom'として扱う
+    const budgetDistribution = typeof body.budget_distribution === 'object' 
+      ? 'custom'
+      : (body.budget_distribution as string) || 'average';
     
     // 子供情報のJSON化
     const childrenAgesJson = body.children_ages ? JSON.stringify(body.children_ages) : '[]';
