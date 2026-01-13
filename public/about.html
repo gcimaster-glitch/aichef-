@@ -12,79 +12,14 @@
             -webkit-font-smoothing: antialiased;
         }
         
-        .tab-button {
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .tab-button.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .tab-button.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.5s ease-in;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
         .hero-gradient {
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
         }
         
-        .image-frame {
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-        
-        .image-frame:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
-        }
-        
-        .quote-box {
-            border-left: 4px solid #667eea;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-        }
-        
-        .section-title {
-            position: relative;
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 2px;
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+            margin: 4rem 0;
         }
     </style>
 </head>
@@ -93,17 +28,39 @@
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
-                <a href="/" class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <a href="/" class="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                     <i class="fas fa-utensils mr-2"></i>AICHEFS
                 </a>
-                <nav class="flex items-center gap-6">
+                
+                <!-- デスクトップナビ -->
+                <nav class="hidden md:flex items-center gap-6">
                     <a href="/" class="text-gray-600 hover:text-purple-600 transition-colors">
                         <i class="fas fa-home mr-1"></i>ホーム
                     </a>
-                    <a href="/pricing.html" class="text-gray-600 hover:text-purple-600 transition-colors">
+                    <a href="/pricing" class="text-gray-600 hover:text-purple-600 transition-colors">
                         <i class="fas fa-hand-holding-heart mr-1"></i>応援寄付
                     </a>
                     <a href="/app" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all">
+                        始める
+                    </a>
+                </nav>
+
+                <!-- モバイルメニューボタン -->
+                <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-purple-600">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+
+            <!-- モバイルメニュー -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4 border-t border-gray-200 pt-4">
+                <nav class="flex flex-col gap-4">
+                    <a href="/" class="text-gray-600 hover:text-purple-600 transition-colors">
+                        <i class="fas fa-home mr-2"></i>ホーム
+                    </a>
+                    <a href="/pricing" class="text-gray-600 hover:text-purple-600 transition-colors">
+                        <i class="fas fa-hand-holding-heart mr-2"></i>応援寄付
+                    </a>
+                    <a href="/app" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full font-semibold text-center hover:shadow-lg transition-all">
                         始める
                     </a>
                 </nav>
@@ -112,415 +69,278 @@
     </header>
 
     <!-- ヒーローセクション -->
-    <section class="hero-gradient py-20">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="text-center mb-12">
-                <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6">
-                    プロの知見と、母の愛を、<br>
-                    ひとつのテーブルに。
-                </h1>
-                <p class="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-                    「今日の献立」に悩むママと、「今日のご飯」を待つ子供たちへ。<br>
-                    食のプロと、居場所作りのプロ、そして5人の母がタッグを組みました。
-                </p>
-            </div>
+    <section class="hero-gradient py-12 md:py-20">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h1 class="text-3xl md:text-5xl font-bold text-gray-800 mb-4 md:mb-6 leading-tight">
+                プロの知見と、母の愛を、<br>
+                ひとつのテーブルに。
+            </h1>
+            <p class="text-lg md:text-xl text-gray-600 leading-relaxed">
+                「今日の献立」に悩むママと、「今日のご飯」を待つ子供たちへ。<br class="hidden md:inline">
+                食のプロと、居場所作りのプロ、そして5人の母がタッグを組みました。
+            </p>
         </div>
     </section>
 
-    <!-- タブナビゲーション -->
-    <div class="max-w-6xl mx-auto px-4 -mt-8">
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="flex flex-wrap border-b border-gray-200">
-                <button onclick="switchTab('story')" class="tab-button active flex-1 px-6 py-4 font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                    <i class="fas fa-book-open mr-2"></i>
-                    <span class="hidden sm:inline">ストーリー</span>
-                    <span class="sm:hidden">想い</span>
-                </button>
-                <button onclick="switchTab('mission')" class="tab-button flex-1 px-6 py-4 font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                    <i class="fas fa-bullseye mr-2"></i>
-                    <span class="hidden sm:inline">ミッション</span>
-                    <span class="sm:hidden">使命</span>
-                </button>
-                <button onclick="switchTab('team')" class="tab-button flex-1 px-6 py-4 font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                    <i class="fas fa-users mr-2"></i>
-                    <span class="hidden sm:inline">チーム</span>
-                    <span class="sm:hidden">体制</span>
-                </button>
-                <button onclick="switchTab('promise')" class="tab-button flex-1 px-6 py-4 font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                    <i class="fas fa-handshake mr-2"></i>
-                    <span class="hidden sm:inline">約束</span>
-                    <span class="sm:hidden">方針</span>
-                </button>
+    <!-- メインコンテンツ -->
+    <article class="max-w-4xl mx-auto px-4 py-12 md:py-16">
+        <!-- ストーリー -->
+        <section class="mb-16">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-8">
+                一人の母の「困った」が、<br class="md:hidden">世界を変えるプロたちを動かした
+            </h2>
+
+            <div class="mb-8">
+                <img src="/images/iwama-tv-1.jpg" alt="岩間望実" class="w-full rounded-2xl shadow-lg mb-6">
             </div>
 
-            <!-- ストーリータブ -->
-            <div id="story-tab" class="tab-content active p-8 md:p-12">
-                <h2 class="text-3xl font-bold text-gray-800 section-title">
-                    一人の母の「困った」が、<br class="sm:hidden">世界を変えるプロたちを動かした。
-                </h2>
+            <div class="prose prose-lg max-w-none">
+                <p class="text-lg md:text-xl text-gray-700 leading-relaxed mb-6">
+                    オペラ歌手として舞台に立ちながら、家に帰れば5歳の子供の母。<br>
+                    私、<strong>岩間望実</strong>の毎日は、みなさんと同じように<strong>「今日の晩御飯、どうしよう？」</strong>という悩みとの戦いでした。
+                </p>
 
-                <div class="grid md:grid-cols-2 gap-8 mb-12">
-                    <div>
-                        <div class="image-frame mb-6">
-                            <img src="/images/iwama-tv-1.jpg" alt="岩間望実 テレビ出演" class="w-full h-auto">
-                        </div>
-                        <div class="image-frame">
-                            <img src="/images/iwama-tv-2.jpg" alt="岩間望実 インタビュー" class="w-full h-auto">
-                        </div>
-                    </div>
-                    <div>
-                        <p class="text-lg text-gray-700 leading-relaxed mb-6">
-                            オペラ歌手として舞台に立ちながら、家に帰れば5歳の子供の母。<br>
-                            私、<strong>岩間望実</strong>の毎日は、みなさんと同じように<strong>「今日の晩御飯、どうしよう？」</strong>という悩みとの戦いでした。
-                        </p>
-                        
-                        <div class="quote-box">
-                            <p class="text-lg font-medium text-gray-800 italic">
-                                「もっと楽に、でも愛情のある食事を作りたい」
-                            </p>
-                        </div>
-
-                        <p class="text-lg text-gray-700 leading-relaxed mb-6">
-                            そんな個人の小さな願いを持って、私はある二つの企業に相談を持ちかけました。
-                        </p>
-
-                        <div class="space-y-4 mb-6">
-                            <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                                <h4 class="font-bold text-blue-900 mb-2">
-                                    <i class="fas fa-building mr-2"></i>株式会社子供の居場所研究所
-                                </h4>
-                                <p class="text-blue-800">
-                                    「子供の環境整備をつくる」ことに命を燃やす専門家集団
-                                </p>
-                            </div>
-                            <div class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
-                                <h4 class="font-bold text-purple-900 mb-2">
-                                    <i class="fas fa-utensils mr-2"></i>ガストロノミーエクスペリエンス株式会社
-                                </h4>
-                                <p class="text-purple-800">
-                                    「食で世界を変える」という壮大なコンセプトを掲げる企業
-                                </p>
-                            </div>
-                        </div>
-
-                        <p class="text-lg text-gray-700 leading-relaxed">
-                            私の相談は、いつしか彼らの心を動かし、大きなプロジェクトへと進化しました。
-                        </p>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-8 rounded-2xl">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">
-                        「献立をAIで解決するだけじゃもったいない」
-                    </h3>
-                    <p class="text-lg text-gray-700 leading-relaxed mb-4">
-                        そこに、実際に日々キッチンに立つ<strong>5名の働く主婦（ママアンバサダー）</strong>と、<br>
-                        システムを支える<strong>10名の専門スタッフ</strong>が集結。
-                    </p>
-                    <p class="text-xl font-bold text-purple-700">
-                        総勢15名のチームで、何度も議論を重ね、この『AI Chefs』は生まれました。
-                    </p>
-                </div>
-            </div>
-
-            <!-- ミッションタブ -->
-            <div id="mission-tab" class="tab-content p-8 md:p-12">
-                <h2 class="text-3xl font-bold text-gray-800 section-title">
-                    「食」と「居場所」。<br class="sm:hidden">両方を知るチームだからこそ、<br class="sm:hidden">見えた現実。
-                </h2>
-
-                <div class="grid md:grid-cols-2 gap-8 mb-12">
-                    <div>
-                        <p class="text-lg text-gray-700 leading-relaxed mb-6">
-                            開発の過程で、私たちは多くの現場を歩きました。<br>
-                            子供の居場所研究所のネットワークを通じて訪れた福祉施設や子ども食堂。
-                        </p>
-
-                        <p class="text-lg text-gray-700 leading-relaxed mb-6">
-                            そこでガストロノミーエクスペリエンスの担当者が目にしたのは、<br>
-                            お米や食材の高騰に苦しむ運営者の姿と、<br>
-                            お腹をすかせてやってくる子供たちの切実な眼差しでした。
-                        </p>
-
-                        <div class="quote-box">
-                            <p class="text-lg font-medium text-gray-800">
-                                「世界を変える食」とは、高級な料理のことだけではない。<br>
-                                <strong class="text-purple-700">「今日、お腹いっぱい食べられること」。</strong><br>
-                                それこそが、子供の世界を変えるのだと痛感しました。
-                            </p>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="image-frame mb-6">
-                            <img src="/images/iwama-family-1.jpg" alt="岩間望実と息子" class="w-full h-auto">
-                        </div>
-                        <div class="image-frame">
-                            <img src="/images/iwama-family-2.jpg" alt="家族の食卓" class="w-full h-auto">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-br from-orange-50 to-red-50 p-8 rounded-2xl border-2 border-orange-200">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-                        <i class="fas fa-heart text-red-500 mr-2"></i>
-                        だからこそ、私たちは決めました。
-                    </h3>
-                    
-                    <div class="space-y-4">
-                        <div class="bg-white p-6 rounded-xl shadow-md">
-                            <h4 class="text-xl font-bold text-purple-700 mb-3">
-                                <i class="fas fa-gift mr-2"></i>1. 無料で開放します
-                            </h4>
-                            <p class="text-gray-700">
-                                この最強のチームで作った「AI献立システム」を、<strong>無料で開放します。</strong><br>
-                                プロの知見が詰まった食育・栄養管理システムを、まずはあなたの家庭で役立ててください。
-                            </p>
-                        </div>
-
-                        <div class="bg-white p-6 rounded-xl shadow-md">
-                            <h4 class="text-xl font-bold text-pink-700 mb-3">
-                                <i class="fas fa-share-alt mr-2"></i>2. 笑顔をシェアしてください
-                            </h4>
-                            <p class="text-gray-700">
-                                もしこのシステムであなたの負担が減り、笑顔が増えたなら。<br>
-                                その「浮いたコスト」や「感謝の気持ち」を、<strong>子ども食堂への支援</strong>という形でシェアしてほしいのです。
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- チームタブ -->
-            <div id="team-tab" class="tab-content p-8 md:p-12">
-                <h2 class="text-3xl font-bold text-gray-800 section-title">
-                    プロと主婦のハイブリッド運営
-                </h2>
-
-                <div class="grid md:grid-cols-3 gap-6 mb-12">
-                    <!-- 発起人 -->
-                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl shadow-lg">
-                        <div class="text-center mb-4">
-                            <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full mx-auto flex items-center justify-center text-white text-3xl mb-4">
-                                <i class="fas fa-crown"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">発起人・代表</h3>
-                        </div>
-                        <div class="text-center">
-                            <p class="font-bold text-lg text-purple-700 mb-1">岩間 望実</p>
-                            <p class="text-sm text-gray-600">ソプラノ歌手 / 母</p>
-                        </div>
-                    </div>
-
-                    <!-- 専門スタッフ -->
-                    <div class="bg-blue-50 p-6 rounded-2xl shadow-lg">
-                        <div class="text-center mb-4">
-                            <div class="w-20 h-20 bg-blue-600 rounded-full mx-auto flex items-center justify-center text-white text-3xl mb-4">
-                                <i class="fas fa-laptop-code"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">専門スタッフ</h3>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-4xl font-bold text-blue-700 mb-2">10名</p>
-                            <p class="text-sm text-gray-600">開発・運営・支援</p>
-                        </div>
-                    </div>
-
-                    <!-- ママアンバサダー -->
-                    <div class="bg-pink-50 p-6 rounded-2xl shadow-lg">
-                        <div class="text-center mb-4">
-                            <div class="w-20 h-20 bg-pink-600 rounded-full mx-auto flex items-center justify-center text-white text-3xl mb-4">
-                                <i class="fas fa-female"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">ママアンバサダー</h3>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-4xl font-bold text-pink-700 mb-2">5名</p>
-                            <p class="text-sm text-gray-600">企画開発協力</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 mb-8">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-6">
-                        <i class="fas fa-handshake text-purple-600 mr-2"></i>
-                        企画・運営パートナー
-                    </h3>
-                    
-                    <div class="space-y-6">
-                        <div class="flex items-start gap-4 p-4 bg-blue-50 rounded-xl">
-                            <div class="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center text-white text-2xl flex-shrink-0">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xl font-bold text-gray-800 mb-2">株式会社子供の居場所研究所</h4>
-                                <p class="text-gray-700">
-                                    子供の環境整備、福祉施設・子ども食堂のネットワーク構築、支援先の選定と管理を担当
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-4 p-4 bg-purple-50 rounded-xl">
-                            <div class="w-16 h-16 bg-purple-600 rounded-lg flex items-center justify-center text-white text-2xl flex-shrink-0">
-                                <i class="fas fa-utensils"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xl font-bold text-gray-800 mb-2">ガストロノミーエクスペリエンス株式会社</h4>
-                                <ul class="text-gray-700 space-y-1">
-                                    <li>• 所在地: 東京都港区芝浦1-13-10 第三東運ビル</li>
-                                    <li>• 設立: 2021年2月5日</li>
-                                    <li>• 資本金: 2,300万円</li>
-                                    <li>• 代表: 岩間 哲士（CEO）</li>
-                                </ul>
-                                <p class="text-gray-700 mt-2">
-                                    AI献立システムの開発・運営、栄養管理、食材調達ルートの確保を担当
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-r from-yellow-50 to-orange-50 p-8 rounded-2xl border-2 border-yellow-300">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">
-                        <i class="fas fa-star text-yellow-500 mr-2"></i>
-                        このバランスが強み
-                    </h3>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-white p-6 rounded-xl">
-                            <h4 class="font-bold text-blue-700 mb-3">
-                                <i class="fas fa-check-circle mr-2"></i>スタッフ10名の役割
-                            </h4>
-                            <p class="text-gray-700">
-                                <strong>「実行力」</strong>の証拠。<br>
-                                システム開発、運営管理、支援活動が確実に実施される体制を保証します。
-                            </p>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl">
-                            <h4 class="font-bold text-pink-700 mb-3">
-                                <i class="fas fa-heart mr-2"></i>主婦5名の役割
-                            </h4>
-                            <p class="text-gray-700">
-                                <strong>「共感力」</strong>の証拠。<br>
-                                実際の使い勝手、無理のない寄付額、リアルな視点で製品をチェックします。
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 約束タブ -->
-            <div id="promise-tab" class="tab-content p-8 md:p-12">
-                <h2 class="text-3xl font-bold text-gray-800 section-title">
-                    机上の空論にはしません。<br>
-                    生活者の目線と、プロの実行力で届けます。
-                </h2>
-
-                <div class="mb-12">
-                    <p class="text-xl text-gray-700 leading-relaxed mb-8">
-                        このプロジェクトは、単なる寄付集めではありません。<br>
-                        確実に、必要なところへ、必要な支援を届けるシステムを構築しました。
-                    </p>
-
-                    <div class="grid md:grid-cols-3 gap-6 mb-8">
-                        <div class="bg-blue-50 p-6 rounded-xl border-l-4 border-blue-600">
-                            <h4 class="font-bold text-blue-900 mb-3 text-lg">
-                                <i class="fas fa-search mr-2"></i>支援先の選定
-                            </h4>
-                            <p class="text-gray-700">
-                                <strong>株式会社子供の居場所研究所</strong>が、本当に支援が必要な場所を専門的に選定します。
-                            </p>
-                        </div>
-
-                        <div class="bg-purple-50 p-6 rounded-xl border-l-4 border-purple-600">
-                            <h4 class="font-bold text-purple-900 mb-3 text-lg">
-                                <i class="fas fa-truck mr-2"></i>食材の調達
-                            </h4>
-                            <p class="text-gray-700">
-                                <strong>ガストロノミーエクスペリエンス株式会社</strong>が、栄養価の高い食材や「食の喜び」を届けるルートを確保します。
-                            </p>
-                        </div>
-
-                        <div class="bg-pink-50 p-6 rounded-xl border-l-4 border-pink-600">
-                            <h4 class="font-bold text-pink-900 mb-3 text-lg">
-                                <i class="fas fa-check-double mr-2"></i>現場チェック
-                            </h4>
-                            <p class="text-gray-700">
-                                <strong>5名の働く主婦チーム</strong>が、「使いにくい機能はないか？」「無理のない寄付額はいくらか？」を厳しくチェックします。
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-br from-green-50 to-teal-50 p-8 rounded-2xl border-2 border-green-300 mb-12">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">
-                        <i class="fas fa-yen-sign text-green-600 mr-2"></i>
-                        だからこその、「1食 500円」
-                    </h3>
-                    <p class="text-lg text-gray-700 text-center leading-relaxed">
-                        <strong>無理は続きません。</strong><br>
-                        私たち主婦が「これなら続けられる」と思える金額にこだわりました。<br>
-                        <span class="text-green-700 font-bold text-xl">月額500円から始められる支援モデル</span>
+                <div class="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-xl my-8">
+                    <p class="text-xl font-medium text-gray-800 italic">
+                        「もっと楽に、でも愛情のある食事を作りたい」
                     </p>
                 </div>
 
-                <div class="bg-white border-2 border-purple-200 rounded-2xl p-8">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-                        <i class="fas fa-rocket text-purple-600 mr-2"></i>
-                        あなたの食卓から、社会を変える「一皿」を。
+                <p class="text-lg text-gray-700 leading-relaxed mb-6">
+                    そんな個人の小さな願いを、私は二つの企業に相談しました。
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-4 my-8">
+                    <div class="bg-blue-50 p-5 rounded-xl border-2 border-blue-200">
+                        <h4 class="font-bold text-blue-900 mb-2 text-lg">
+                            <i class="fas fa-building mr-2"></i>株式会社子供の居場所研究所
+                        </h4>
+                        <p class="text-blue-800 text-sm">
+                            子供の環境整備をつくる専門家集団
+                        </p>
+                    </div>
+                    <div class="bg-purple-50 p-5 rounded-xl border-2 border-purple-200">
+                        <h4 class="font-bold text-purple-900 mb-2 text-lg">
+                            <i class="fas fa-utensils mr-2"></i>ガストロノミーエクスペリエンス株式会社
+                        </h4>
+                        <p class="text-purple-800 text-sm">
+                            食で世界を変えることを掲げる企業
+                        </p>
+                    </div>
+                </div>
+
+                <p class="text-lg text-gray-700 leading-relaxed mb-6">
+                    私の相談は、いつしか彼らの心を動かし、<strong>5名の働く主婦（ママアンバサダー）</strong>と<strong>10名の専門スタッフ</strong>を巻き込んだ大きなプロジェクトへと進化しました。
+                </p>
+
+                <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-6 md:p-8 rounded-2xl my-8">
+                    <p class="text-xl md:text-2xl font-bold text-purple-700 text-center">
+                        総勢15名のチームで、何度も議論を重ね、<br class="hidden md:inline">この『AI Chefs』は生まれました。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ミッション -->
+        <section class="mb-16">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-8">
+                開発の過程で見えた、<br class="md:hidden">子供たちの現実
+            </h2>
+
+            <div class="prose prose-lg max-w-none">
+                <p class="text-lg text-gray-700 leading-relaxed mb-6">
+                    開発中、子供の居場所研究所のネットワークを通じて、福祉施設や子ども食堂を訪れました。
+                </p>
+
+                <p class="text-lg text-gray-700 leading-relaxed mb-6">
+                    ガストロノミーエクスペリエンスの担当者が目にしたのは、お米や食材の高騰に苦しむ運営者の姿と、お腹をすかせてやってくる子供たちの切実な眼差しでした。
+                </p>
+
+                <div class="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-r-xl my-8">
+                    <p class="text-lg font-medium text-gray-800">
+                        「世界を変える食」とは、高級な料理のことだけではない。<br>
+                        <strong class="text-purple-700">「今日、お腹いっぱい食べられること」</strong><br>
+                        それこそが、子供の世界を変えるのだと痛感しました。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- 私たちの約束 -->
+        <section class="mb-16">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">
+                <i class="fas fa-heart text-red-500 mr-2"></i>
+                だからこそ、私たちは決めました
+            </h2>
+
+            <div class="space-y-6">
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-2 border-purple-200">
+                    <h3 class="text-xl md:text-2xl font-bold text-purple-700 mb-4">
+                        <i class="fas fa-gift mr-2"></i>1. 無料で開放します
                     </h3>
-                    
-                    <div class="quote-box mb-6">
-                        <p class="text-lg text-gray-800 leading-relaxed">
-                            私たちは、完璧な慈善団体ではありません。<br>
-                            でも、<strong class="text-purple-700">「食」と「子供」を愛する気持ちにおいて、これほど真剣なチームはない</strong>と自負しています。
-                        </p>
+                    <p class="text-lg text-gray-700 leading-relaxed">
+                        この最強のチームで作った「AI献立システム」を、<strong>無料で開放します。</strong><br>
+                        プロの知見が詰まった食育・栄養管理システムを、まずはあなたの家庭で役立ててください。
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-2 border-pink-200">
+                    <h3 class="text-xl md:text-2xl font-bold text-pink-700 mb-4">
+                        <i class="fas fa-share-alt mr-2"></i>2. 笑顔をシェアしてください
+                    </h3>
+                    <p class="text-lg text-gray-700 leading-relaxed">
+                        もしこのシステムであなたの負担が減り、笑顔が増えたなら。<br>
+                        その「浮いたコスト」や「感謝の気持ち」を、<strong>子ども食堂への支援</strong>という形でシェアしてほしいのです。
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-green-50 to-teal-50 p-6 md:p-8 rounded-2xl border-2 border-green-300 mt-8">
+                <p class="text-lg md:text-xl text-gray-700 text-center leading-relaxed">
+                    <strong>無理は続きません。</strong><br>
+                    私たち主婦が「これなら続けられる」と思える金額にこだわりました。<br>
+                    <span class="text-green-700 font-bold text-xl md:text-2xl">月額500円から始められる支援</span>
+                </p>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- チーム体制 -->
+        <section class="mb-16">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center">
+                プロと主婦の<br class="md:hidden">ハイブリッド運営
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl shadow-lg text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full mx-auto flex items-center justify-center text-white text-3xl mb-4">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">発起人・代表</h3>
+                    <p class="font-bold text-purple-700">岩間 望実</p>
+                    <p class="text-sm text-gray-600">ソプラノ歌手 / 母</p>
+                </div>
+
+                <div class="bg-blue-50 p-6 rounded-2xl shadow-lg text-center">
+                    <div class="w-16 h-16 bg-blue-600 rounded-full mx-auto flex items-center justify-center text-white text-3xl mb-4">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">専門スタッフ</h3>
+                    <p class="text-4xl font-bold text-blue-700">10名</p>
+                    <p class="text-sm text-gray-600">開発・運営・支援</p>
+                </div>
+
+                <div class="bg-pink-50 p-6 rounded-2xl shadow-lg text-center">
+                    <div class="w-16 h-16 bg-pink-600 rounded-full mx-auto flex items-center justify-center text-white text-3xl mb-4">
+                        <i class="fas fa-female"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">ママアンバサダー</h3>
+                    <p class="text-4xl font-bold text-pink-700">5名</p>
+                    <p class="text-sm text-gray-600">企画開発協力</p>
+                </div>
+            </div>
+
+            <div class="bg-white border-2 border-gray-200 rounded-2xl p-6 md:p-8">
+                <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-handshake text-purple-600 mr-2"></i>
+                    企画・運営パートナー
+                </h3>
+                
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4 p-4 bg-blue-50 rounded-xl">
+                        <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xl flex-shrink-0">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-800 mb-1">株式会社子供の居場所研究所</h4>
+                            <p class="text-gray-700 text-sm md:text-base">
+                                子供の環境整備、福祉施設・子ども食堂のネットワーク構築、支援先の選定と管理を担当
+                            </p>
+                        </div>
                     </div>
 
-                    <div class="space-y-4 mb-8">
-                        <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-utensils text-purple-600"></i>
-                            </div>
-                            <p class="text-gray-700 pt-2">
-                                あなたの今日の献立は、AIが考えます。
-                            </p>
+                    <div class="flex items-start gap-4 p-4 bg-purple-50 rounded-xl">
+                        <div class="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center text-white text-xl flex-shrink-0">
+                            <i class="fas fa-utensils"></i>
                         </div>
-                        <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-heart text-pink-600"></i>
-                            </div>
-                            <p class="text-gray-700 pt-2">
-                                空いた時間で、子供を抱きしめてあげてください。
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-800 mb-2">ガストロノミーエクスペリエンス株式会社</h4>
+                            <p class="text-gray-700 text-sm mb-2">
+                                AI献立システムの開発・運営、栄養管理、食材調達ルートの確保を担当
                             </p>
+                            <ul class="text-gray-600 text-sm space-y-1">
+                                <li>• 所在地: 東京都港区芝浦1-13-10</li>
+                                <li>• 設立: 2021年2月5日 / 資本金: 2,300万円</li>
+                                <li>• 代表: 岩間 哲士（CEO）</li>
+                            </ul>
                         </div>
-                        <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-share-alt text-blue-600"></i>
-                            </div>
-                            <p class="text-gray-700 pt-2">
-                                そして、その幸せのお裾分けを、ほんの少しだけ、会ったことのない子供たちへ。
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="text-center">
-                        <p class="text-2xl font-bold text-purple-700 mb-6">
-                            「食で世界を変える」
-                        </p>
-                        <p class="text-lg text-gray-700 mb-8">
-                            その第一歩を、あなたの家の食卓から一緒に始めませんか？
-                        </p>
-                        <a href="/pricing.html" class="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white px-12 py-4 rounded-full font-bold text-lg hover:shadow-2xl transition-all transform hover:scale-105">
-                            <i class="fas fa-heart mr-2"></i>
-                            今すぐ応援する
-                        </a>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- 最後のメッセージ -->
+        <section class="text-center">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
+                あなたの食卓から、<br class="md:hidden">社会を変える「一皿」を
+            </h2>
+
+            <div class="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-xl mb-8 text-left">
+                <p class="text-lg text-gray-800 leading-relaxed">
+                    私たちは、完璧な慈善団体ではありません。<br>
+                    でも、<strong class="text-purple-700">「食」と「子供」を愛する気持ちにおいて、これほど真剣なチームはない</strong>と自負しています。
+                </p>
+            </div>
+
+            <div class="space-y-4 mb-10 max-w-2xl mx-auto text-left">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-utensils text-purple-600"></i>
+                    </div>
+                    <p class="text-gray-700 pt-2">
+                        あなたの今日の献立は、AIが考えます。
+                    </p>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-heart text-pink-600"></i>
+                    </div>
+                    <p class="text-gray-700 pt-2">
+                        空いた時間で、子供を抱きしめてあげてください。
+                    </p>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-share-alt text-blue-600"></i>
+                    </div>
+                    <p class="text-gray-700 pt-2">
+                        そして、その幸せのお裾分けを、ほんの少しだけ、会ったことのない子供たちへ。
+                    </p>
+                </div>
+            </div>
+
+            <p class="text-2xl md:text-3xl font-bold text-purple-700 mb-6">
+                「食で世界を変える」
+            </p>
+            <p class="text-lg md:text-xl text-gray-700 mb-8">
+                その第一歩を、あなたの家の食卓から<br class="md:hidden">一緒に始めませんか？
+            </p>
+            <a href="/pricing" class="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 md:px-12 py-3 md:py-4 rounded-full font-bold text-base md:text-lg hover:shadow-2xl transition-all transform hover:scale-105">
+                <i class="fas fa-heart mr-2"></i>
+                今すぐ応援する
+            </a>
+        </section>
+    </article>
 
     <!-- フッター -->
-    <footer class="bg-gray-900 text-white mt-20 py-12">
+    <footer class="bg-gray-900 text-white py-12">
         <div class="max-w-6xl mx-auto px-4">
             <div class="text-center">
                 <h3 class="text-2xl font-bold mb-4">
@@ -529,11 +349,11 @@
                 <p class="text-gray-400 mb-6">
                     プロの知見と、母の愛を、ひとつのテーブルに。
                 </p>
-                <div class="flex justify-center gap-6 mb-6">
+                <div class="flex flex-wrap justify-center gap-4 md:gap-6 mb-6">
                     <a href="/" class="text-gray-400 hover:text-white transition-colors">ホーム</a>
-                    <a href="/about.html" class="text-gray-400 hover:text-white transition-colors">企画背景</a>
-                    <a href="/pricing.html" class="text-gray-400 hover:text-white transition-colors">プラン</a>
-                    <a href="/legal.html" class="text-gray-400 hover:text-white transition-colors">特定商取引法</a>
+                    <a href="/about" class="text-gray-400 hover:text-white transition-colors">企画背景</a>
+                    <a href="/pricing" class="text-gray-400 hover:text-white transition-colors">プラン</a>
+                    <a href="/legal" class="text-gray-400 hover:text-white transition-colors">特定商取引法</a>
                 </div>
                 <p class="text-sm text-gray-500">
                     &copy; 2026 AICHEFS. All rights reserved.
@@ -543,25 +363,11 @@
     </footer>
 
     <script>
-        function switchTab(tabName) {
-            // すべてのタブボタンとコンテンツを取得
-            const buttons = document.querySelectorAll('.tab-button');
-            const contents = document.querySelectorAll('.tab-content');
-            
-            // すべてのactiveクラスを削除
-            buttons.forEach(btn => btn.classList.remove('active'));
-            contents.forEach(content => content.classList.remove('active'));
-            
-            // 選択されたタブをアクティブに
-            event.target.closest('.tab-button').classList.add('active');
-            document.getElementById(tabName + '-tab').classList.add('active');
-            
-            // ページトップへスムーズスクロール
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        }
+        // モバイルメニュー切り替え
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
     </script>
 </body>
 </html>
