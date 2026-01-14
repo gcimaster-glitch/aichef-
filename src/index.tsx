@@ -6846,6 +6846,68 @@ async function route(req: Request, env: Bindings): Promise<Response> {
   }
 
   // ========================================
+  // 献立デモ生成（3日分のサンプル）
+  // ========================================
+  if (pathname === "/api/demo/generate-meals" && req.method === "POST") {
+    try {
+      // 3日分のランダムな献立を生成
+      const meals = [];
+      
+      for (let day = 0; day < 3; day++) {
+        // 主菜をランダム取得
+        const mainRecipe = await env.DB.prepare(
+          `SELECT recipe_id, title, time_min FROM recipes 
+           WHERE role='main' AND popularity >= 5 
+           ORDER BY RANDOM() LIMIT 1`
+        ).first() as any;
+        
+        // 副菜をランダム取得
+        const sideRecipe = await env.DB.prepare(
+          `SELECT recipe_id, title, time_min FROM recipes 
+           WHERE role='side' AND popularity >= 5 
+           ORDER BY RANDOM() LIMIT 1`
+        ).first() as any;
+        
+        // 汁物をランダム取得
+        const soupRecipe = await env.DB.prepare(
+          `SELECT recipe_id, title, time_min FROM recipes 
+           WHERE role='soup' AND popularity >= 5 
+           ORDER BY RANDOM() LIMIT 1`
+        ).first() as any;
+        
+        meals.push({
+          day: day + 1,
+          main: mainRecipe ? {
+            recipe_id: mainRecipe.recipe_id,
+            title: mainRecipe.title,
+            time_min: mainRecipe.time_min
+          } : null,
+          side: sideRecipe ? {
+            recipe_id: sideRecipe.recipe_id,
+            title: sideRecipe.title,
+            time_min: sideRecipe.time_min
+          } : null,
+          soup: soupRecipe ? {
+            recipe_id: soupRecipe.recipe_id,
+            title: soupRecipe.title,
+            time_min: soupRecipe.time_min
+          } : null
+        });
+      }
+      
+      return json({ meals, success: true });
+    } catch (error) {
+      console.error('Demo meal generation error:', error);
+      return new Response(JSON.stringify({ 
+        error: { message: 'デモ生成エラー' }
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  // ========================================
   // 献立取得
   // ========================================
   if (pathname.match(/^\/api\/plans\/[^/]+$/) && req.method === "GET") {

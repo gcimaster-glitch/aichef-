@@ -277,6 +277,97 @@
             transform: translateY(-2px) !important;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
         }
+
+        /* デモモーダル */
+        .demo-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .demo-modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 900px;
+            width: 100%;
+            padding: 3rem;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .demo-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .demo-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .demo-meal-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .demo-meal-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+        }
+
+        .demo-recipe-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .demo-modal-content {
+                padding: 2rem 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -319,11 +410,78 @@
                 今日から晩ごはんが決まります。<br>
                 AIが作る、あなただけの献立。
             </p>
-            <a href="/app" class="cta-button">
-                無料で始める <i class="fas fa-arrow-right ml-2"></i>
-            </a>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+                <button onclick="openDemoModal()" class="cta-button" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; cursor: pointer;">
+                    <i class="fas fa-magic mr-2"></i> 献立デモを試す
+                </button>
+                <a href="/app" class="cta-button">
+                    無料で始める <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
         </div>
     </section>
+
+    <!-- 献立デモモーダル -->
+    <div id="demoModal" class="demo-modal" style="display: none;">
+        <div class="demo-modal-content">
+            <button onclick="closeDemoModal()" class="demo-close">&times;</button>
+            
+            <div id="demoLoading" style="text-align: center; padding: 3rem;">
+                <i class="fas fa-spinner fa-spin text-purple-600" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                <h3 style="font-size: 1.5rem; color: #667eea; margin-bottom: 0.5rem;">AIが献立を作成中...</h3>
+                <p style="color: #666;">3日分の献立を生成しています</p>
+            </div>
+
+            <div id="demoResult" style="display: none;">
+                <h2 style="font-size: 2rem; font-weight: 700; color: #1a202c; margin-bottom: 1rem; text-align: center;">
+                    <i class="fas fa-utensils text-purple-600 mr-2"></i>
+                    3日分の献立ができました！
+                </h2>
+                <p style="text-align: center; color: #666; margin-bottom: 2rem;">
+                    これはデモ版です。実際の機能はもっと充実しています。
+                </p>
+                
+                <div id="demoMeals"></div>
+
+                <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); padding: 2rem; border-radius: 16px; margin-top: 2rem;">
+                    <h3 style="font-size: 1.5rem; font-weight: 700; color: #667eea; margin-bottom: 1rem; text-align: center;">
+                        <i class="fas fa-crown mr-2"></i>会員になるともっと便利！
+                    </h3>
+                    <ul style="list-style: none; padding: 0; margin: 1.5rem 0;">
+                        <li style="padding: 0.5rem 0; color: #333;">
+                            <i class="fas fa-check text-green-600 mr-2"></i> <strong>1ヶ月分のメニュー</strong>を一括作成
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #333;">
+                            <i class="fas fa-check text-green-600 mr-2"></i> <strong>好き嫌い対応</strong>で家族みんなが満足
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #333;">
+                            <i class="fas fa-check text-green-600 mr-2"></i> <strong>アレルギー対応</strong>（簡易）で安心
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #333;">
+                            <i class="fas fa-check text-green-600 mr-2"></i> <strong>家族への献立送信</strong>機能
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #333;">
+                            <i class="fas fa-check text-green-600 mr-2"></i> <strong>レシピ保存</strong>でお気に入り管理
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #333;">
+                            <i class="fas fa-check text-green-600 mr-2"></i> <strong>買い物リスト保存・送信</strong>
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #333;">
+                            <i class="fas fa-check text-green-600 mr-2"></i> <strong>レシピサイトへのリンク</strong>機能
+                        </li>
+                    </ul>
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <a href="/app" style="display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 1.2rem; font-weight: 600; border-radius: 50px; text-decoration: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease;">
+                            <i class="fas fa-user-plus mr-2"></i>今すぐ無料で会員登録
+                        </a>
+                        <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                            年間500円の寄付で、すべての機能が使い放題
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- 広告枠（ヘッダー下） -->
     <div id="ad-top-header" class="ad-container" style="display:flex;justify-content:center;padding:40px 0;background:#f9fafb;"></div>
@@ -826,6 +984,143 @@
         // ページ読み込み時に広告を読み込み
         window.addEventListener('DOMContentLoaded', () => {
             loadAds();
+        });
+
+        // === 献立デモ機能 ===
+        async function openDemoModal() {
+            const modal = document.getElementById('demoModal');
+            const loading = document.getElementById('demoLoading');
+            const result = document.getElementById('demoResult');
+            
+            modal.style.display = 'flex';
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            
+            // 3日分の献立を生成
+            try {
+                const response = await fetch('/api/demo/generate-meals', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ days: 3 })
+                });
+                
+                const data = await response.json();
+                
+                // 1.5秒待機（演出）
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                displayDemoMeals(data.meals);
+                
+                loading.style.display = 'none';
+                result.style.display = 'block';
+            } catch (error) {
+                console.error('Error generating demo meals:', error);
+                loading.innerHTML = '<p style="color: #ef4444;">エラーが発生しました。もう一度お試しください。</p>';
+            }
+        }
+
+        function displayDemoMeals(meals) {
+            const container = document.getElementById('demoMeals');
+            container.innerHTML = '';
+            
+            meals.forEach((meal, index) => {
+                const mealCard = document.createElement('div');
+                mealCard.className = 'demo-meal-card';
+                
+                const dayLabel = ['1日目', '2日目', '3日目'][index];
+                const date = new Date();
+                date.setDate(date.getDate() + index);
+                const dateStr = `${date.getMonth() + 1}月${date.getDate()}日`;
+                
+                let recipesHTML = '';
+                
+                if (meal.main) {
+                    recipesHTML += `
+                        <div class="demo-recipe-item">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                                <i class="fas fa-drumstick-bite" style="color: white; font-size: 1.5rem;"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.25rem;">主菜</p>
+                                <p style="font-size: 1.1rem; font-weight: 600; color: #1a202c;">${meal.main.title}</p>
+                                <p style="font-size: 0.85rem; color: #999; margin-top: 0.25rem;">
+                                    <i class="fas fa-clock mr-1"></i>${meal.main.time_min}分
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (meal.side) {
+                    recipesHTML += `
+                        <div class="demo-recipe-item">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                                <i class="fas fa-carrot" style="color: white; font-size: 1.5rem;"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.25rem;">副菜</p>
+                                <p style="font-size: 1.1rem; font-weight: 600; color: #1a202c;">${meal.side.title}</p>
+                                <p style="font-size: 0.85rem; color: #999; margin-top: 0.25rem;">
+                                    <i class="fas fa-clock mr-1"></i>${meal.side.time_min}分
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (meal.soup) {
+                    recipesHTML += `
+                        <div class="demo-recipe-item">
+                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                                <i class="fas fa-bowl-food" style="color: white; font-size: 1.5rem;"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.25rem;">汁物</p>
+                                <p style="font-size: 1.1rem; font-weight: 600; color: #1a202c;">${meal.soup.title}</p>
+                                <p style="font-size: 0.85rem; color: #999; margin-top: 0.25rem;">
+                                    <i class="fas fa-clock mr-1"></i>${meal.soup.time_min}分
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                const totalTime = (meal.main?.time_min || 0) + (meal.side?.time_min || 0) + (meal.soup?.time_min || 0);
+                
+                mealCard.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 2px solid #e5e7eb;">
+                        <div>
+                            <h3 style="font-size: 1.5rem; font-weight: 700; color: #667eea; margin-bottom: 0.25rem;">
+                                ${dayLabel}
+                            </h3>
+                            <p style="color: #666; font-size: 0.9rem;">${dateStr}（${['日', '月', '火', '水', '木', '金', '土'][date.getDay()]}）</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="font-size: 0.85rem; color: #999;">合計調理時間</p>
+                            <p style="font-size: 1.3rem; font-weight: 700; color: #667eea;">
+                                <i class="fas fa-clock mr-1"></i>${totalTime}分
+                            </p>
+                        </div>
+                    </div>
+                    ${recipesHTML}
+                `;
+                
+                container.appendChild(mealCard);
+            });
+        }
+
+        function closeDemoModal() {
+            document.getElementById('demoModal').style.display = 'none';
+        }
+
+        // モーダル外クリックで閉じる
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('demoModal');
+            if (event.target === modal) {
+                closeDemoModal();
+            }
         });
     </script>
 </body>
