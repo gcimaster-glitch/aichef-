@@ -11841,31 +11841,33 @@ app.get('/api/recipes/:recipe_id', async (c) => {
       tags = [];
     }
 
-    // レスポンスを構築
-    return c.json({
-      recipe_id: recipe.recipe_id,
-      title: recipe.title,
-      description: recipe.description,
-      role: recipe.role,
-      time_minutes: recipe.time_min,
-      difficulty: recipe.difficulty,
-      cuisine_type: recipe.cuisine,
-      primary_protein: recipe.primary_protein,
-      cost_tier: recipe.cost_tier,
-      child_friendly_score: recipe.child_friendly_score,
+    // レスポンスを構築（明示的にマッピング）
+    const response = {
+      recipe_id: String(recipe.recipe_id),
+      title: String(recipe.title),
+      description: String(recipe.description || ''),
+      role: String(recipe.role),
+      time_minutes: Number(recipe.time_min),  // time_min → time_minutes にマッピング
+      difficulty: String(recipe.difficulty),
+      cuisine_type: String(recipe.cuisine),  // cuisine → cuisine_type にマッピング
+      primary_protein: String(recipe.primary_protein),
+      cost_tier: Number(recipe.cost_tier),
+      child_friendly_score: Number(recipe.child_friendly_score),
       ingredients: ingredients.results?.map((ing: any) => ({
-        ingredient_id: ing.ingredient_id,
-        name: ing.name,
-        category: ing.category,
-        quantity: ing.quantity,
-        unit: ing.unit
+        ingredient_id: String(ing.ingredient_id),
+        name: String(ing.name),
+        category: String(ing.category),
+        quantity: Number(ing.quantity),
+        unit: String(ing.unit)
       })) || [],
       steps: steps,
       substitutes: substitutes,
       tags: tags,
-      created_at: recipe.created_at,
-      updated_at: recipe.updated_at
-    });
+      created_at: String(recipe.created_at),
+      updated_at: String(recipe.updated_at)
+    };
+    
+    return c.json(response);
 
   } catch (error: any) {
     console.error('Recipe API error:', error);
