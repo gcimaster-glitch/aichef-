@@ -1,0 +1,1127 @@
+[
+  {
+    "recipe_id": "main_001",
+    "title": "肉じゃが",
+    "description": "定番の家庭料理。豚肉・じゃがいも・玉ねぎを甘辛く煮込んだ和食の代表格。",
+    "category": "main",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 35,
+    "cost_tier": 1000,
+    "popularity": 10,
+    "child_friendly_score": 85,
+    "ingredients": [
+      {"ingredient_id": "meat_pork", "amount": 200, "unit": "g"},
+      {"ingredient_id": "veg_potato", "amount": 3, "unit": "個"},
+      {"ingredient_id": "veg_onion", "amount": 1, "unit": "個"},
+      {"ingredient_id": "veg_carrot", "amount": 1, "unit": "本"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 45, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 45, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 20, "unit": "g"},
+      {"ingredient_id": "dashi_stock", "amount": 300, "unit": "ml"}
+    ],
+    "steps": [
+      "豚肉は一口大に切る。じゃがいもは皮をむいて一口大に、玉ねぎはくし切り、にんじんは乱切りにする。",
+      "鍋に油を熱し、豚肉を炒める。色が変わったら野菜を加えて炒める。",
+      "だし汁、砂糖、醤油、みりん、酒を加え、落し蓋をして中火で20分煮る。",
+      "じゃがいもが柔らかくなったら火を止め、5分蒸らして完成。"
+    ],
+    "substitutes": "豚肉→牛肉、じゃがいも→さつまいも"
+  },
+  {
+    "recipe_id": "main_002",
+    "title": "カレーライス",
+    "description": "みんな大好きカレー。野菜たっぷりで栄養満点。",
+    "category": "main",
+    "cuisine": "western",
+    "difficulty": "easy",
+    "time_min": 45,
+    "cost_tier": 1500,
+    "popularity": 10,
+    "child_friendly_score": 95,
+    "ingredients": [
+      {"ingredient_id": "meat_pork", "amount": 300, "unit": "g"},
+      {"ingredient_id": "veg_onion", "amount": 2, "unit": "個"},
+      {"ingredient_id": "veg_carrot", "amount": 2, "unit": "本"},
+      {"ingredient_id": "veg_potato", "amount": 3, "unit": "個"},
+      {"ingredient_id": "seasoning_curry_roux", "amount": 1, "unit": "箱"},
+      {"ingredient_id": "seasoning_oil", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "water", "amount": 800, "unit": "ml"}
+    ],
+    "steps": [
+      "豚肉は一口大、玉ねぎはくし切り、にんじん・じゃがいもは乱切りにする。",
+      "鍋に油を熱し、豚肉と玉ねぎを炒める。",
+      "にんじん・じゃがいもを加え、水を入れて20分煮る。",
+      "いったん火を止め、カレールウを割り入れて溶かす。再び弱火で10分煮込む。"
+    ],
+    "substitutes": "豚肉→鶏肉・牛肉"
+  },
+  {
+    "recipe_id": "main_003",
+    "title": "ハンバーグ",
+    "description": "ジューシーな手作りハンバーグ。デミグラスソースで本格的な味わい。",
+    "category": "main",
+    "cuisine": "western",
+    "difficulty": "normal",
+    "time_min": 40,
+    "cost_tier": 1500,
+    "popularity": 10,
+    "child_friendly_score": 90,
+    "ingredients": [
+      {"ingredient_id": "meat_ground_beef", "amount": 300, "unit": "g"},
+      {"ingredient_id": "veg_onion", "amount": 1, "unit": "個"},
+      {"ingredient_id": "egg", "amount": 1, "unit": "個"},
+      {"ingredient_id": "bread_crumbs", "amount": 50, "unit": "g"},
+      {"ingredient_id": "milk", "amount": 50, "unit": "ml"},
+      {"ingredient_id": "seasoning_salt", "amount": 3, "unit": "g"},
+      {"ingredient_id": "seasoning_pepper", "amount": 2, "unit": "g"},
+      {"ingredient_id": "seasoning_nutmeg", "amount": 1, "unit": "g"},
+      {"ingredient_id": "seasoning_oil", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_ketchup", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_worcestershire", "amount": 30, "unit": "ml"}
+    ],
+    "steps": [
+      "玉ねぎをみじん切りにして炒め、冷ます。パン粉に牛乳を染み込ませる。",
+      "ボウルに挽肉、玉ねぎ、パン粉、卵、塩・胡椒・ナツメグを入れてよく練る。",
+      "4等分にして小判型に整え、中央をくぼませる。",
+      "フライパンに油を熱し、強火で両面に焼き色をつけ、蓋をして弱火で10分蒸し焼き。",
+      "ケチャップとウスターソースを混ぜてソースを作り、かけて完成。"
+    ],
+    "substitutes": "合挽肉→牛ひき肉100%"
+  },
+  {
+    "recipe_id": "main_004",
+    "title": "唐揚げ",
+    "description": "外はカリッと中はジューシー。定番の鶏の唐揚げ。",
+    "category": "main",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 30,
+    "cost_tier": 1000,
+    "popularity": 10,
+    "child_friendly_score": 95,
+    "ingredients": [
+      {"ingredient_id": "meat_chicken_thigh", "amount": 400, "unit": "g"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_ginger", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_garlic", "amount": 5, "unit": "g"},
+      {"ingredient_id": "flour_potato_starch", "amount": 50, "unit": "g"},
+      {"ingredient_id": "seasoning_oil", "amount": 500, "unit": "ml"}
+    ],
+    "steps": [
+      "鶏肉は一口大に切る。生姜とにんにくはすりおろす。",
+      "ボウルに鶏肉、醤油、酒、生姜、にんにくを入れて15分漬け込む。",
+      "片栗粉をまぶし、170度の油で5分揚げる。",
+      "いったん取り出して3分休ませ、180度で1分二度揚げしてカリッと仕上げる。"
+    ],
+    "substitutes": "鶏もも肉→鶏むね肉"
+  },
+  {
+    "recipe_id": "main_005",
+    "title": "鮭の塩焼き",
+    "description": "シンプルだけど美味しい。定番の和食。",
+    "category": "main",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 15,
+    "cost_tier": 1000,
+    "popularity": 9,
+    "child_friendly_score": 80,
+    "ingredients": [
+      {"ingredient_id": "fish_salmon", "amount": 2, "unit": "切れ"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "lemon", "amount": 0.5, "unit": "個"}
+    ],
+    "steps": [
+      "鮭の両面に塩を振り、15分置く。",
+      "グリルまたはフライパンで中火で両面を焼く（片面5分ずつ）。",
+      "レモンを添えて完成。"
+    ],
+    "substitutes": "鮭→鯖・ぶり"
+  },
+  {
+    "recipe_id": "main_006",
+    "title": "麻婆豆腐",
+    "description": "ピリ辛で食欲をそそる中華の定番。",
+    "category": "main",
+    "cuisine": "chinese",
+    "difficulty": "normal",
+    "time_min": 25,
+    "cost_tier": 1000,
+    "popularity": 9,
+    "child_friendly_score": 60,
+    "ingredients": [
+      {"ingredient_id": "tofu", "amount": 1, "unit": "丁"},
+      {"ingredient_id": "meat_ground_pork", "amount": 150, "unit": "g"},
+      {"ingredient_id": "veg_leek", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "seasoning_garlic", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_ginger", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_doubanjiang", "amount": 15, "unit": "g"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "chicken_stock", "amount": 200, "unit": "ml"},
+      {"ingredient_id": "flour_potato_starch", "amount": 10, "unit": "g"},
+      {"ingredient_id": "sesame_oil", "amount": 10, "unit": "ml"}
+    ],
+    "steps": [
+      "豆腐は2cm角に切り、熱湯で下茹でする。長ねぎ・にんにく・生姜はみじん切り。",
+      "フライパンに油を熱し、にんにく・生姜・豆板醤を炒め、香りが出たら挽肉を炒める。",
+      "鶏ガラスープ、醤油、酒を加えて煮立たせ、豆腐を加える。",
+      "水溶き片栗粉でとろみをつけ、長ねぎとごま油を加えて完成。"
+    ],
+    "substitutes": "豚ひき肉→牛ひき肉"
+  },
+  {
+    "recipe_id": "main_007",
+    "title": "生姜焼き",
+    "description": "甘辛い生姜だれが食欲をそそる。ご飯が進む定番おかず。",
+    "category": "main",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 20,
+    "cost_tier": 1000,
+    "popularity": 10,
+    "child_friendly_score": 85,
+    "ingredients": [
+      {"ingredient_id": "meat_pork", "amount": 300, "unit": "g"},
+      {"ingredient_id": "veg_onion", "amount": 1, "unit": "個"},
+      {"ingredient_id": "seasoning_ginger", "amount": 20, "unit": "g"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_oil", "amount": 15, "unit": "ml"}
+    ],
+    "steps": [
+      "豚肉は食べやすい大きさに切る。玉ねぎは薄切り、生姜はすりおろす。",
+      "ボウルに醤油、みりん、酒、生姜を混ぜ合わせる。",
+      "フライパンに油を熱し、豚肉を炒める。",
+      "玉ねぎを加えて炒め、タレを加えて煮からめる。"
+    ],
+    "substitutes": "豚肉→鶏肉"
+  },
+  {
+    "recipe_id": "main_008",
+    "title": "親子丼",
+    "description": "鶏肉と卵のハーモニー。やさしい味わいの丼もの。",
+    "category": "main",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 20,
+    "cost_tier": 1000,
+    "popularity": 9,
+    "child_friendly_score": 90,
+    "ingredients": [
+      {"ingredient_id": "meat_chicken_thigh", "amount": 200, "unit": "g"},
+      {"ingredient_id": "veg_onion", "amount": 1, "unit": "個"},
+      {"ingredient_id": "egg", "amount": 3, "unit": "個"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 45, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 45, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 15, "unit": "g"},
+      {"ingredient_id": "dashi_stock", "amount": 150, "unit": "ml"},
+      {"ingredient_id": "rice", "amount": 2, "unit": "杯"}
+    ],
+    "steps": [
+      "鶏肉は一口大、玉ねぎは薄切りにする。",
+      "フライパンにだし汁、醤油、みりん、酒、砂糖を煮立て、鶏肉と玉ねぎを加える。",
+      "鶏肉に火が通ったら、溶き卵を回し入れ、半熟になったら火を止める。",
+      "ご飯の上に盛り付けて完成。"
+    ],
+    "substitutes": "鶏もも肉→鶏むね肉"
+  },
+  {
+    "recipe_id": "main_009",
+    "title": "豚キムチ",
+    "description": "キムチの旨辛さが豚肉と相性抜群。",
+    "category": "main",
+    "cuisine": "other",
+    "difficulty": "easy",
+    "time_min": 15,
+    "cost_tier": 1000,
+    "popularity": 8,
+    "child_friendly_score": 50,
+    "ingredients": [
+      {"ingredient_id": "meat_pork", "amount": 200, "unit": "g"},
+      {"ingredient_id": "kimchi", "amount": 150, "unit": "g"},
+      {"ingredient_id": "veg_onion", "amount": 0.5, "unit": "個"},
+      {"ingredient_id": "veg_leek", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 5, "unit": "g"},
+      {"ingredient_id": "sesame_oil", "amount": 10, "unit": "ml"}
+    ],
+    "steps": [
+      "豚肉は食べやすい大きさに切る。玉ねぎは薄切り、長ねぎは斜め切り。",
+      "フライパンにごま油を熱し、豚肉を炒める。",
+      "玉ねぎ・キムチ・長ねぎを加えて炒める。",
+      "醤油・酒・砂糖で味を調えて完成。"
+    ],
+    "substitutes": "豚肉→牛肉"
+  },
+  {
+    "recipe_id": "main_010",
+    "title": "焼き魚（さば）",
+    "description": "脂ののった鯖の塩焼き。",
+    "category": "main",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 15,
+    "cost_tier": 1000,
+    "popularity": 8,
+    "child_friendly_score": 70,
+    "ingredients": [
+      {"ingredient_id": "fish_mackerel", "amount": 2, "unit": "切れ"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "lemon", "amount": 0.5, "unit": "個"}
+    ],
+    "steps": [
+      "鯖の両面に塩を振り、15分置く。",
+      "グリルで中火で両面を焼く（片面5分ずつ）。",
+      "レモンを添えて完成。"
+    ],
+    "substitutes": "鯖→ぶり・鮭"
+  },
+  {
+    "recipe_id": "main_011",
+    "title": "チンジャオロース",
+    "description": "細切り牛肉とピーマンの中華炒め。",
+    "category": "main",
+    "cuisine": "chinese",
+    "difficulty": "normal",
+    "time_min": 25,
+    "cost_tier": 1500,
+    "popularity": 8,
+    "child_friendly_score": 65,
+    "ingredients": [
+      {"ingredient_id": "meat_beef", "amount": 200, "unit": "g"},
+      {"ingredient_id": "veg_bell_pepper", "amount": 3, "unit": "個"},
+      {"ingredient_id": "bamboo_shoots", "amount": 100, "unit": "g"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_oyster_sauce", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "flour_potato_starch", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_oil", "amount": 30, "unit": "ml"}
+    ],
+    "steps": [
+      "牛肉・ピーマン・たけのこを細切りにする。",
+      "牛肉に醤油・酒・片栗粉で下味をつける。",
+      "フライパンに油を熱し、牛肉を炒めていったん取り出す。",
+      "ピーマン・たけのこを炒め、牛肉を戻し、オイスターソースで味付け。"
+    ],
+    "substitutes": "牛肉→豚肉"
+  },
+  {
+    "recipe_id": "main_012",
+    "title": "餃子",
+    "description": "手作り餃子。ジューシーな肉汁がたまらない。",
+    "category": "main",
+    "cuisine": "chinese",
+    "difficulty": "normal",
+    "time_min": 45,
+    "cost_tier": 1000,
+    "popularity": 9,
+    "child_friendly_score": 85,
+    "ingredients": [
+      {"ingredient_id": "meat_ground_pork", "amount": 200, "unit": "g"},
+      {"ingredient_id": "veg_cabbage", "amount": 200, "unit": "g"},
+      {"ingredient_id": "veg_leek", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "seasoning_garlic", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_ginger", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "sesame_oil", "amount": 10, "unit": "ml"},
+      {"ingredient_id": "gyoza_wrappers", "amount": 30, "unit": "枚"}
+    ],
+    "steps": [
+      "キャベツはみじん切りにして塩もみし、水気を絞る。長ねぎ・にんにく・生姜もみじん切り。",
+      "ボウルに挽肉と全材料を入れ、粘りが出るまで混ぜる。",
+      "餃子の皮で包む（30個）。",
+      "フライパンに油を熱し、餃子を並べて焼き、水を加えて蒸し焼きにする。"
+    ],
+    "substitutes": "豚ひき肉→鶏ひき肉"
+  },
+  {
+    "recipe_id": "main_013",
+    "title": "回鍋肉（ホイコーロー）",
+    "description": "甘辛味噌だれが絶品の中華炒め。",
+    "category": "main",
+    "cuisine": "chinese",
+    "difficulty": "normal",
+    "time_min": 25,
+    "cost_tier": 1000,
+    "popularity": 8,
+    "child_friendly_score": 70,
+    "ingredients": [
+      {"ingredient_id": "meat_pork", "amount": 200, "unit": "g"},
+      {"ingredient_id": "veg_cabbage", "amount": 200, "unit": "g"},
+      {"ingredient_id": "veg_bell_pepper", "amount": 2, "unit": "個"},
+      {"ingredient_id": "veg_leek", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "seasoning_garlic", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_ginger", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_doubanjiang", "amount": 15, "unit": "g"},
+      {"ingredient_id": "seasoning_miso", "amount": 30, "unit": "g"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_oil", "amount": 30, "unit": "ml"}
+    ],
+    "steps": [
+      "豚肉は薄切り、キャベツはざく切り、ピーマンは乱切り、長ねぎは斜め切り。",
+      "フライパンに油を熱し、にんにく・生姜・豆板醤を炒める。",
+      "豚肉を加えて炒め、野菜を加える。",
+      "味噌・酒・砂糖を混ぜたタレを加えて炒め合わせる。"
+    ],
+    "substitutes": "豚肉→牛肉"
+  },
+  {
+    "recipe_id": "main_014",
+    "title": "鶏の照り焼き",
+    "description": "甘辛タレが絶品。お弁当にも最適。",
+    "category": "main",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 25,
+    "cost_tier": 1000,
+    "popularity": 9,
+    "child_friendly_score": 90,
+    "ingredients": [
+      {"ingredient_id": "meat_chicken_thigh", "amount": 300, "unit": "g"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 15, "unit": "g"},
+      {"ingredient_id": "seasoning_oil", "amount": 15, "unit": "ml"}
+    ],
+    "steps": [
+      "鶏肉は一口大に切る。",
+      "ボウルに醤油・みりん・酒・砂糖を混ぜ合わせる。",
+      "フライパンに油を熱し、鶏肉の皮目から焼く。",
+      "両面に焼き色がついたらタレを加え、照りが出るまで煮詰める。"
+    ],
+    "substitutes": "鶏もも肉→鶏むね肉"
+  },
+  {
+    "recipe_id": "main_015",
+    "title": "豚汁",
+    "description": "具だくさんの味噌汁。ほっこり温まる一品。",
+    "category": "soup",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 30,
+    "cost_tier": 1000,
+    "popularity": 9,
+    "child_friendly_score": 85,
+    "ingredients": [
+      {"ingredient_id": "meat_pork", "amount": 150, "unit": "g"},
+      {"ingredient_id": "veg_carrot", "amount": 1, "unit": "本"},
+      {"ingredient_id": "veg_daikon", "amount": 0.25, "unit": "本"},
+      {"ingredient_id": "veg_burdock", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "tofu", "amount": 0.5, "unit": "丁"},
+      {"ingredient_id": "veg_leek", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "seasoning_miso", "amount": 50, "unit": "g"},
+      {"ingredient_id": "dashi_stock", "amount": 800, "unit": "ml"},
+      {"ingredient_id": "sesame_oil", "amount": 10, "unit": "ml"}
+    ],
+    "steps": [
+      "豚肉は一口大、野菜は食べやすい大きさに切る。",
+      "鍋にごま油を熱し、豚肉を炒め、野菜を加えて炒める。",
+      "だし汁を加えて15分煮る。",
+      "豆腐を加え、火を止めて味噌を溶き入れる。長ねぎを散らして完成。"
+    ],
+    "substitutes": "豚肉→鶏肉"
+  },
+  {
+    "recipe_id": "main_016",
+    "title": "エビフライ",
+    "description": "サクサクの衣とプリプリのエビ。",
+    "category": "main",
+    "cuisine": "western",
+    "difficulty": "normal",
+    "time_min": 30,
+    "cost_tier": 1500,
+    "popularity": 9,
+    "child_friendly_score": 95,
+    "ingredients": [
+      {"ingredient_id": "seafood_shrimp", "amount": 8, "unit": "尾"},
+      {"ingredient_id": "flour", "amount": 50, "unit": "g"},
+      {"ingredient_id": "egg", "amount": 1, "unit": "個"},
+      {"ingredient_id": "bread_crumbs", "amount": 100, "unit": "g"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "seasoning_pepper", "amount": 1, "unit": "g"},
+      {"ingredient_id": "seasoning_oil", "amount": 500, "unit": "ml"},
+      {"ingredient_id": "tartar_sauce", "amount": 50, "unit": "g"}
+    ],
+    "steps": [
+      "エビは殻をむき、背わたを取る。腹に切り込みを入れてまっすぐに伸ばす。",
+      "塩・胡椒で下味をつける。",
+      "小麦粉→溶き卵→パン粉の順につける。",
+      "170度の油で3分揚げる。タルタルソースを添えて完成。"
+    ],
+    "substitutes": "エビ→白身魚"
+  },
+  {
+    "recipe_id": "main_017",
+    "title": "とんかつ",
+    "description": "サクサクの衣とジューシーな豚肉。",
+    "category": "main",
+    "cuisine": "japanese",
+    "difficulty": "normal",
+    "time_min": 35,
+    "cost_tier": 1500,
+    "popularity": 9,
+    "child_friendly_score": 90,
+    "ingredients": [
+      {"ingredient_id": "meat_pork_loin", "amount": 2, "unit": "枚"},
+      {"ingredient_id": "flour", "amount": 50, "unit": "g"},
+      {"ingredient_id": "egg", "amount": 1, "unit": "個"},
+      {"ingredient_id": "bread_crumbs", "amount": 100, "unit": "g"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "seasoning_pepper", "amount": 1, "unit": "g"},
+      {"ingredient_id": "seasoning_oil", "amount": 500, "unit": "ml"},
+      {"ingredient_id": "tonkatsu_sauce", "amount": 50, "unit": "ml"}
+    ],
+    "steps": [
+      "豚肉は筋切りし、塩・胡椒で下味をつける。",
+      "小麦粉→溶き卵→パン粉の順につける。",
+      "170度の油で片面3分ずつ揚げる。",
+      "食べやすい大きさに切り、とんかつソースをかけて完成。"
+    ],
+    "substitutes": "豚ロース→豚ヒレ"
+  },
+  {
+    "recipe_id": "main_018",
+    "title": "鯖の味噌煮",
+    "description": "味噌だれが染み込んだ鯖が絶品。",
+    "category": "main",
+    "cuisine": "japanese",
+    "difficulty": "normal",
+    "time_min": 30,
+    "cost_tier": 1000,
+    "popularity": 8,
+    "child_friendly_score": 75,
+    "ingredients": [
+      {"ingredient_id": "fish_mackerel", "amount": 2, "unit": "切れ"},
+      {"ingredient_id": "seasoning_miso", "amount": 50, "unit": "g"},
+      {"ingredient_id": "seasoning_sake", "amount": 50, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 50, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 30, "unit": "g"},
+      {"ingredient_id": "seasoning_ginger", "amount": 20, "unit": "g"},
+      {"ingredient_id": "water", "amount": 200, "unit": "ml"}
+    ],
+    "steps": [
+      "鯖は熱湯をかけて臭みを取る。生姜は薄切り。",
+      "鍋に水・酒・みりん・砂糖・生姜を煮立て、鯖を入れる。",
+      "落し蓋をして中火で15分煮る。",
+      "味噌を溶き入れ、さらに5分煮て完成。"
+    ],
+    "substitutes": "鯖→ぶり"
+  },
+  {
+    "recipe_id": "main_019",
+    "title": "牛丼",
+    "description": "甘辛い牛肉が食欲をそそる。",
+    "category": "main",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 20,
+    "cost_tier": 1000,
+    "popularity": 9,
+    "child_friendly_score": 85,
+    "ingredients": [
+      {"ingredient_id": "meat_beef", "amount": 200, "unit": "g"},
+      {"ingredient_id": "veg_onion", "amount": 1, "unit": "個"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 45, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 45, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 15, "unit": "g"},
+      {"ingredient_id": "dashi_stock", "amount": 150, "unit": "ml"},
+      {"ingredient_id": "rice", "amount": 2, "unit": "杯"}
+    ],
+    "steps": [
+      "牛肉は食べやすい大きさに、玉ねぎは薄切りにする。",
+      "鍋にだし汁・醤油・みりん・酒・砂糖を煮立て、玉ねぎを入れる。",
+      "玉ねぎが柔らかくなったら牛肉を加え、アクを取りながら5分煮る。",
+      "ご飯の上に盛り付けて完成。"
+    ],
+    "substitutes": "牛肉→豚肉"
+  },
+  {
+    "recipe_id": "main_020",
+    "title": "オムライス",
+    "description": "ふわふわ卵とケチャップライスの定番洋食。",
+    "category": "main",
+    "cuisine": "western",
+    "difficulty": "normal",
+    "time_min": 25,
+    "cost_tier": 1000,
+    "popularity": 9,
+    "child_friendly_score": 95,
+    "ingredients": [
+      {"ingredient_id": "rice", "amount": 2, "unit": "杯"},
+      {"ingredient_id": "meat_chicken", "amount": 100, "unit": "g"},
+      {"ingredient_id": "veg_onion", "amount": 0.5, "unit": "個"},
+      {"ingredient_id": "egg", "amount": 4, "unit": "個"},
+      {"ingredient_id": "seasoning_ketchup", "amount": 60, "unit": "ml"},
+      {"ingredient_id": "butter", "amount": 30, "unit": "g"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "seasoning_pepper", "amount": 1, "unit": "g"}
+    ],
+    "steps": [
+      "鶏肉と玉ねぎはみじん切り。",
+      "フライパンにバターを熱し、鶏肉・玉ねぎを炒め、ご飯とケチャップを加えて炒める。",
+      "卵を溶き、塩・胡椒で味付け。フライパンにバターを熱して卵を流し、半熟で火を止める。",
+      "ケチャップライスを卵で包み、ケチャップをかけて完成。"
+    ],
+    "substitutes": "鶏肉→ハム"
+  },
+  {
+    "recipe_id": "side_001",
+    "title": "きんぴらごぼう",
+    "description": "食物繊維たっぷり。常備菜の定番。",
+    "category": "side",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 15,
+    "cost_tier": 500,
+    "popularity": 8,
+    "child_friendly_score": 70,
+    "ingredients": [
+      {"ingredient_id": "veg_burdock", "amount": 1, "unit": "本"},
+      {"ingredient_id": "veg_carrot", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 10, "unit": "g"},
+      {"ingredient_id": "sesame_oil", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "sesame_seeds", "amount": 5, "unit": "g"}
+    ],
+    "steps": [
+      "ごぼうとにんじんを細切りにし、ごぼうは水にさらす。",
+      "フライパンにごま油を熱し、ごぼうとにんじんを炒める。",
+      "醤油・みりん・酒・砂糖を加えて炒め煮する。",
+      "水分が飛んだら、白ごまを振って完成。"
+    ],
+    "substitutes": "ごぼう→れんこん"
+  },
+  {
+    "recipe_id": "side_002",
+    "title": "ほうれん草のおひたし",
+    "description": "シンプルだけど栄養満点の副菜。",
+    "category": "side",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 10,
+    "cost_tier": 500,
+    "popularity": 8,
+    "child_friendly_score": 65,
+    "ingredients": [
+      {"ingredient_id": "veg_spinach", "amount": 1, "unit": "束"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "dashi_stock", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "sesame_seeds", "amount": 5, "unit": "g"}
+    ],
+    "steps": [
+      "ほうれん草は根元を切り落とし、よく洗う。",
+      "沸騰した湯で1分茹で、冷水にとって水気を絞る。",
+      "4cm長さに切り、醤油・みりん・だし汁で和える。",
+      "器に盛り、白ごまを振って完成。"
+    ],
+    "substitutes": "ほうれん草→小松菜"
+  },
+  {
+    "recipe_id": "side_003",
+    "title": "ポテトサラダ",
+    "description": "クリーミーで優しい味わい。子どもにも大人気。",
+    "category": "side",
+    "cuisine": "western",
+    "difficulty": "easy",
+    "time_min": 20,
+    "cost_tier": 500,
+    "popularity": 9,
+    "child_friendly_score": 90,
+    "ingredients": [
+      {"ingredient_id": "veg_potato", "amount": 3, "unit": "個"},
+      {"ingredient_id": "veg_carrot", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "veg_cucumber", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "egg", "amount": 2, "unit": "個"},
+      {"ingredient_id": "seasoning_mayo", "amount": 60, "unit": "g"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "seasoning_pepper", "amount": 1, "unit": "g"}
+    ],
+    "steps": [
+      "じゃがいもとにんじんは皮をむいて茹で、熱いうちに潰す。",
+      "きゅうりは薄切りにして塩もみし、水気を絞る。卵はゆで卵にして刻む。",
+      "ボウルに全材料を入れ、マヨネーズ・塩・胡椒で味を調える。",
+      "冷蔵庫で冷やして完成。"
+    ],
+    "substitutes": "じゃがいも→さつまいも"
+  },
+  {
+    "recipe_id": "side_004",
+    "title": "かぼちゃの煮物",
+    "description": "ほっくり甘いかぼちゃの煮物。",
+    "category": "side",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 25,
+    "cost_tier": 500,
+    "popularity": 8,
+    "child_friendly_score": 80,
+    "ingredients": [
+      {"ingredient_id": "veg_pumpkin", "amount": 0.25, "unit": "個"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 20, "unit": "g"},
+      {"ingredient_id": "dashi_stock", "amount": 300, "unit": "ml"}
+    ],
+    "steps": [
+      "かぼちゃは種とワタを取り、一口大に切る。",
+      "鍋にだし汁・醤油・みりん・酒・砂糖を煮立て、かぼちゃを入れる。",
+      "落し蓋をして中火で20分煮る。",
+      "火を止めて5分蒸らして完成。"
+    ],
+    "substitutes": "かぼちゃ→さつまいも"
+  },
+  {
+    "recipe_id": "side_005",
+    "title": "冷奴",
+    "description": "シンプルで涼しげ。薬味がアクセント。",
+    "category": "side",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 5,
+    "cost_tier": 300,
+    "popularity": 7,
+    "child_friendly_score": 60,
+    "ingredients": [
+      {"ingredient_id": "tofu", "amount": 1, "unit": "丁"},
+      {"ingredient_id": "veg_leek", "amount": 0.25, "unit": "本"},
+      {"ingredient_id": "seasoning_ginger", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "bonito_flakes", "amount": 3, "unit": "g"}
+    ],
+    "steps": [
+      "豆腐を食べやすい大きさに切る。",
+      "長ねぎはみじん切り、生姜はすりおろす。",
+      "豆腐に薬味をのせ、醤油をかけ、かつお節を散らして完成。"
+    ],
+    "substitutes": "絹ごし豆腐→木綿豆腐"
+  },
+  {
+    "recipe_id": "side_006",
+    "title": "ひじきの煮物",
+    "description": "鉄分たっぷりの健康副菜。",
+    "category": "side",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 20,
+    "cost_tier": 500,
+    "popularity": 7,
+    "child_friendly_score": 70,
+    "ingredients": [
+      {"ingredient_id": "dried_hijiki", "amount": 20, "unit": "g"},
+      {"ingredient_id": "veg_carrot", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "aburaage", "amount": 1, "unit": "枚"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 15, "unit": "g"},
+      {"ingredient_id": "dashi_stock", "amount": 200, "unit": "ml"},
+      {"ingredient_id": "sesame_oil", "amount": 15, "unit": "ml"}
+    ],
+    "steps": [
+      "ひじきは水で戻す。にんじんは細切り、油揚げは短冊切り。",
+      "フライパンにごま油を熱し、にんじんと油揚げを炒める。",
+      "ひじきを加えて炒め、だし汁・醤油・みりん・酒・砂糖を加える。",
+      "煮汁が少なくなるまで煮て完成。"
+    ],
+    "substitutes": "ひじき→切り干し大根"
+  },
+  {
+    "recipe_id": "side_007",
+    "title": "きゅうりの酢の物",
+    "description": "さっぱりとした酢の物。箸休めに最適。",
+    "category": "side",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 10,
+    "cost_tier": 300,
+    "popularity": 7,
+    "child_friendly_score": 60,
+    "ingredients": [
+      {"ingredient_id": "veg_cucumber", "amount": 2, "unit": "本"},
+      {"ingredient_id": "wakame_seaweed", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_vinegar", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 15, "unit": "g"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "sesame_seeds", "amount": 5, "unit": "g"}
+    ],
+    "steps": [
+      "きゅうりは薄切りにして塩もみし、水気を絞る。",
+      "わかめは水で戻す。",
+      "酢・砂糖・塩を混ぜた合わせ酢を作る。",
+      "きゅうりとわかめを合わせ酢で和え、白ごまを振って完成。"
+    ],
+    "substitutes": "きゅうり→大根"
+  },
+  {
+    "recipe_id": "side_008",
+    "title": "大根サラダ",
+    "description": "シャキシャキ食感が楽しい。",
+    "category": "side",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 10,
+    "cost_tier": 300,
+    "popularity": 7,
+    "child_friendly_score": 70,
+    "ingredients": [
+      {"ingredient_id": "veg_daikon", "amount": 0.25, "unit": "本"},
+      {"ingredient_id": "veg_lettuce", "amount": 0.25, "unit": "個"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_vinegar", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "sesame_oil", "amount": 10, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 5, "unit": "g"}
+    ],
+    "steps": [
+      "大根は千切りにして水にさらす。レタスは食べやすい大きさにちぎる。",
+      "醤油・酢・ごま油・砂糖を混ぜてドレッシングを作る。",
+      "野菜を盛り付け、ドレッシングをかけて完成。"
+    ],
+    "substitutes": "大根→キャベツ"
+  },
+  {
+    "recipe_id": "side_009",
+    "title": "切り干し大根の煮物",
+    "description": "乾物の旨みが詰まった煮物。",
+    "category": "side",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 20,
+    "cost_tier": 500,
+    "popularity": 7,
+    "child_friendly_score": 65,
+    "ingredients": [
+      {"ingredient_id": "dried_daikon", "amount": 30, "unit": "g"},
+      {"ingredient_id": "veg_carrot", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "aburaage", "amount": 1, "unit": "枚"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_sugar", "amount": 15, "unit": "g"},
+      {"ingredient_id": "dashi_stock", "amount": 300, "unit": "ml"}
+    ],
+    "steps": [
+      "切り干し大根は水で戻す。にんじんは細切り、油揚げは短冊切り。",
+      "鍋にだし汁・醤油・みりん・酒・砂糖を煮立て、切り干し大根・にんじん・油揚げを入れる。",
+      "落し蓋をして15分煮る。",
+      "火を止めて5分蒸らして完成。"
+    ],
+    "substitutes": "切り干し大根→高野豆腐"
+  },
+  {
+    "recipe_id": "side_010",
+    "title": "卵焼き",
+    "description": "お弁当の定番。甘めの味付けで子どもも大好き。",
+    "category": "side",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 10,
+    "cost_tier": 300,
+    "popularity": 9,
+    "child_friendly_score": 95,
+    "ingredients": [
+      {"ingredient_id": "egg", "amount": 3, "unit": "個"},
+      {"ingredient_id": "seasoning_sugar", "amount": 15, "unit": "g"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 10, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 10, "unit": "ml"},
+      {"ingredient_id": "seasoning_oil", "amount": 15, "unit": "ml"}
+    ],
+    "steps": [
+      "ボウルに卵を溶き、砂糖・醤油・みりんを加えて混ぜる。",
+      "卵焼き器に油を熱し、卵液を1/3流し入れる。",
+      "半熟になったら奥から手前に巻く。",
+      "残りの卵液も同様に巻いて完成。"
+    ],
+    "substitutes": "砂糖→みりん多め"
+  },
+  {
+    "recipe_id": "soup_001",
+    "title": "味噌汁（豆腐・わかめ）",
+    "description": "定番の組み合わせ。毎日飲みたい味噌汁。",
+    "category": "soup",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 10,
+    "cost_tier": 300,
+    "popularity": 9,
+    "child_friendly_score": 80,
+    "ingredients": [
+      {"ingredient_id": "tofu", "amount": 0.5, "unit": "丁"},
+      {"ingredient_id": "wakame_seaweed", "amount": 10, "unit": "g"},
+      {"ingredient_id": "seasoning_miso", "amount": 40, "unit": "g"},
+      {"ingredient_id": "dashi_stock", "amount": 600, "unit": "ml"}
+    ],
+    "steps": [
+      "豆腐は1cm角に切る。わかめは水で戻す。",
+      "鍋にだし汁を煮立て、豆腐とわかめを入れる。",
+      "火を止めて味噌を溶き入れる。"
+    ],
+    "substitutes": "豆腐→油揚げ"
+  },
+  {
+    "recipe_id": "soup_002",
+    "title": "コーンスープ",
+    "description": "クリーミーで優しい味わい。子どもに大人気。",
+    "category": "soup",
+    "cuisine": "western",
+    "difficulty": "easy",
+    "time_min": 15,
+    "cost_tier": 500,
+    "popularity": 9,
+    "child_friendly_score": 95,
+    "ingredients": [
+      {"ingredient_id": "canned_corn", "amount": 1, "unit": "缶"},
+      {"ingredient_id": "milk", "amount": 300, "unit": "ml"},
+      {"ingredient_id": "water", "amount": 200, "unit": "ml"},
+      {"ingredient_id": "butter", "amount": 20, "unit": "g"},
+      {"ingredient_id": "consomme", "amount": 1, "unit": "個"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "seasoning_pepper", "amount": 1, "unit": "g"}
+    ],
+    "steps": [
+      "鍋にバターを熱し、コーンを炒める。",
+      "水とコンソメを加えて煮立て、牛乳を加える。",
+      "塩・胡椒で味を調えて完成。"
+    ],
+    "substitutes": "缶詰コーン→冷凍コーン"
+  },
+  {
+    "recipe_id": "soup_003",
+    "title": "中華スープ（卵・わかめ）",
+    "description": "あっさりした中華風スープ。",
+    "category": "soup",
+    "cuisine": "chinese",
+    "difficulty": "easy",
+    "time_min": 10,
+    "cost_tier": 300,
+    "popularity": 8,
+    "child_friendly_score": 80,
+    "ingredients": [
+      {"ingredient_id": "egg", "amount": 1, "unit": "個"},
+      {"ingredient_id": "wakame_seaweed", "amount": 10, "unit": "g"},
+      {"ingredient_id": "veg_leek", "amount": 0.25, "unit": "本"},
+      {"ingredient_id": "chicken_stock", "amount": 600, "unit": "ml"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "sesame_oil", "amount": 5, "unit": "ml"}
+    ],
+    "steps": [
+      "わかめは水で戻す。長ねぎは小口切り。",
+      "鍋に鶏ガラスープを煮立て、醤油・塩で味付け。",
+      "溶き卵を回し入れ、わかめと長ねぎを加える。",
+      "ごま油を垂らして完成。"
+    ],
+    "substitutes": "わかめ→豆腐"
+  },
+  {
+    "recipe_id": "soup_004",
+    "title": "野菜スープ",
+    "description": "野菜たっぷりのヘルシースープ。",
+    "category": "soup",
+    "cuisine": "western",
+    "difficulty": "easy",
+    "time_min": 20,
+    "cost_tier": 500,
+    "popularity": 8,
+    "child_friendly_score": 80,
+    "ingredients": [
+      {"ingredient_id": "veg_onion", "amount": 1, "unit": "個"},
+      {"ingredient_id": "veg_carrot", "amount": 1, "unit": "本"},
+      {"ingredient_id": "veg_cabbage", "amount": 0.25, "unit": "個"},
+      {"ingredient_id": "veg_potato", "amount": 1, "unit": "個"},
+      {"ingredient_id": "water", "amount": 600, "unit": "ml"},
+      {"ingredient_id": "consomme", "amount": 2, "unit": "個"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "seasoning_pepper", "amount": 1, "unit": "g"}
+    ],
+    "steps": [
+      "野菜は食べやすい大きさに切る。",
+      "鍋に水とコンソメを煮立て、野菜を入れる。",
+      "15分煮て、塩・胡椒で味を調えて完成。"
+    ],
+    "substitutes": "キャベツ→白菜"
+  },
+  {
+    "recipe_id": "soup_005",
+    "title": "味噌汁（なめこ・豆腐）",
+    "description": "とろとろのなめこが美味しい。",
+    "category": "soup",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 10,
+    "cost_tier": 300,
+    "popularity": 8,
+    "child_friendly_score": 75,
+    "ingredients": [
+      {"ingredient_id": "nameko_mushroom", "amount": 1, "unit": "パック"},
+      {"ingredient_id": "tofu", "amount": 0.5, "unit": "丁"},
+      {"ingredient_id": "veg_leek", "amount": 0.25, "unit": "本"},
+      {"ingredient_id": "seasoning_miso", "amount": 40, "unit": "g"},
+      {"ingredient_id": "dashi_stock", "amount": 600, "unit": "ml"}
+    ],
+    "steps": [
+      "なめこはさっと洗う。豆腐は1cm角、長ねぎは小口切り。",
+      "鍋にだし汁を煮立て、なめこと豆腐を入れる。",
+      "火を止めて味噌を溶き入れ、長ねぎを散らして完成。"
+    ],
+    "substitutes": "なめこ→えのき"
+  },
+  {
+    "recipe_id": "soup_006",
+    "title": "かき玉汁",
+    "description": "ふんわり卵の優しい味わい。",
+    "category": "soup",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 10,
+    "cost_tier": 300,
+    "popularity": 8,
+    "child_friendly_score": 85,
+    "ingredients": [
+      {"ingredient_id": "egg", "amount": 2, "unit": "個"},
+      {"ingredient_id": "veg_leek", "amount": 0.25, "unit": "本"},
+      {"ingredient_id": "flour_potato_starch", "amount": 10, "unit": "g"},
+      {"ingredient_id": "dashi_stock", "amount": 600, "unit": "ml"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"}
+    ],
+    "steps": [
+      "長ねぎは小口切り。",
+      "鍋にだし汁・醤油・みりん・塩を煮立てる。",
+      "水溶き片栗粉でとろみをつける。",
+      "溶き卵を回し入れ、長ねぎを加えて完成。"
+    ],
+    "substitutes": "卵→豆腐"
+  },
+  {
+    "recipe_id": "soup_007",
+    "title": "ミネストローネ",
+    "description": "トマトベースの野菜たっぷりスープ。",
+    "category": "soup",
+    "cuisine": "western",
+    "difficulty": "easy",
+    "time_min": 25,
+    "cost_tier": 500,
+    "popularity": 8,
+    "child_friendly_score": 80,
+    "ingredients": [
+      {"ingredient_id": "veg_onion", "amount": 1, "unit": "個"},
+      {"ingredient_id": "veg_carrot", "amount": 1, "unit": "本"},
+      {"ingredient_id": "veg_celery", "amount": 1, "unit": "本"},
+      {"ingredient_id": "veg_cabbage", "amount": 0.25, "unit": "個"},
+      {"ingredient_id": "canned_tomato", "amount": 1, "unit": "缶"},
+      {"ingredient_id": "water", "amount": 400, "unit": "ml"},
+      {"ingredient_id": "consomme", "amount": 2, "unit": "個"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "seasoning_pepper", "amount": 1, "unit": "g"},
+      {"ingredient_id": "seasoning_oil", "amount": 15, "unit": "ml"}
+    ],
+    "steps": [
+      "野菜はすべて1cm角に切る。",
+      "鍋に油を熱し、野菜を炒める。",
+      "トマト缶・水・コンソメを加えて15分煮る。",
+      "塩・胡椒で味を調えて完成。"
+    ],
+    "substitutes": "セロリ→ピーマン"
+  },
+  {
+    "recipe_id": "soup_008",
+    "title": "わかめスープ",
+    "description": "シンプルで飽きのこない味。",
+    "category": "soup",
+    "cuisine": "japanese",
+    "difficulty": "easy",
+    "time_min": 10,
+    "cost_tier": 300,
+    "popularity": 7,
+    "child_friendly_score": 75,
+    "ingredients": [
+      {"ingredient_id": "wakame_seaweed", "amount": 10, "unit": "g"},
+      {"ingredient_id": "veg_leek", "amount": 0.25, "unit": "本"},
+      {"ingredient_id": "dashi_stock", "amount": 600, "unit": "ml"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "sesame_seeds", "amount": 3, "unit": "g"}
+    ],
+    "steps": [
+      "わかめは水で戻す。長ねぎは小口切り。",
+      "鍋にだし汁・醤油・みりん・塩を煮立てる。",
+      "わかめと長ねぎを加え、白ごまを振って完成。"
+    ],
+    "substitutes": "わかめ→もずく"
+  },
+  {
+    "recipe_id": "soup_009",
+    "title": "けんちん汁",
+    "description": "根菜たっぷりの栄養満点汁物。",
+    "category": "soup",
+    "cuisine": "japanese",
+    "difficulty": "normal",
+    "time_min": 30,
+    "cost_tier": 500,
+    "popularity": 7,
+    "child_friendly_score": 75,
+    "ingredients": [
+      {"ingredient_id": "veg_daikon", "amount": 0.25, "unit": "本"},
+      {"ingredient_id": "veg_carrot", "amount": 1, "unit": "本"},
+      {"ingredient_id": "veg_burdock", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "tofu", "amount": 0.5, "unit": "丁"},
+      {"ingredient_id": "veg_leek", "amount": 0.5, "unit": "本"},
+      {"ingredient_id": "seasoning_soy_sauce", "amount": 30, "unit": "ml"},
+      {"ingredient_id": "seasoning_mirin", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "seasoning_sake", "amount": 15, "unit": "ml"},
+      {"ingredient_id": "dashi_stock", "amount": 800, "unit": "ml"},
+      {"ingredient_id": "sesame_oil", "amount": 10, "unit": "ml"}
+    ],
+    "steps": [
+      "野菜はすべて食べやすい大きさに切る。",
+      "鍋にごま油を熱し、野菜を炒める。",
+      "だし汁・醤油・みりん・酒を加えて15分煮る。",
+      "豆腐と長ねぎを加え、さらに5分煮て完成。"
+    ],
+    "substitutes": "ごぼう→れんこん"
+  },
+  {
+    "recipe_id": "soup_010",
+    "title": "オニオンスープ",
+    "description": "玉ねぎの甘みが溶け込んだ洋風スープ。",
+    "category": "soup",
+    "cuisine": "western",
+    "difficulty": "easy",
+    "time_min": 20,
+    "cost_tier": 500,
+    "popularity": 7,
+    "child_friendly_score": 80,
+    "ingredients": [
+      {"ingredient_id": "veg_onion", "amount": 2, "unit": "個"},
+      {"ingredient_id": "butter", "amount": 30, "unit": "g"},
+      {"ingredient_id": "water", "amount": 600, "unit": "ml"},
+      {"ingredient_id": "consomme", "amount": 2, "unit": "個"},
+      {"ingredient_id": "seasoning_salt", "amount": 2, "unit": "g"},
+      {"ingredient_id": "seasoning_pepper", "amount": 1, "unit": "g"}
+    ],
+    "steps": [
+      "玉ねぎは薄切りにする。",
+      "鍋にバターを熱し、玉ねぎを弱火で15分炒める（飴色になるまで）。",
+      "水とコンソメを加えて5分煮る。",
+      "塩・胡椒で味を調えて完成。"
+    ],
+    "substitutes": "玉ねぎ→長ねぎ"
+  }
+]
