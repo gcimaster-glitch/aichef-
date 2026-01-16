@@ -2,8 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 // JSONファイルを読み込み
+const inputFile = process.argv[2] || 'master-recipes-50.json';
 const recipesData = JSON.parse(
-  fs.readFileSync(path.join(__dirname, 'master-recipes-50.json'), 'utf8')
+  fs.readFileSync(path.join(__dirname, inputFile), 'utf8')
 );
 
 // ingredient_idのマッピング（実際のDBスキーマに合わせて調整が必要）
@@ -161,7 +162,8 @@ LIMIT 10;
 `;
 
 // ファイルに書き出し
-const outputPath = path.join(__dirname, '..', 'db', 'insert-master-recipes-50.sql');
+const outputFileName = inputFile.replace('.json', '.sql');
+const outputPath = path.join(__dirname, '..', 'db', outputFileName);
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, sqlOutput);
 
