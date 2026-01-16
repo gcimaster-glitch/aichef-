@@ -1,0 +1,146 @@
+name: Recipe Quality Check
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'scripts/**/*.json'
+      - 'db/**/*.sql'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'scripts/**/*.json'
+      - 'db/**/*.sql'
+
+jobs:
+  duplicate-check:
+    name: レシピ重複チェック
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run duplicate check
+        run: node scripts/check-duplicates.cjs
+      
+      - name: Comment on PR (if duplicate found)
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **レシピ重複チェック失敗**\n\n重複または類似度の高いレシピが検出されました。`scripts/check-duplicates.cjs`を実行して詳細を確認してください。'
+            })
+  
+  recipe-validation:
+    name: レシピデータ検証
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Validate recipe JSON
+        run: |
+          echo "📋 レシピJSONファイルの検証..."
+          for file in scripts/*recipe*.json; do
+            if [ -f "$file" ]; then
+              echo "Validating $file..."
+              node -e "JSON.parse(require('fs').readFileSync('$file', 'utf8'))" || exit 1
+            fi
+          done
+          echo "✅ 全てのJSONファイルが有効です"
+      
+      - name: Check recipe structure
+        run: |
+          echo "🔍 レシピ構造チェック..."
+          node -e "
+          const fs = require('fs');
+          const files = fs.readdirSync('scripts').filter(f => f.includes('recipe') && f.endsWith('.json'));
+          
+          let errors = [];
+          files.forEach(file => {
+            const data = JSON.parse(fs.readFileSync('scripts/' + file, 'utf8'));
+            const recipes = Array.isArray(data) ? data : data.recipes || [];
+            
+            recipes.forEach((recipe, idx) => {
+              if (!recipe.recipe_id) errors.push(\`\${file}: レシピ#\${idx} - recipe_id が必要\`);
+              if (!recipe.title) errors.push(\`\${file}: レシピ#\${idx} - title が必要\`);
+              if (!recipe.role || !['main', 'side', 'soup'].includes(recipe.role)) {
+                errors.push(\`\${file}: レシピ#\${idx} - 無効なrole: \${recipe.role}\`);
+              }
+            });
+          });
+          
+          if (errors.length > 0) {
+            console.error('❌ 構造エラー:');
+            errors.forEach(e => console.error('  ' + e));
+            process.exit(1);
+          }
+          
+          console.log('✅ レシピ構造は正常です');
+          "
+  
+  sql-syntax-check:
+    name: SQL構文チェック
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup SQLite
+        run: sudo apt-get update && sudo apt-get install -y sqlite3
+      
+      - name: Validate SQL files
+        run: |
+          echo "📋 SQLファイルの構文検証..."
+          for file in db/*.sql migrations/*.sql 2>/dev/null; do
+            if [ -f "$file" ]; then
+              echo "Checking $file..."
+              sqlite3 :memory: < "$file" || exit 1
+            fi
+          done
+          echo "✅ 全てのSQLファイルの構文が正常です"
+  
+  quality-summary:
+    name: 品質サマリー
+    runs-on: ubuntu-latest
+    needs: [duplicate-check, recipe-validation, sql-syntax-check]
+    if: always()
+    
+    steps:
+      - name: Check overall status
+        run: |
+          echo "📊 品質チェック完了"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ 重複チェック: ${{ needs.duplicate-check.result }}"
+          echo "✅ データ検証: ${{ needs.recipe-validation.result }}"
+          echo "✅ SQL構文: ${{ needs.sql-syntax-check.result }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━"
+          
+          if [[ "${{ needs.duplicate-check.result }}" == "failure" || 
+                "${{ needs.recipe-validation.result }}" == "failure" || 
+                "${{ needs.sql-syntax-check.result }}" == "failure" ]]; then
+            echo "❌ 品質チェックに失敗しました"
+            exit 1
+          fi
+          
+          echo "✅ 全ての品質チェックに合格しました"
