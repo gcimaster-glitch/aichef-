@@ -11957,4 +11957,90 @@ app.get('/api/recipes/category/:role', async (c) => {
   }
 });
 
+// ========================================
+// Quality Check APIs
+// ========================================
+
+// レシピ品質スコアAPI
+app.get('/api/quality/recipe/:recipe_id', async (c) => {
+  const { env } = c;
+  const recipeId = c.req.param('recipe_id');
+  
+  try {
+    const recipe = await env.DB!.prepare(`
+      SELECT recipe_id, title, description, role, time_min, difficulty,
+             steps_json, substitutes_json, tags_json, child_friendly_score
+      FROM recipes WHERE recipe_id = ?
+    `).bind(recipeId).first();
+    
+    if (!recipe) {
+      return c.json({ error: 'Recipe not found' }, 404);
+    }
+    
+    const ingredientCount = await env.DB!.prepare(`
+      SELECT COUNT(*) as count FROM recipe_ingredients WHERE recipe_id = ?
+    `).bind(recipeId).first();
+    
+    // 簡易品質スコア計算
+    let score = 50;
+    const issues: string[] = [];
+    
+    // 材料数チェック
+    const count = ingredientCount?.count || 0;
+    if (count >= 3 && count <= 19) score += 25;
+    else issues.push(`材料数異常: ${count}個`);
+    
+    // 手順チェック
+    try {
+      const steps = JSON.parse((recipe.steps_json as string) || '[]');
+      if (steps.length >= 2) score += 25;
+      else issues.push('手順不足');
+    } catch {
+      issues.push('手順データ不正');
+    }
+    
+    return c.json({
+      recipe_id: recipeId,
+      title: recipe.title,
+      quality_score: Math.min(100, score),
+      grade: score >= 90 ? 'A' : score >= 70 ? 'B' : score >= 50 ? 'C' : 'D',
+      issues
+    });
+    
+  } catch (error: any) {
+    console.error('Quality check error:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+});
+
+// 品質レポートAPI
+app.get('/api/quality/report', async (c) => {
+  const { env } = c;
+  
+  try {
+    const stats = await env.DB!.prepare(`
+      SELECT COUNT(*) as total, COUNT(CASE WHEN role = 'main' THEN 1 END) as main_count
+      FROM recipes
+    `).first();
+    
+    const abnormal = await env.DB!.prepare(`
+      SELECT r.recipe_id, r.title, COUNT(ri.ingredient_id) as count
+      FROM recipes r
+      LEFT JOIN recipe_ingredients ri ON r.recipe_id = ri.recipe_id
+      GROUP BY r.recipe_id, r.title
+      HAVING count < 3 OR count > 19
+      LIMIT 10
+    `).all();
+    
+    return c.json({
+      summary: { total: stats?.total || 0, main: stats?.main_count || 0 },
+      issues: { abnormal_ingredients: abnormal.results || [] }
+    });
+    
+  } catch (error: any) {
+    console.error('Quality report error:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+});
+
 export default app
