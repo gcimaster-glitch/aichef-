@@ -8529,8 +8529,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         return badRequest("Plan not found");
       }
       
-      // 全ての献立のレシピIDを取得
-      const allRecipeIds: string[] = [];
+      // 全ての献立のレシピIDを取得（重複カウント付き）
+      const allRecipeCount: Record<string, number> = {};
       for (const day of (planDays.results as any[])) {
         const recipes = await env.DB.prepare(`
           SELECT recipe_id
@@ -8539,7 +8539,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         `).bind(day.plan_day_id).all();
         
         (recipes.results || []).forEach((r: any) => {
-          allRecipeIds.push(r.recipe_id);
+          allRecipeCount[r.recipe_id] = (allRecipeCount[r.recipe_id] || 0) + 1;
         });
       }
       
@@ -8550,8 +8550,8 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       for (let weekIndex = 0; weekIndex < daysArray.length; weekIndex += 7) {
         const weekDays = daysArray.slice(weekIndex, weekIndex + 7);
         
-        // この週のレシピIDを収集
-        const weekRecipeIds: string[] = [];
+        // この週のレシピIDを収集（重複カウント付き）
+        const weekRecipeCount: Record<string, number> = {};
         for (const day of weekDays) {
           const recipes = await env.DB.prepare(`
             SELECT recipe_id
@@ -8560,7 +8560,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           `).bind(day.plan_day_id).all();
           
           (recipes.results || []).forEach((r: any) => {
-            weekRecipeIds.push(r.recipe_id);
+            weekRecipeCount[r.recipe_id] = (weekRecipeCount[r.recipe_id] || 0) + 1;
           });
         }
         
@@ -8572,7 +8572,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           unit: string;
         }> = {};
         
-        for (const recipeId of weekRecipeIds) {
+        for (const [recipeId, count] of Object.entries(weekRecipeCount)) {
           const ingredients = await env.DB.prepare(`
             SELECT 
               i.ingredient_id,
@@ -8587,8 +8587,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
           
           (ingredients.results || []).forEach((ing: any) => {
             const key = ing.ingredient_id;
-            // 人数分の数量を計算（レシピは通常2人前なので、members_count / 2 を掛ける）
-            const adjustedQuantity = ing.quantity * (membersCount / 2);
+            // 人数分の数量を計算（レシピは通常2人前基準）
+            // 登場回数 × 基本量 × (実際の人数 / 2)
+            const adjustedQuantity = ing.quantity * count * (membersCount / 2);
             
             if (weekIngredientMap[key]) {
               weekIngredientMap[key].quantity += adjustedQuantity;
@@ -8644,7 +8645,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         unit: string;
       }> = {};
       
-      for (const recipeId of allRecipeIds) {
+      for (const [recipeId, count] of Object.entries(allRecipeCount)) {
         const ingredients = await env.DB.prepare(`
           SELECT 
             i.ingredient_id,
@@ -8659,8 +8660,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
         
         (ingredients.results || []).forEach((ing: any) => {
           const key = ing.ingredient_id;
-          // 人数分の数量を計算
-          const adjustedQuantity = ing.quantity * (membersCount / 2);
+          // 人数分の数量を計算（登場回数も考慮）
+          // 登場回数 × 基本量 × (実際の人数 / 2)
+          const adjustedQuantity = ing.quantity * count * (membersCount / 2);
           
           if (allIngredientMap[key]) {
             allIngredientMap[key].quantity += adjustedQuantity;

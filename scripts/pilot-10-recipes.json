@@ -1,0 +1,64 @@
+{
+  "pilot_batch_1": [
+    {
+      "recipe_id": "side_001",
+      "title": "きんぴらごぼう",
+      "new_description": "シャキシャキとした食感が楽しいごぼうとにんじんを甘辛く炒めた定番の副菜。食物繊維が豊富で、ご飯のお供に最適です。",
+      "status": "pending"
+    },
+    {
+      "recipe_id": "side_002",
+      "title": "ほうれん草のおひたし",
+      "new_description": "茹でたほうれん草を鰹節と醤油で味付けした、栄養満点のシンプルな一品。鉄分とビタミンが豊富で健康的です。",
+      "status": "pending"
+    },
+    {
+      "recipe_id": "side_003",
+      "title": "ポテトサラダ",
+      "new_description": "ホクホクのじゃがいもとマヨネーズで作る、子供から大人まで大好きなクリーミーなサラダ。お弁当のおかずにもぴったりです。",
+      "status": "pending"
+    },
+    {
+      "recipe_id": "side_004",
+      "title": "かぼちゃの煮物",
+      "new_description": "甘くてホクホクのかぼちゃを、だし汁と醤油で優しく煮込んだ和食の定番。ビタミンAが豊富で栄養価も高い一品です。",
+      "status": "pending"
+    },
+    {
+      "recipe_id": "side_005",
+      "title": "冷奴",
+      "new_description": "冷たい豆腐に薬味をたっぷり乗せた、夏にぴったりのさっぱりとした副菜。低カロリーで高タンパク、ヘルシー志向の方におすすめです。",
+      "status": "pending"
+    },
+    {
+      "recipe_id": "side_006",
+      "title": "ひじきの煮物",
+      "new_description": "ひじきと大豆、油揚げを甘辛く煮込んだ、栄養バランス抜群の常備菜。カルシウムと食物繊維が豊富で、作り置きにも最適です。",
+      "status": "pending"
+    },
+    {
+      "recipe_id": "side_007",
+      "title": "きゅうりの酢の物",
+      "new_description": "シャキシャキのきゅうりを酢で和えた、さっぱりとした口直しにぴったりの一品。わかめやタコを加えても美味しくいただけます。",
+      "status": "pending"
+    },
+    {
+      "recipe_id": "side_008",
+      "title": "大根サラダ",
+      "new_description": "千切りにした大根のシャキシャキ食感が楽しい、和風ドレッシングで味付けしたヘルシーなサラダ。消化を助ける効果もあります。",
+      "status": "pending"
+    },
+    {
+      "recipe_id": "side_009",
+      "title": "切り干し大根の煮物",
+      "new_description": "切り干し大根をにんじんや油揚げと一緒に甘辛く煮込んだ、食物繊維たっぷりの常備菜。保存がきくので作り置きにも便利です。",
+      "status": "pending"
+    },
+    {
+      "recipe_id": "side_010",
+      "title": "卵焼き",
+      "new_description": "ふわふわで優しい甘さの卵焼きは、お弁当の定番おかず。だし巻き風にしても美味しく、朝食にもぴったりの一品です。",
+      "status": "pending"
+    }
+  ]
+}
