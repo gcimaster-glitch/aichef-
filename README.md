@@ -7,10 +7,10 @@
 ## 🌐 本番環境
 
 ### **メインURL（推奨）**
-**https://aichef.pages.dev**
+**https://aichefs.net**
 
 ### **最新デプロイURL**
-https://f3a70841.aichef-595.pages.dev
+https://aichef-595.pages.dev
 
 ---
 
@@ -99,7 +99,7 @@ https://f3a70841.aichef-595.pages.dev
 
 - **Email**: admin@aichefs.jp
 - **Password**: aichef2026
-- **URL**: https://aichef.pages.dev/admin
+- **URL**: https://aichefs.net/admin
 
 ---
 
@@ -118,7 +118,7 @@ https://f3a70841.aichef-595.pages.dev
 
 ## 🔗 リンク
 
-- **本番環境**: https://aichef.pages.dev
+- **本番環境**: https://aichefs.net
 - **GitHubリポジトリ**: https://github.com/gcimaster-glitch/aichef-
 - **Cloudflareダッシュボード**: https://dash.cloudflare.com/
 

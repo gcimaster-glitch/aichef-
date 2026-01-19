@@ -2,8 +2,8 @@
 
 **実施日時**: 2026年1月19日  
 **担当**: AI開発アシスタント  
-**本番URL（メイン）**: https://aichef.pages.dev  
-**本番URL（最新デプロイ）**: https://f3a70841.aichef-595.pages.dev
+**本番URL（メイン）**: https://aichefs.net  
+**本番URL（最新デプロイ）**: https://aichef-595.pages.dev
 
 ---
 
@@ -223,8 +223,8 @@
 ## 📞 ローンチ後の連絡先
 
 ### **本番環境**
-- **URL（メイン）**: https://aichef.pages.dev
-- **URL（最新デプロイ）**: https://f3a70841.aichef-595.pages.dev
+- **URL（メイン）**: https://aichefs.net
+- **URL（最新デプロイ）**: https://aichef-595.pages.dev
 - **GitHub**: https://github.com/gcimaster-glitch/aichef-
 - **Cloudflareダッシュボード**: https://dash.cloudflare.com/
 

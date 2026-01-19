@@ -17,8 +17,8 @@
 
 | 項目 | 値 |
 |-----|-----|
-| **本番URL（メイン）** | https://aichef.pages.dev |
-| **本番URL（最新デプロイ）** | https://f3a70841.aichef-595.pages.dev |
+| **本番URL（メイン）** | https://aichefs.net |
+| **本番URL（最新デプロイ）** | https://aichef-595.pages.dev |
 | **GitHubリポジトリ** | https://github.com/gcimaster-glitch/aichef- |
 | **デプロイ環境** | Cloudflare Pages + D1 Database |
 | **セキュリティレベル** | 90/100（本番運用可能） |
@@ -182,8 +182,8 @@ AIChefは、**忙しい家族のための献立作成＆買い物リスト自動
 ## 🌐 本番環境情報
 
 ### **アクセスURL**
-**メインURL**: https://aichef.pages.dev（推奨）  
-**最新デプロイURL**: https://f3a70841.aichef-595.pages.dev
+**メインURL**: https://aichefs.net（推奨）  
+**最新デプロイURL**: https://aichef-595.pages.dev
 
 ### **主要エンドポイント**
 | エンドポイント | 機能 |
@@ -320,8 +320,8 @@ AIChefは、**忙しい家族のための献立作成＆買い物リスト自動
 - **リポジトリ**: https://github.com/gcimaster-glitch/aichef-
 
 ### **本番環境**
-- **Production URL（メイン）**: https://aichef.pages.dev
-- **Production URL（最新デプロイ）**: https://f3a70841.aichef-595.pages.dev
+- **Production URL（メイン）**: https://aichefs.net
+- **Production URL（最新デプロイ）**: https://aichef-595.pages.dev
 - **Cloudflareダッシュボード**: https://dash.cloudflare.com/
 
 ### **データベース**
