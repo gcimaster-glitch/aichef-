@@ -6275,15 +6275,15 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     let mainRecipes, sideRecipes, soupRecipes;
     try {
       const allMainRecipes = await env.DB.prepare(
-        `SELECT * FROM recipes WHERE role='main' AND popularity >= 5 ${combinedFilter} ORDER BY RANDOM()`
+        `SELECT * FROM recipes WHERE role='main' AND popularity >= 5 AND is_active = 1 ${combinedFilter} ORDER BY RANDOM()`
       ).all();
       
       const allSideRecipes = await env.DB.prepare(
-        `SELECT * FROM recipes WHERE role='side' AND popularity >= 5 ${combinedFilter} ORDER BY RANDOM()`
+        `SELECT * FROM recipes WHERE role='side' AND popularity >= 5 AND is_active = 1 ${combinedFilter} ORDER BY RANDOM()`
       ).all();
       
       const allSoupRecipes = await env.DB.prepare(
-        `SELECT * FROM recipes WHERE role='soup' AND popularity >= 5 ${combinedFilter} ORDER BY RANDOM()`
+        `SELECT * FROM recipes WHERE role='soup' AND popularity >= 5 AND is_active = 1 ${combinedFilter} ORDER BY RANDOM()`
       ).all();
 
       mainRecipes = (allMainRecipes.results ?? []) as any[];
