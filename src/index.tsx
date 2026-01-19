@@ -9116,7 +9116,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     
     // 新規ユーザー作成
     const household_id = uuid();
+    const member_id = uuid();
     
+    // householdsテーブルに挿入
     await env.DB.prepare(`
       INSERT INTO households (
         household_id, title, members_count, email, password_hash,
@@ -9125,20 +9127,28 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       ) VALUES (?, ?, 1, ?, ?, date('now'), 1, 800, 'average', '[]', '[]', CURRENT_TIMESTAMP)
     `).bind(household_id, name, email, password_hash).run();
     
+    // membersテーブルに挿入（外部キー制約対応）
+    await env.DB.prepare(`
+      INSERT INTO members (
+        member_id, email, password_hash, name, status, created_at
+      ) VALUES (?, ?, ?, ?, 'active', CURRENT_TIMESTAMP)
+    `).bind(member_id, email, password_hash, name).run();
+    
     // 自動ログイン用のトークン生成
     const jwtSecret = env.JWT_SECRET || 'default-secret-change-in-production';
     const { accessToken, refreshToken } = await generateTokenPair({
       household_id,
+      member_id,
       email,
       name,
       role: 'user'
     }, jwtSecret);
     
-    // セッション作成
+    // セッション作成（member_idを使用）
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     const sessionId = await createSession(
       env.DB,
-      household_id,
+      member_id,
       accessToken,
       refreshToken,
       expiresAt
@@ -9173,11 +9183,18 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return badRequest("有効なメールアドレスを入力してください");
     }
     
-    // ユーザー情報取得
+    // ユーザー情報取得（householdsとmembersを結合）
     const user = await env.DB.prepare(`
-      SELECT household_id, title as name, email, password_hash, created_at 
-      FROM households 
-      WHERE email = ?
+      SELECT 
+        h.household_id, 
+        h.title as name, 
+        h.email, 
+        h.password_hash, 
+        h.created_at,
+        m.member_id
+      FROM households h
+      LEFT JOIN members m ON h.email = m.email
+      WHERE h.email = ?
     `).bind(email).first() as any;
     
     if (!user) {
@@ -9190,20 +9207,32 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return json({ error: "メールアドレスまたはパスワードが間違っています" }, 401);
     }
     
+    // member_idが存在しない場合は新規作成（移行期対応）
+    let member_id = user.member_id;
+    if (!member_id) {
+      member_id = uuid();
+      await env.DB.prepare(`
+        INSERT INTO members (
+          member_id, email, password_hash, name, status, created_at
+        ) VALUES (?, ?, ?, ?, 'active', CURRENT_TIMESTAMP)
+      `).bind(member_id, user.email, user.password_hash, user.name).run();
+    }
+    
     // JWT トークンペア生成
     const jwtSecret = env.JWT_SECRET || 'default-secret-change-in-production';
     const { accessToken, refreshToken } = await generateTokenPair({
       household_id: user.household_id,
+      member_id: member_id,
       email: user.email,
       name: user.name,
       role: 'user'
     }, jwtSecret);
     
-    // セッション作成（7日間有効）
+    // セッション作成（7日間有効、member_idを使用）
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     const sessionId = await createSession(
       env.DB,
-      user.household_id,
+      member_id,
       accessToken,
       refreshToken,
       expiresAt

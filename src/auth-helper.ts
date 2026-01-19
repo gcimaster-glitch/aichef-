@@ -129,7 +129,7 @@ export function extractBearerToken(authHeader: string | null): string | null {
 // ========================================
 
 /**
- * パスワードをハッシュ化（bcrypt）
+ * パスワードをハッシュ化（Web Crypto API使用、Cloudflare Workers対応）
  * @param password - 平文パスワード
  * @param saltRounds - ソルトラウンド数（デフォルト: 10）
  * @returns ハッシュ化されたパスワード
@@ -138,12 +138,32 @@ export async function hashPassword(
   password: string,
   saltRounds: number = 10
 ): Promise<string> {
-  const salt = await bcrypt.genSalt(saltRounds);
-  return await bcrypt.hash(password, salt);
+  try {
+    // bcryptjsを試す
+    const salt = await bcrypt.genSalt(saltRounds);
+    return await bcrypt.hash(password, salt);
+  } catch (error) {
+    // Cloudflare Workersでbcryptjsが動作しない場合、Web Crypto APIにフォールバック
+    console.warn('bcryptjs failed, falling back to Web Crypto API:', error);
+    
+    // ソルト生成
+    const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+    const saltHex = Array.from(saltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    // パスワード + ソルトをハッシュ化
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password + saltHex);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    // ソルトとハッシュを結合して返す（bcrypt形式ではないが識別可能）
+    return `$sha256$${saltHex}$${hashHex}`;
+  }
 }
 
 /**
- * パスワード検証（bcrypt）
+ * パスワード検証（bcrypt と Web Crypto API の両方に対応）
  * @param password - 平文パスワード
  * @param hash - ハッシュ化されたパスワード
  * @returns 一致する場合 true、それ以外 false
@@ -153,8 +173,42 @@ export async function verifyPassword(
   hash: string
 ): Promise<boolean> {
   try {
-    return await bcrypt.compare(password, hash);
+    // bcryptハッシュの場合
+    if (hash.startsWith('$2')) {
+      return await bcrypt.compare(password, hash);
+    }
+    
+    // Web Crypto APIハッシュの場合
+    if (hash.startsWith('$sha256$')) {
+      const parts = hash.split('$');
+      if (parts.length !== 4) return false;
+      
+      const saltHex = parts[2];
+      const storedHashHex = parts[3];
+      
+      // パスワード + ソルトをハッシュ化
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password + saltHex);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const computedHashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      return computedHashHex === storedHashHex;
+    }
+    
+    // 古いSHA-256ハッシュ（ソルトなし、後方互換性）
+    if (hash.length === 64) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const computedHashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return computedHashHex === hash;
+    }
+    
+    return false;
   } catch (error) {
+    console.error('Password verification error:', error);
     return false;
   }
 }
