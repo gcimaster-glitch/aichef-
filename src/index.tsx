@@ -13,6 +13,17 @@ import {
   recordSubscription,
   recordEmailNotification
 } from './lib/stripe'
+import {
+  hashPassword,
+  verifyPassword,
+  generateTokenPair,
+  verifyToken,
+  authenticateRequest,
+  validatePassword,
+  validateEmail,
+  createSession,
+  invalidateSession
+} from './auth-helper'
 
 type Bindings = {
   DB?: D1Database;
@@ -22,6 +33,7 @@ type Bindings = {
   STRIPE_MONTHLY_PRICE_ID?: string;
   APP_URL?: string;
   RESEND_API_KEY?: string;
+  JWT_SECRET?: string;
 }
 
 type Json = Record<string, unknown>;
@@ -87,7 +99,10 @@ const LOGIN_HTML = `
                 const data = await response.json();
                 
                 if (data.success) {
-                    localStorage.setItem('session_id', data.session_id);
+                    // JWT トークンを保存
+                    localStorage.setItem('accessToken', data.accessToken);
+                    localStorage.setItem('refreshToken', data.refreshToken);
+                    localStorage.setItem('sessionId', data.sessionId);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     window.location.href = '/dashboard';
                 } else {
@@ -819,7 +834,9 @@ const ADMIN_LOGIN_HTML = `
                 const data = await response.json();
                 
                 if (data.success) {
-                    localStorage.setItem('admin_session_id', data.session_id);
+                    // JWT トークンを保存
+                    localStorage.setItem('admin_accessToken', data.accessToken);
+                    localStorage.setItem('admin_refreshToken', data.refreshToken);
                     localStorage.setItem('admin', JSON.stringify(data.admin));
                     window.location.href = '/admin';
                 } else {
@@ -9074,9 +9091,15 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return badRequest("名前、メールアドレス、パスワードを入力してください");
     }
     
-    // パスワード長チェック
-    if (password.length < 8) {
-      return badRequest("パスワードは8文字以上で入力してください");
+    // メールアドレスバリデーション
+    if (!validateEmail(email)) {
+      return badRequest("有効なメールアドレスを入力してください");
+    }
+    
+    // パスワード強度チェック
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return badRequest(passwordValidation.errors.join(', '));
     }
     
     // メールアドレス重複チェック
@@ -9088,7 +9111,7 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return json({ error: "このメールアドレスは既に登録されています" }, 400);
     }
     
-    // パスワードハッシュ化
+    // パスワードハッシュ化（bcrypt）
     const password_hash = await hashPassword(password);
     
     // 新規ユーザー作成
@@ -9102,10 +9125,36 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       ) VALUES (?, ?, 1, ?, ?, date('now'), 1, 800, 'average', '[]', '[]', CURRENT_TIMESTAMP)
     `).bind(household_id, name, email, password_hash).run();
     
+    // 自動ログイン用のトークン生成
+    const jwtSecret = env.JWT_SECRET || 'default-secret-change-in-production';
+    const { accessToken, refreshToken } = await generateTokenPair({
+      household_id,
+      email,
+      name,
+      role: 'user'
+    }, jwtSecret);
+    
+    // セッション作成
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const sessionId = await createSession(
+      env.DB,
+      household_id,
+      accessToken,
+      refreshToken,
+      expiresAt
+    );
+    
     return json({ 
       success: true,
       message: "会員登録が完了しました",
-      household_id
+      accessToken,
+      refreshToken,
+      sessionId,
+      user: {
+        household_id,
+        name,
+        email
+      }
     });
   }
   
@@ -9119,29 +9168,59 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return badRequest("メールアドレスとパスワードを入力してください");
     }
     
+    // メールアドレスバリデーション
+    if (!validateEmail(email)) {
+      return badRequest("有効なメールアドレスを入力してください");
+    }
+    
     // ユーザー情報取得
     const user = await env.DB.prepare(`
       SELECT household_id, title as name, email, password_hash, created_at 
       FROM households 
       WHERE email = ?
-    `).bind(email).first();
+    `).bind(email).first() as any;
     
     if (!user) {
       return json({ error: "メールアドレスまたはパスワードが間違っています" }, 401);
     }
     
-    // パスワード検証
-    const password_hash = await hashPassword(password);
-    if (password_hash !== user.password_hash) {
+    // パスワード検証（bcrypt）
+    const passwordValid = await verifyPassword(password, user.password_hash);
+    if (!passwordValid) {
       return json({ error: "メールアドレスまたはパスワードが間違っています" }, 401);
     }
     
-    // セッションIDを生成（本番環境ではJWTを使用）
-    const session_id = uuid();
+    // JWT トークンペア生成
+    const jwtSecret = env.JWT_SECRET || 'default-secret-change-in-production';
+    const { accessToken, refreshToken } = await generateTokenPair({
+      household_id: user.household_id,
+      email: user.email,
+      name: user.name,
+      role: 'user'
+    }, jwtSecret);
+    
+    // セッション作成（7日間有効）
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const sessionId = await createSession(
+      env.DB,
+      user.household_id,
+      accessToken,
+      refreshToken,
+      expiresAt
+    );
+    
+    // 最終ログイン時刻更新
+    await env.DB.prepare(`
+      UPDATE households 
+      SET last_login_at = CURRENT_TIMESTAMP 
+      WHERE household_id = ?
+    `).bind(user.household_id).run();
     
     return json({ 
       success: true,
-      session_id,
+      accessToken,
+      refreshToken,
+      sessionId,
       user: {
         household_id: user.household_id,
         name: user.name,
@@ -9160,25 +9239,62 @@ async function route(req: Request, env: Bindings): Promise<Response> {
       return badRequest("ユーザー名とパスワードを入力してください");
     }
     
-    // 簡易認証（本番環境では環境変数や専用テーブルを使用）
-    const ADMIN_USERNAME = "admin";
-    const ADMIN_PASSWORD = "aichef2026"; // 本番環境では環境変数に設定
+    // admin_users テーブルから管理者情報取得
+    const admin = await env.DB.prepare(`
+      SELECT admin_id, email, password_hash, name, role, is_active
+      FROM admin_users
+      WHERE (email = ? OR name = ?) AND is_active = 1
+    `).bind(username, username).first() as any;
     
-    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    if (!admin) {
       return json({ error: "ユーザー名またはパスワードが間違っています" }, 401);
     }
     
-    // セッションIDを生成
-    const session_id = uuid();
+    // パスワード検証（bcrypt）
+    const passwordValid = await verifyPassword(password, admin.password_hash);
+    if (!passwordValid) {
+      return json({ error: "ユーザー名またはパスワードが間違っています" }, 401);
+    }
+    
+    // JWT トークンペア生成
+    const jwtSecret = env.JWT_SECRET || 'default-secret-change-in-production';
+    const { accessToken, refreshToken } = await generateTokenPair({
+      member_id: admin.admin_id,
+      email: admin.email,
+      name: admin.name,
+      role: 'admin'
+    }, jwtSecret);
+    
+    // 最終ログイン時刻更新
+    await env.DB.prepare(`
+      UPDATE admin_users 
+      SET last_login_at = datetime('now'), updated_at = datetime('now')
+      WHERE admin_id = ?
+    `).bind(admin.admin_id).run();
     
     return json({ 
       success: true,
-      session_id,
+      accessToken,
+      refreshToken,
       admin: {
-        username,
-        role: "admin"
+        admin_id: admin.admin_id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role
       }
     });
+  }
+  
+  // POST /api/auth/logout - ログアウト
+  if (pathname === "/api/auth/logout" && req.method === "POST") {
+    const body = await readJson(req);
+    const sessionId = body.sessionId as string;
+    
+    if (sessionId && env.DB) {
+      await invalidateSession(env.DB, sessionId);
+    }
+    
+    return json({ success: true, message: "ログアウトしました" });
   }
 
   // ========================================
