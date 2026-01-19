@@ -2664,6 +2664,14 @@ const appHtml = `<!DOCTYPE html>
                             return;
                         }
                         
+                        // adults_countまたはchildren_countが設定されたらmembers_countを計算
+                        if (question.field === 'adults_count' || question.field === 'children_count') {
+                            const adults = appState.data.adults_count || 0;
+                            const children = appState.data.children_count || 0;
+                            appState.data.members_count = adults + children;
+                            console.log('[DEBUG] members_count計算:', adults, '+', children, '=', appState.data.members_count);
+                        }
+                        
                         addMessage(opt.label, false);
                         nextStep();
                     };

@@ -243,13 +243,16 @@
                 btn.className = 'mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600';
                 btn.textContent = '次へ';
                 btn.onclick = () => {
-                    appState.data[question.field] = parseInt(input.value);
+                    const value = parseInt(input.value);
+                    console.log('[DEBUG] 人数入力:', question.field, '=', value);
+                    appState.data[question.field] = value;
                     // 家族構成の簡易初期化
                     if (question.field === 'members_count') {
-                        appState.data.members = Array(parseInt(input.value)).fill(0).map(() => ({
+                        appState.data.members = Array(value).fill(0).map(() => ({
                             gender: 'unknown',
                             age_band: 'adult'
                         }));
+                        console.log('[DEBUG] appState.data.members_count =', appState.data.members_count);
                     }
                     addMessage(input.value + '人', false);
                     nextStep();
@@ -314,6 +317,7 @@
                 inputAreaEl.appendChild(confirmBtn);
             }
             else if (question.type === 'confirm') {
+                console.log('[DEBUG] 確認画面 - appState.data:', JSON.stringify(appState.data, null, 2));
                 const summary = `
                     <div class="bg-gray-50 p-4 rounded mb-4">
                         <p><strong>タイトル:</strong> ${appState.data.title}</p>
@@ -363,9 +367,9 @@
 
                 addMessage('✨ 献立が完成しました！');
                 
-                // カレンダー表示
+                // カレンダー表示（householdデータを含む）
                 document.getElementById('chat-container').classList.add('hidden');
-                showCalendar(planRes.data.days);
+                showCalendar(planRes.data.days, appState.data);
 
             } catch (error) {
                 console.error(error);
@@ -374,10 +378,24 @@
         }
 
         // カレンダー表示
-        function showCalendar(days) {
+        function showCalendar(days, householdData) {
             calendarContainerEl.classList.remove('hidden');
             
-            let html = '<div class="grid gap-4">';
+            // サマリー表示（追加）
+            const totalBudget = householdData.members_count * householdData.budget_tier_per_person * 30;
+            const summary = `
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-blue-700">
+                            <span class="font-semibold">予算:</span> ${totalBudget.toLocaleString()}円 | 
+                            <span class="font-semibold">人数:</span> ${householdData.members_count}人 | 
+                            <span class="font-semibold">日数:</span> ${days.length}日
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            let html = summary + '<div class="grid gap-4">';
             days.forEach(day => {
                 const recipes = day.recipes || [];
                 const main = recipes.find(r => r.role === 'main');
