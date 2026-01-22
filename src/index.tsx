@@ -9696,7 +9696,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     return new Response(LANDING_HTML, {
       headers: { 
         'content-type': 'text/html; charset=utf-8',
-        'cache-control': 'public, max-age=3600'
+        'cache-control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'pragma': 'no-cache',
+        'expires': '0'
       }
     });
   }
@@ -9708,7 +9710,9 @@ async function route(req: Request, env: Bindings): Promise<Response> {
     return new Response(appHtml, {
       headers: { 
         'content-type': 'text/html; charset=utf-8',
-        'cache-control': 'public, max-age=3600'
+        'cache-control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'pragma': 'no-cache',
+        'expires': '0'
       }
     });
   }
